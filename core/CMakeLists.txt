@@ -1,9 +1,14 @@
-file(GLOB_RECURSE SOURCES "src/*.cpp")
+include_directories(include)
 
-add_executable(cloth_sim ${SOURCES})
+set(CORE_SOURCES
+    src/physics/Particle.cpp
+)
 
-target_include_directories(cloth_sim PRIVATE include)
+add_library(ClothCore SHARED ${CORE_SOURCES})
 
-target_link_libraries(cloth_sim PRIVATE glm::glm nlohmann_json::nlohmann_json)
+target_link_libraries(ClothCore PUBLIC Eigen3::Eigen)
 
-set_target_properties(cloth_sim PROPERTIES RUNTIME_OUTPUT_DIRECTORY "${CMAKE_SOURCE_DIR}/bin")
+target_include_directories(ClothCore PUBLIC 
+    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
+    $<INSTALL_INTERFACE:include>
+)
