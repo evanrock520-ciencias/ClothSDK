@@ -2,6 +2,7 @@ include_directories(include)
 
 set(CORE_SOURCES
     src/physics/Particle.cpp
+    src/physics/Solver.cpp
 )
 
 add_library(ClothCore SHARED ${CORE_SOURCES})
