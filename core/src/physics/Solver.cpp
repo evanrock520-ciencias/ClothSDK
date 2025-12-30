@@ -17,9 +17,11 @@ namespace ClothSDK {
     void Solver::step(double dt) {
         applyForces();
         predictPositions(dt);
-        solveConstraints();
+        for (auto& constraint : m_constraints) 
+            constraint->resetLambda();
+        solveConstraints(dt);
         for (auto& collider : m_colliders) {
-            collider->resolve(m_particles);
+            collider->resolve(m_particles, dt);
         }
     }
 
@@ -52,11 +54,11 @@ namespace ClothSDK {
         return m_particles;
     }
 
-    void Solver::addDistanceConstraint(int idA, int idB, double stiffness) {
+    void Solver::addDistanceConstraint(int idA, int idB, double compliance) {
         Particle& pA = m_particles[idA];
         Particle& pB = m_particles[idB];
         double restLength = (pA.getPosition() - pB.getPosition()).norm();
-        m_constraints.push_back(std::make_unique<DistanceConstraint>(idA, idB, restLength, stiffness));
+        m_constraints.push_back(std::make_unique<DistanceConstraint>(idA, idB, restLength, compliance));
     }
 
     void Solver::addPlaneCollider(const Eigen::Vector3d& origin, const Eigen::Vector3d& normal, double friction) {
@@ -72,10 +74,10 @@ namespace ClothSDK {
         pA.addMass(mass);
     }
 
-    void Solver::solveConstraints() {
+    void Solver::solveConstraints(double dt) {
         for (int i = 0; i < m_iterations; i++) {
             for(auto& constraint : m_constraints)
-                constraint->solve(m_particles);
+                constraint->solve(m_particles, dt);
         }
     }
 

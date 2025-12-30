@@ -23,7 +23,7 @@ public:
     void setIterations(int count); 
     void setParticleInverseMass(int id, double invMass);
 
-    void addDistanceConstraint(int idA, int idB, double stiffness);
+    void addDistanceConstraint(int idA, int idB, double compliance);
     void addMassToParticle(int id, double mass);
     void addPlaneCollider(const Eigen::Vector3d& origin, const Eigen::Vector3d& normal, double friction);
     void addSphereCollider(const Eigen::Vector3d& center, double radius, double friction);
@@ -34,7 +34,7 @@ private:
     void step(double dt);
     void applyForces();
     void predictPositions(double dt);
-    void solveConstraints(); 
+    void solveConstraints(double dt); 
 
     std::vector<Particle> m_particles; 
     std::vector<std::unique_ptr<Constraint>> m_constraints;

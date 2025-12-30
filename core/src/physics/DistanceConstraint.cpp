@@ -2,10 +2,10 @@
 
 namespace ClothSDK {
 
-DistanceConstraint::DistanceConstraint(int idA, int idB, double restLength, double stiffness)
-: m_idA(idA), m_idB(idB), m_restLength(restLength), m_stiffness(stiffness) {}
+DistanceConstraint::DistanceConstraint(int idA, int idB, double restLength, double compliance)
+: m_idA(idA), m_idB(idB), m_restLength(restLength), m_compliance(compliance) {}
 
-void DistanceConstraint::solve(std::vector<Particle>& particles) {
+void DistanceConstraint::solve(std::vector<Particle>& particles, double dt) {
     Particle& particle1 = particles[m_idA];
     Particle& particle2 = particles[m_idB];
 
@@ -15,20 +15,21 @@ void DistanceConstraint::solve(std::vector<Particle>& particles) {
     if (currentLength <= m_restLength) return;
     if (currentLength < 1e-6) return;
 
-    double diff = (currentLength - m_restLength) / currentLength;
     double wA = particle1.getInverseMass();
     double wB = particle2.getInverseMass();
     double wSum = wA + wB;
 
     if(wSum == 0) return; 
 
-    Eigen::Vector3d correctionVector = delta * diff * m_stiffness;
+    Eigen::Vector3d deltaNormalized = delta / currentLength;
+    double diff = currentLength - m_restLength;
+    double alphaHat = m_compliance / (dt * dt);
+    double deltaLambda = (-diff - alphaHat * m_lambda) / (wSum + alphaHat);
+    m_lambda += deltaLambda;
 
-    Eigen::Vector3d deltaA = (wA / wSum) * correctionVector;
-    Eigen::Vector3d deltaB = (wB / wSum) * correctionVector;
+    particle1.setPosition(particle1.getPosition() + wA * deltaNormalized * deltaLambda);
+    particle2.setPosition(particle2.getPosition() - wB * deltaNormalized * deltaLambda);
 
-    particle1.setPosition(particle1.getPosition() - deltaA);
-    particle2.setPosition(particle2.getPosition() + deltaB);
 }
 
 }

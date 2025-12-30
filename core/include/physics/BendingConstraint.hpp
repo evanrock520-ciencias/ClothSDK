@@ -9,14 +9,14 @@ namespace ClothSDK {
 
 class BendingConstraint : public Constraint {
 public:
-    BendingConstraint(int idA, int idB, int idc, int idD, double restAngle, double stiffness);
+    BendingConstraint(int idA, int idB, int idc, int idD, double restAngle, double compliance);
 
-    void solve(std::vector<Particle>& particles) override;
+    void solve(std::vector<Particle>& particles, double dt) override;
 
 private:
     int m_idA, m_idB, m_idC, m_idD;
     double m_restAngle;
-    double m_stiffness;
+    double m_compliance;
 };
 
 }

@@ -9,7 +9,7 @@ SphereCollider::SphereCollider(const Eigen::Vector3d& center, double radius, dou
     m_friction = friction;
 }
 
-void SphereCollider::resolve(std::vector<Particle>& particles) {
+void SphereCollider::resolve(std::vector<Particle>& particles, double dt) {
     double thickness = 0.01;
     for (auto& particle : particles) {
         Eigen::Vector3d vec = particle.getPosition() - m_center;

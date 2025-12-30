@@ -5,7 +5,7 @@
 namespace ClothSDK {
 
 ClothMesh::ClothMesh() 
-: m_density(1.0), m_structuralStiffness(0.8), m_shearStiffness(0.5), m_bendingStiffness(0.2), m_cols(0), m_rows(0) {} 
+: m_density(1.0), m_structuralCompliance(0.8), m_shearCompliance(0.5), m_bendingCompliance(0.2), m_cols(0), m_rows(0) {} 
 
 void ClothMesh::initGrid(int rows, int cols, double spacing, Solver& solver) {
     m_rows = rows;
@@ -24,25 +24,25 @@ void ClothMesh::initGrid(int rows, int cols, double spacing, Solver& solver) {
             if (c < cols - 1) {
                 int idA = getParticleID(r, c);
                 int idB = getParticleID(r, c + 1);
-                solver.addDistanceConstraint(idA, idB, m_structuralStiffness);
+                solver.addDistanceConstraint(idA, idB, m_structuralCompliance);
             }
 
             if (r < rows - 1) {
                 int idA = getParticleID(r, c);
                 int idB = getParticleID(r + 1, c);
-                solver.addDistanceConstraint(idA, idB, m_structuralStiffness);
+                solver.addDistanceConstraint(idA, idB, m_structuralCompliance);
             }
 
             if (c < cols - 2) {
                 int idA = getParticleID(r, c);
                 int idB = getParticleID(r, c + 2);
-                solver.addDistanceConstraint(idA, idB, m_bendingStiffness);
+                solver.addDistanceConstraint(idA, idB, m_bendingCompliance);
             }
 
             if (r < rows - 2) {
                 int idA = getParticleID(r, c);
                 int idB = getParticleID(r + 2, c);
-                solver.addDistanceConstraint(idA, idB, m_bendingStiffness);
+                solver.addDistanceConstraint(idA, idB, m_bendingCompliance);
             }
 
             if (r < rows - 1 && c < cols - 1) {
@@ -50,8 +50,8 @@ void ClothMesh::initGrid(int rows, int cols, double spacing, Solver& solver) {
                 int idB = getParticleID(r, c + 1);
                 int idC = getParticleID(r + 1, c);
                 int idD = getParticleID(r + 1, c + 1);
-                solver.addDistanceConstraint(idA, idD, m_shearStiffness);
-                solver.addDistanceConstraint(idB, idC, m_shearStiffness);
+                solver.addDistanceConstraint(idA, idD, m_shearCompliance);
+                solver.addDistanceConstraint(idB, idC, m_shearCompliance);
 
                 m_triangles.push_back(Triangle({idA, idB, idD}));
                 m_triangles.push_back(Triangle({idA, idD, idC}));                
@@ -80,9 +80,9 @@ void ClothMesh::initGrid(int rows, int cols, double spacing, Solver& solver) {
 
 void ClothMesh::setMaterial(double density, double stretch, double shear, double bend) {
     m_density = density;
-    m_structuralStiffness = stretch;
-    m_shearStiffness = shear;
-    m_bendingStiffness = bend;
+    m_structuralCompliance = stretch;
+    m_shearCompliance = shear;
+    m_bendingCompliance = bend;
 }
 
 int ClothMesh::getParticleID(int row, int col) const {

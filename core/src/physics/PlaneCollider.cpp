@@ -8,7 +8,7 @@ PlaneCollider::PlaneCollider(const Eigen::Vector3d& origin, const Eigen::Vector3
     m_friction = friction;
 }
 
-void PlaneCollider::resolve(std::vector<Particle>& particles) {
+void PlaneCollider::resolve(std::vector<Particle>& particles, double) {
     double thickness = 0.01;
     for(auto& particle : particles) {
         Eigen::Vector3d vec = particle.getPosition() - m_origin;

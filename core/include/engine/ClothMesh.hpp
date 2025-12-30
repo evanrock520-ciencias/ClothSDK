@@ -30,9 +30,9 @@ private:
     std::vector<Triangle> m_triangles;
 
     double m_density;
-    double m_structuralStiffness;
-    double m_shearStiffness;
-    double m_bendingStiffness;
+    double m_structuralCompliance;
+    double m_shearCompliance;
+    double m_bendingCompliance;
 
     int m_rows, m_cols;
 };
