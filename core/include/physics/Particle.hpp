@@ -15,6 +15,7 @@ public:
 
     void setPosition(const Eigen::Vector3d& newPosition);
     void setInverseMass(double invMass);
+    void setOldPosition(const Eigen::Vector3d& newOldPosition);
 
     inline const Eigen::Vector3d& getPosition() const { return m_position; }
     inline const Eigen::Vector3d& getAcceleration() const { return m_acceleration; }

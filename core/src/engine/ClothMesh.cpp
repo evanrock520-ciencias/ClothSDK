@@ -78,6 +78,13 @@ void ClothMesh::initGrid(int rows, int cols, double spacing, Solver& solver) {
     }
 }
 
+void ClothMesh::setMaterial(double density, double stretch, double shear, double bend) {
+    m_density = density;
+    m_structuralStiffness = stretch;
+    m_shearStiffness = shear;
+    m_bendingStiffness = bend;
+}
+
 int ClothMesh::getParticleID(int row, int col) const {
     int localIndex = row * m_cols + col;
     return m_particlesIndices[localIndex];

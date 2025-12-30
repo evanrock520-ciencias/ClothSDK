@@ -1,5 +1,6 @@
 #include "physics/Solver.hpp"
 #include "physics/DistanceConstraint.hpp"
+#include "physics/PlaneCollider.hpp"
 #include <memory>
 #include <vector>
 
@@ -16,6 +17,9 @@ namespace ClothSDK {
         applyForces();
         predictPositions(dt);
         solveConstraints();
+        for (auto& collider : m_colliders) {
+            collider->resolve(m_particles);
+        }
     }
 
     void Solver::applyForces() {
@@ -40,7 +44,7 @@ namespace ClothSDK {
     void Solver::clear() {
         m_particles.clear();
         m_constraints.clear();
-
+        m_colliders.clear();
     }
 
     const std::vector<Particle>& Solver::getParticles() const {
@@ -52,6 +56,10 @@ namespace ClothSDK {
         Particle& pB = m_particles[idB];
         double restLength = (pA.getPosition() - pB.getPosition()).norm();
         m_constraints.push_back(std::make_unique<DistanceConstraint>(idA, idB, restLength, stiffness));
+    }
+
+    void Solver::addPlaneCollider(const Eigen::Vector3d& origin, const Eigen::Vector3d& normal, double friction) {
+        m_colliders.push_back(std::make_unique<PlaneCollider>(origin, normal, friction));
     }
 
     void Solver::addMassToParticle(int id, double mass) {

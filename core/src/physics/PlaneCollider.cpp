@@ -1,0 +1,30 @@
+#include "physics/PlaneCollider.hpp"
+#include "physics/Particle.hpp"
+
+namespace ClothSDK {
+
+PlaneCollider::PlaneCollider(const Eigen::Vector3d& origin, const Eigen::Vector3d& normal, double friction) 
+: m_origin(origin), m_normal(normal.normalized()) {
+    m_friction = friction;
+}
+
+void PlaneCollider::resolve(std::vector<Particle>& particles) {
+    double thickness = 0.01;
+    for(auto& particle : particles) {
+        Eigen::Vector3d vec = particle.getPosition() - m_origin;
+        double distance = vec.dot(m_normal);
+
+        if (distance < thickness) {
+            double penetration = thickness - distance;
+            Eigen::Vector3d newPosition = particle.getPosition() + m_normal * penetration;
+            particle.setPosition(newPosition);
+
+            Eigen::Vector3d displacement = particle.getPosition() - particle.getOldPosition();
+            Eigen::Vector3d tangential = displacement - (displacement.dot(m_normal) * m_normal);
+            particle.setOldPosition(particle.getOldPosition() + tangential * m_friction);
+
+        }
+    }
+}
+
+}

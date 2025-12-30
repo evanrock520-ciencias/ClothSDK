@@ -27,6 +27,10 @@ void Particle::setInverseMass(double invMass) {
     inverseMass = invMass;
 }
 
+void Particle::setOldPosition(const Eigen::Vector3d& newOldPosition) {
+    m_oldPosition = newOldPosition;
+}
+
 void Particle::addMass(double mass) {
     if (inverseMass == 0.0) return;
 
