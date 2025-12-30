@@ -26,6 +26,7 @@ public:
     void addDistanceConstraint(int idA, int idB, double stiffness);
     void addMassToParticle(int id, double mass);
     void addPlaneCollider(const Eigen::Vector3d& origin, const Eigen::Vector3d& normal, double friction);
+    void addSphereCollider(const Eigen::Vector3d& center, double radius, double friction);
 
     void update(double deltaTime);
 

@@ -46,8 +46,8 @@ add_executable(unit_tests tests/physics_tests.cpp)
 target_link_libraries(unit_tests PRIVATE ClothCore GTest::gtest_main)
 add_test(NAME ALLPhysicsTests COMMAND unit_tests)
 
-add_executable(collision_test tests/manual_test_collision.cpp)
-target_link_libraries(collision_test PRIVATE ClothCore Eigen3::Eigen)
+add_executable(sphere_collision_test tests/manual_test_sphere.cpp)
+target_link_libraries(sphere_collision_test PRIVATE ClothCore Eigen3::Eigen)
 
 if(BUILD_MAYA_PLUGIN)
     add_subdirectory(maya)

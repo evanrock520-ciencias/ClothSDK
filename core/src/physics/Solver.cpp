@@ -1,6 +1,7 @@
 #include "physics/Solver.hpp"
 #include "physics/DistanceConstraint.hpp"
 #include "physics/PlaneCollider.hpp"
+#include "physics/SphereCollider.hpp"
 #include <memory>
 #include <vector>
 
@@ -60,6 +61,10 @@ namespace ClothSDK {
 
     void Solver::addPlaneCollider(const Eigen::Vector3d& origin, const Eigen::Vector3d& normal, double friction) {
         m_colliders.push_back(std::make_unique<PlaneCollider>(origin, normal, friction));
+    }
+
+    void Solver::addSphereCollider(const Eigen::Vector3d& center, double radius, double friction) {
+        m_colliders.push_back(std::make_unique<SphereCollider>(center, radius, friction));
     }
 
     void Solver::addMassToParticle(int id, double mass) {
