@@ -3,10 +3,12 @@
 #include "math/Types.hpp"
 
 #include <Eigen/Dense>
+#include <cmath>
 #include <fstream>
 #include <string>
 #include <utility>
 #include <vector>
+#include <map>
 
 namespace ClothSDK {
 
@@ -26,8 +28,18 @@ public:
     int getParticleID(int row, int col) const;
 
 private:
+    struct Edge {
+        int v1, v2;
+        Edge(int a, int b) : v1(std::fmin(a, b)), v2(std::fmax(a, b)) {}
+        
+        bool operator<(const Edge& other) const {
+            return v1 < other.v1 || (v1 == other.v1 && v2 < other.v2);
+        }
+    };
+
     std::vector<int> m_particlesIndices;
     std::vector<Triangle> m_triangles;
+    std::map<Edge, int> edgeNeighbors;
 
     double m_density;
     double m_structuralCompliance;

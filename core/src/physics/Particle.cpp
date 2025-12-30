@@ -13,9 +13,18 @@ void Particle::clearForces() {
 }
 
 void Particle::integrate(double deltaTime) {
-    Eigen::Vector3d current = m_position;
-    m_position = m_position + 0.99 * (m_position - m_oldPosition) + m_acceleration * (deltaTime * deltaTime);
-    m_oldPosition = current;
+    if (inverseMass <= 0.0) {
+        m_acceleration = Eigen::Vector3d::Zero();
+        m_oldPosition = m_position; 
+        return;
+    }
+
+    Eigen::Vector3d velocity = m_position - m_oldPosition;
+    Eigen::Vector3d currentPos = m_position;
+
+    m_position = m_position + velocity + m_acceleration * (deltaTime * deltaTime);
+    
+    m_oldPosition = currentPos;
     clearForces();
 }
 

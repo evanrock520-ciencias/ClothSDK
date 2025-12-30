@@ -27,8 +27,12 @@ void SphereCollider::resolve(std::vector<Particle>& particles, double dt) {
             particle.setPosition(newPosition);
 
             Eigen::Vector3d displacement = particle.getPosition() - particle.getOldPosition();
-            Eigen::Vector3d tangential = displacement - (displacement.dot(normal) * normal);
-            particle.setOldPosition(particle.getOldPosition() + tangential * m_friction);
+            Eigen::Vector3d normalDisp = normal * displacement.dot(normal);
+            Eigen::Vector3d tangentialDisp = displacement - normalDisp;
+            Eigen::Vector3d newDisplacement = normalDisp + tangentialDisp * (1.0 - m_friction);
+
+            particle.setOldPosition(particle.getPosition() - newDisplacement);
+
         }
     }
 }

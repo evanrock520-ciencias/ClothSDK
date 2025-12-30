@@ -20,10 +20,13 @@ void BendingConstraint::solve(std::vector<Particle>& particles, double dt) {
 
     Eigen::Vector3d normal1 = edgeVector.cross(CVector);
     Eigen::Vector3d normal2 = edgeVector.cross(DVector);
+
     double area1 = normal1.norm();
     double area2 = normal2.norm();
 
-    if (area1 <= 0.0 || area2 <= 0.0) return;
+    if (area1 < 1e-9 || area2 < 1e-9) {
+        return; 
+    }
 
     double cosTheta = normal1.dot(normal2) / (area1 * area2);
     double clampedCos = std::clamp(cosTheta, -1.0, 1.0);
@@ -32,8 +35,8 @@ void BendingConstraint::solve(std::vector<Particle>& particles, double dt) {
     if (normal1.squaredNorm() < 1e-6)
         return;
 
-    Eigen::Vector3d gradC = length * (normal1 / (normal1.squaredNorm()));
-    Eigen::Vector3d gradD = length * (normal2 / (normal2.squaredNorm()));
+    Eigen::Vector3d gradC = (length / area1) * (normal1 / area1);
+    Eigen::Vector3d gradD = (length / area2) * (normal2 / area2);
 
     double weightBC = (- (pB.getPosition() - pC.getPosition()).dot(edgeVector)) / length;
     double weightBD = (- (pB.getPosition() - pD.getPosition()).dot(edgeVector)) / length;
@@ -49,6 +52,7 @@ void BendingConstraint::solve(std::vector<Particle>& particles, double dt) {
     double wD = pD.getInverseMass();
 
     double wSum = wA * gradA.squaredNorm() + wB * gradB.squaredNorm() + wC * gradC.squaredNorm() + wD * gradD.squaredNorm();
+    
     double alphaHat = m_compliance / (dt * dt);
     double deltaLambda = (-(currentAngle - m_restAngle) - alphaHat * m_lambda) / (wSum + alphaHat);
     m_lambda += deltaLambda;

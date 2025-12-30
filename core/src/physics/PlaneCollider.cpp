@@ -20,8 +20,12 @@ void PlaneCollider::resolve(std::vector<Particle>& particles, double) {
             particle.setPosition(newPosition);
 
             Eigen::Vector3d displacement = particle.getPosition() - particle.getOldPosition();
-            Eigen::Vector3d tangential = displacement - (displacement.dot(m_normal) * m_normal);
-            particle.setOldPosition(particle.getOldPosition() + tangential * m_friction);
+            Eigen::Vector3d normalDisp = m_normal * displacement.dot(m_normal);
+            Eigen::Vector3d tangentialDisp = displacement - normalDisp;
+            Eigen::Vector3d newDisplacement = normalDisp + tangentialDisp * (1.0 - m_friction);
+
+            particle.setOldPosition(particle.getPosition() - newDisplacement);
+
 
         }
     }

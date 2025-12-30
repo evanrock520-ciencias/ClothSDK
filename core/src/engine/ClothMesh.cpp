@@ -10,6 +10,7 @@ ClothMesh::ClothMesh()
 void ClothMesh::initGrid(int rows, int cols, double spacing, Solver& solver) {
     m_rows = rows;
     m_cols = cols;
+    m_triangles.clear();
 
     for(int r = 0; r < m_rows; r++) {
         for(int c = 0; c < m_cols; c++) {
@@ -33,18 +34,6 @@ void ClothMesh::initGrid(int rows, int cols, double spacing, Solver& solver) {
                 solver.addDistanceConstraint(idA, idB, m_structuralCompliance);
             }
 
-            if (c < cols - 2) {
-                int idA = getParticleID(r, c);
-                int idB = getParticleID(r, c + 2);
-                solver.addDistanceConstraint(idA, idB, m_bendingCompliance);
-            }
-
-            if (r < rows - 2) {
-                int idA = getParticleID(r, c);
-                int idB = getParticleID(r + 2, c);
-                solver.addDistanceConstraint(idA, idB, m_bendingCompliance);
-            }
-
             if (r < rows - 1 && c < cols - 1) {
                 int idA = getParticleID(r, c);
                 int idB = getParticleID(r, c + 1);
@@ -52,6 +41,8 @@ void ClothMesh::initGrid(int rows, int cols, double spacing, Solver& solver) {
                 int idD = getParticleID(r + 1, c + 1);
                 solver.addDistanceConstraint(idA, idD, m_shearCompliance);
                 solver.addDistanceConstraint(idB, idC, m_shearCompliance);
+
+                solver.addBendingConstraint(idA, idD, idB, idC, 0.0, m_bendingCompliance);
 
                 m_triangles.push_back(Triangle({idA, idB, idD}));
                 m_triangles.push_back(Triangle({idA, idD, idC}));                
@@ -75,6 +66,7 @@ void ClothMesh::initGrid(int rows, int cols, double spacing, Solver& solver) {
         solver.addMassToParticle(triangle.a, massPerVertex);
         solver.addMassToParticle(triangle.b, massPerVertex);
         solver.addMassToParticle(triangle.c, massPerVertex);
+        solver.addAeroFace(triangle.a, triangle.b, triangle.c);
     }
 }
 
