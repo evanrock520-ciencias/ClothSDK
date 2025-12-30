@@ -1,7 +1,10 @@
 #pragma once
 
-#include "Particle.hpp"
+#include "Particle.hpp"  
+#include "Constraint.hpp"
 #include <vector>
+#include <memory>
+#include <Eigen/Dense>
 
 namespace ClothSDK {
 
@@ -9,24 +12,32 @@ class Solver {
 public:
     Solver();
 
-    void addParticle(const Particle& p);
+    int addParticle(const Particle& p);
     void clear();
 
     const std::vector<Particle>& getParticles() const;
 
-    void setGravity(const Eigen::Vector3d gravity);
+    void setGravity(const Eigen::Vector3d& gravity);
     void setSubsteps(int count);
-    
+    void setIterations(int count); 
+    void setParticleInverseMass(int id, double invMass);
+
+    void addDistanceConstraint(int idA, int idB, double stiffness);
+    void addMassToParticle(int id, double mass);
+
     void update(double deltaTime);
 
 private:
     void step(double dt);
     void applyForces();
     void predictPositions(double dt);
+    void solveConstraints(); 
 
-    std::vector<Particle> listParticles;
+    std::vector<Particle> m_particles; 
+    std::vector<std::unique_ptr<Constraint>> m_constraints;
     Eigen::Vector3d m_gravity;
     int m_substeps;
+    int m_iterations; 
 };
 
-}
+} 

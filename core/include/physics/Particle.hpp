@@ -11,6 +11,10 @@ public:
     void addForce(const Eigen::Vector3d& force);
     void clearForces();
     void integrate(double deltaTime);
+    void addMass(double mass);
+
+    void setPosition(const Eigen::Vector3d& newPosition);
+    void setInverseMass(double invMass);
 
     inline const Eigen::Vector3d& getPosition() const { return m_position; }
     inline const Eigen::Vector3d& getAcceleration() const { return m_acceleration; }

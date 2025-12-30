@@ -1,8 +1,10 @@
-include_directories(include)
-
 set(CORE_SOURCES
     src/physics/Particle.cpp
     src/physics/Solver.cpp
+    src/physics/Constraint.cpp
+    src/physics/DistanceConstraint.cpp
+    src/physics/BendingConstraint.cpp
+    src/engine/ClothMesh.cpp
 )
 
 add_library(ClothCore SHARED ${CORE_SOURCES})

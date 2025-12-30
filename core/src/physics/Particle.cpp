@@ -19,4 +19,20 @@ void Particle::integrate(double deltaTime) {
     clearForces();
 }
 
+void Particle::setPosition(const Eigen::Vector3d& newPosition) {
+    m_position = newPosition;
+}
+
+void Particle::setInverseMass(double invMass) {
+    inverseMass = invMass;
+}
+
+void Particle::addMass(double mass) {
+    if (inverseMass == 0.0) return;
+
+    double currentMass = 1.0 / inverseMass;
+    currentMass += mass;
+    inverseMass = 1.0 / currentMass;
+}
+
 }

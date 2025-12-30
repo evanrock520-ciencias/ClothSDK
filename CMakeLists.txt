@@ -42,9 +42,10 @@ endif()
 
 add_subdirectory(core)
 
-add_executable(particle_print_test tests/manual_test.cpp)
+add_executable(unit_tests tests/physics_tests.cpp)
+target_link_libraries(unit_tests PRIVATE ClothCore GTest::gtest_main)
+add_test(NAME ALLPhysicsTests COMMAND unit_tests)
 
-target_link_libraries(particle_print_test PRIVATE ClothCore)
 
 if(BUILD_MAYA_PLUGIN)
     add_subdirectory(maya)
