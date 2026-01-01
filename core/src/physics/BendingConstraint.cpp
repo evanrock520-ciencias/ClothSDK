@@ -24,9 +24,7 @@ void BendingConstraint::solve(std::vector<Particle>& particles, double dt) {
     double area1 = normal1.norm();
     double area2 = normal2.norm();
 
-    if (area1 < 1e-9 || area2 < 1e-9) {
-        return; 
-    }
+    if (area1 < 1e-6 || area2 < 1e-6 || length < 1e-6) return;
 
     double cosTheta = normal1.dot(normal2) / (area1 * area2);
     double clampedCos = std::clamp(cosTheta, -1.0, 1.0);

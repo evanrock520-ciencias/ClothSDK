@@ -7,7 +7,9 @@
 #include <vector>
 
 namespace ClothSDK {
-    Solver::Solver() : m_gravity(0.0, -9.81, 0.0), m_substeps(2), m_iterations(5), m_wind(5.0, 0.0, 2.0), m_airDensity(0.5), m_time(0.0) {}
+    Solver::Solver()
+    : m_gravity(0.0, -9.81, 0.0), m_substeps(10), m_iterations(2), m_wind(2.0, 0.0, 1.0),
+    m_airDensity(0.1), m_time(0.0), m_thickness(0.02), m_spatialHash(10007, 0.02) {}
 
     void Solver::update(double deltaTime) {
         m_time += deltaTime;
@@ -19,9 +21,20 @@ namespace ClothSDK {
     void Solver::step(double dt) {
         applyForces(dt);
         predictPositions(dt);
+
+        m_spatialHash.setCellSize(m_thickness); 
+        m_spatialHash.build(m_particles);
+
         for (auto& constraint : m_constraints) 
             constraint->resetLambda();
-        solveConstraints(dt);
+
+        for (int i = 0; i < m_iterations; i++) {
+            for(auto& constraint : m_constraints)
+                constraint->solve(m_particles, dt);
+            
+            solveSelfCollisions(m_thickness);
+        }
+
         for (auto& collider : m_colliders) {
             collider->resolve(m_particles, dt);
         }
@@ -123,6 +136,49 @@ namespace ClothSDK {
         }
     }
 
+    void Solver::solveSelfCollisions(double thickness) {
+        double thicknessSq = thickness * thickness;
+
+        for (int i = 0; i < (int)m_particles.size(); ++i) {
+            Particle& pA = m_particles[i];
+            double wA = pA.getInverseMass();
+            if (wA == 0.0) continue;
+
+            std::vector<int> neighbors;
+            m_spatialHash.query(m_particles, pA.getPosition(), thickness, neighbors);
+
+            for (int j : neighbors) {
+                if (i >= j) continue;
+
+                Particle& pB = m_particles[j];
+                double wB = pB.getInverseMass();
+                double wSum = wA + wB;
+                if (wSum == 0.0) continue;
+
+                Eigen::Vector3d dir = pA.getPosition() - pB.getPosition();
+                double distSq = dir.squaredNorm();
+
+                if (distSq > 0.0 && distSq < thicknessSq) {
+                    double dist = std::sqrt(distSq);
+                    
+                    Eigen::Vector3d normal;
+                    if (dist < 1e-6) {
+                        normal = Eigen::Vector3d(0, 1, 0); 
+                        dist = 1e-6; 
+                    } else {
+                        normal = dir / dist;
+                    }
+
+                    double C = dist - thickness;
+
+                    double deltaLambda = -C / wSum;
+
+                    pA.setPosition(pA.getPosition() + (wA * deltaLambda) * normal);
+                    pB.setPosition(pB.getPosition() - (wB * deltaLambda) * normal);
+                }
+            }
+        }
+    }
 
     void Solver::setIterations(int count) {
         m_iterations = count;

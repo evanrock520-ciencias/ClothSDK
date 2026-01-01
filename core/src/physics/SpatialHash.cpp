@@ -1,4 +1,5 @@
 #include "physics/SpatialHash.hpp"
+#include "physics/Particle.hpp"
 #include <cmath>
 #include <cstddef>
 
@@ -43,7 +44,8 @@ void SpatialHash::build(const std::vector<Particle>& particles) {
     }
 }
 
-void SpatialHash::query(const Eigen::Vector3d& pos, double radius, std::vector<int>& outNeighbors) {
+void SpatialHash::query(const std::vector<Particle>& particles, const Eigen::Vector3d& pos, double radius, std::vector<int>& outNeighbors) const {
+    outNeighbors.clear();
     Eigen::Vector3d sphereRadius(radius, radius, radius);
     Eigen::Vector3d pMin = pos - sphereRadius;
     Eigen::Vector3d pMax = pos + sphereRadius;
@@ -60,8 +62,11 @@ void SpatialHash::query(const Eigen::Vector3d& pos, double radius, std::vector<i
                 int hash = hashCoords(x, y, z);
                 int start = m_cellStart[hash];
                 int end = m_cellStart[hash + 1];
-                for(int i = start; i < end; ++i) {
-                    outNeighbors.push_back(m_particleIndices[i]);
+                for (int m = start; m < end; ++m) {
+                    int pIndex = m_particleIndices[m];
+                    double distance = (particles[pIndex].getPosition() - pos).squaredNorm();
+                    if (distance < radius * radius)
+                        outNeighbors.push_back(pIndex);
                 }
             }
         }

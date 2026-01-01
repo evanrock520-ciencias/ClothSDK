@@ -7,6 +7,7 @@ set(CORE_SOURCES
     src/physics/Collider.cpp
     src/physics/PlaneCollider.cpp
     src/physics/SphereCollider.cpp
+    src/physics/SpatialHash.cpp
     src/engine/ClothMesh.cpp
 )
 

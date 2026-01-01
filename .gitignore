@@ -1,5 +1,6 @@
 build/
 bin/
+docs/gen/
 
 *.o
 *.a
@@ -19,3 +20,5 @@ data/cache/*
 
 .vscode/
 *.log
+
+main.cpp

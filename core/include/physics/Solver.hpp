@@ -3,6 +3,7 @@
 #include "Particle.hpp"  
 #include "Constraint.hpp"
 #include "Collider.hpp"
+#include "SpatialHash.hpp"
 #include <vector>
 #include <memory>
 #include <Eigen/Dense>
@@ -41,6 +42,7 @@ private:
     void predictPositions(double dt);
     void solveConstraints(double dt); 
     void applyAerodynamics(double dt);
+    void solveSelfCollisions(double dt);
 
     struct AeroFace {
         int a, b, c;
@@ -49,6 +51,7 @@ private:
     std::vector<Particle> m_particles; 
     std::vector<std::unique_ptr<Constraint>> m_constraints;
     std::vector<std::unique_ptr<Collider>> m_colliders;
+    SpatialHash m_spatialHash;
     Eigen::Vector3d m_gravity;
     int m_substeps;
     int m_iterations;
@@ -56,6 +59,7 @@ private:
     Eigen::Vector3d m_wind;
     double m_airDensity;
     double m_time; 
+    double m_thickness;
 };
 
 } 
