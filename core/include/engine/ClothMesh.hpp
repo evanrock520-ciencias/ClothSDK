@@ -19,7 +19,7 @@ public:
     ClothMesh();
 
     void initGrid(int rows, int cols, double spacing, Solver& solver);
-    void buildFromMesh(const std::vector<Eigen::Vector3d>& positions, const std::vector<int>& indexs, Solver& solver);
+    void buildFromMesh(const std::vector<Eigen::Vector3d>& positions, const std::vector<int>& indices, Solver& solver);
 
     void setMaterial(double density, double stretch, double shear, double bend);
 
@@ -30,16 +30,18 @@ public:
 private:
     struct Edge {
         int v1, v2;
-        Edge(int a, int b) : v1(std::fmin(a, b)), v2(std::fmax(a, b)) {}
+        Edge(int a, int b) : v1(std::min(a, b)), v2(std::max(a, b)) {}
         
         bool operator<(const Edge& other) const {
             return v1 < other.v1 || (v1 == other.v1 && v2 < other.v2);
         }
     };
 
+    int getOppositeVertex(const Triangle& tri, int v1, int v2) const;
+    double calculateInitialAngle(int v1,int v2,int v3,int v4, const Solver& solver) const;
+
     std::vector<int> m_particlesIndices;
     std::vector<Triangle> m_triangles;
-    std::map<Edge, int> edgeNeighbors;
 
     double m_density;
     double m_structuralCompliance;

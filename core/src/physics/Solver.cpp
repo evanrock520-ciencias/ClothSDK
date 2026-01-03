@@ -8,8 +8,8 @@
 
 namespace ClothSDK {
     Solver::Solver()
-    : m_gravity(0.0, -9.81, 0.0), m_substeps(10), m_iterations(2), m_wind(2.0, 0.0, 1.0),
-    m_airDensity(0.1), m_time(0.0), m_thickness(0.02), m_spatialHash(10007, 0.02) {}
+    : m_gravity(0.0, -9.81, 0.0), m_substeps(15), m_iterations(2), m_wind(2.0, 0.0, 1.0),
+    m_airDensity(0.1), m_time(0.0), m_thickness(0.08), m_spatialHash(10007, 0.08) {}
 
     void Solver::update(double deltaTime) {
         m_time += deltaTime;
