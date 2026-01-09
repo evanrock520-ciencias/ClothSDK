@@ -27,6 +27,11 @@ public:
 
     int getParticleID(int row, int col) const;
 
+    double getDensity() const { return m_density; }
+    double getStructuralCompliance() const { return m_structuralCompliance; }
+    double getShearCompliance() const { return m_shearCompliance; }
+    double getBendingCompliance() const { return m_bendingCompliance; }
+
 private:
     struct Edge {
         int v1, v2;

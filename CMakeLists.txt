@@ -23,10 +23,25 @@ FetchContent_Declare(
   GIT_TAG        3.4.0 
 )
 
+FetchContent_Declare(
+  tinyobjloader
+  GIT_REPOSITORY https://github.com/tinyobjloader/tinyobjloader.git
+  GIT_TAG        release
+)
+
+FetchContent_Declare(
+  json
+  GIT_REPOSITORY https://github.com/nlohmann/json.git
+  GIT_TAG        v3.11.3
+)
+
+set(TINYOBJLOADER_INSTALL OFF CACHE BOOL "" FORCE)
+set(EIGEN_BUILD_PKGCONFIG OFF CACHE BOOL "" FORCE)
+set(JSON_BuildTests OFF CACHE BOOL "" FORCE)
 set(INSTALL_GTEST OFF CACHE BOOL "" FORCE)
 set(gtest_force_shared_crt ON CACHE BOOL "" FORCE)
 
-FetchContent_MakeAvailable(googletest eigen)
+FetchContent_MakeAvailable(googletest eigen tinyobjloader json)
 
 option(BUILD_MAYA_PLUGIN "Build the Maya plugin" OFF)
 

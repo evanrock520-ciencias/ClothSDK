@@ -25,16 +25,23 @@ public:
     void setParticleInverseMass(int id, double invMass);
     void setWind(const Eigen::Vector3d& wind) {m_wind = wind; }
     void setAirDensity(double density) {m_airDensity = density; }
+    void setThickness(double thickness) { m_thickness = thickness; }
 
     void addDistanceConstraint(int idA, int idB, double compliance);
     void addBendingConstraint(int a, int b, int c, int d, double restAngle, double compliance);
     void addMassToParticle(int id, double mass);
     void addPlaneCollider(const Eigen::Vector3d& origin, const Eigen::Vector3d& normal, double friction);
     void addSphereCollider(const Eigen::Vector3d& center, double radius, double friction);
-
     void addAeroFace(int idA, int idB, int idC);
 
     void update(double deltaTime);
+
+    int getSubsteps() const { return m_substeps; }
+    int getIterations() const { return m_iterations; }
+    const Eigen::Vector3d& getGravity() const { return m_gravity; }
+    double getAirDensity() const { return m_airDensity; }
+    const Eigen::Vector3d& getWind() const { return m_wind; }
+    double getThickness() const { return m_thickness; }
 
 private:
     void step(double dt);
