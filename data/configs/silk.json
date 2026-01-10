@@ -13,8 +13,8 @@
         }
     },
     "aerodynamics": {
-        "wind_velocity": [10.0, 0.0, 2.0],
-        "air_density": 0.05
+        "wind_velocity": [5.0, 2.0, 10.0],
+        "air_density": 0.2
     },
     "collisions": {
         "thickness": 0.02

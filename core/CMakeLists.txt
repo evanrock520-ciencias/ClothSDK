@@ -11,6 +11,7 @@ set(CORE_SOURCES
     src/engine/ClothMesh.cpp
     src/io/OBJLoader.cpp
     src/io/ConfigLoader.cpp
+    src/utils/Logger.cpp
 )
 
 add_library(ClothCore SHARED ${CORE_SOURCES})
