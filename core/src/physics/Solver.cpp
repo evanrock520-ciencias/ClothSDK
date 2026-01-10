@@ -9,7 +9,7 @@
 namespace ClothSDK {
     Solver::Solver()
     : m_gravity(0.0, -9.81, 0.0), m_substeps(15), m_iterations(2), m_wind(2.0, 0.0, 1.0),
-    m_airDensity(0.1), m_time(0.0), m_thickness(0.08), m_spatialHash(10007, 0.08) {}
+    m_airDensity(0.1), m_time(0.0), m_collisionCompliance(1e-9), m_thickness(0.08), m_spatialHash(10007, 0.08) {}
 
     void Solver::update(double deltaTime) {
         m_time += deltaTime;
@@ -75,10 +75,16 @@ namespace ClothSDK {
         Particle& pB = m_particles[idB];
         double restLength = (pA.getPosition() - pB.getPosition()).norm();
         m_constraints.push_back(std::make_unique<DistanceConstraint>(idA, idB, restLength, compliance));
+        m_adjacencies.insert(getAdjacencyKey(idA, idB));
     }
 
     void Solver::addBendingConstraint(int idA, int idB, int idC, int idD, double restAngle, double compliance) {
         m_constraints.push_back(std::make_unique<BendingConstraint>(idA, idB, idC, idD, restAngle, compliance));
+        m_adjacencies.insert(getAdjacencyKey(idA, idC));
+        m_adjacencies.insert(getAdjacencyKey(idB, idC));
+        m_adjacencies.insert(getAdjacencyKey(idA, idD));
+        m_adjacencies.insert(getAdjacencyKey(idB, idD));
+
     }
 
     void Solver::addPlaneCollider(const Eigen::Vector3d& origin, const Eigen::Vector3d& normal, double friction) {
@@ -95,10 +101,8 @@ namespace ClothSDK {
     }
 
     void Solver::solveConstraints(double dt) {
-        for (int i = 0; i < m_iterations; i++) {
-            for(auto& constraint : m_constraints)
-                constraint->solve(m_particles, dt);
-        }
+        for(auto& constraint : m_constraints)
+            constraint->solve(m_particles, dt);
     }
 
     void Solver::applyAerodynamics(double dt) {
@@ -136,48 +140,52 @@ namespace ClothSDK {
         }
     }
 
-    void Solver::solveSelfCollisions(double thickness) {
-        double thicknessSq = thickness * thickness;
+    void Solver::solveSelfCollisions(double dt) {
+        double alphaHat = m_collisionCompliance / (dt * dt);
+        double thicknessSq = m_thickness * m_thickness;
 
         for (int i = 0; i < (int)m_particles.size(); ++i) {
             Particle& pA = m_particles[i];
             double wA = pA.getInverseMass();
             if (wA == 0.0) continue;
 
-            std::vector<int> neighbors;
-            m_spatialHash.query(m_particles, pA.getPosition(), thickness, neighbors);
+            m_spatialHash.query(m_particles, pA.getPosition(), m_thickness, m_neighborsBuffer);
 
-            for (int j : neighbors) {
-                if (i >= j) continue;
+            for (int j : m_neighborsBuffer) {
+                if (i >= j) continue; 
+
+                if (m_adjacencies.count(getAdjacencyKey(i, j))) continue;
 
                 Particle& pB = m_particles[j];
                 double wB = pB.getInverseMass();
                 double wSum = wA + wB;
-                if (wSum == 0.0) continue;
+
+                if (wSum + alphaHat < 1e-12) continue;
 
                 Eigen::Vector3d dir = pA.getPosition() - pB.getPosition();
                 double distSq = dir.squaredNorm();
 
                 if (distSq > 0.0 && distSq < thicknessSq) {
                     double dist = std::sqrt(distSq);
+                    Eigen::Vector3d normal = dir / dist;
+
+                    double C = dist - m_thickness;
                     
-                    Eigen::Vector3d normal;
-                    if (dist < 1e-6) {
-                        normal = Eigen::Vector3d(0, 1, 0); 
-                        dist = 1e-6; 
-                    } else {
-                        normal = dir / dist;
-                    }
+                    double deltaLambda = -C / (wSum + alphaHat);
+                    Eigen::Vector3d corr = normal * deltaLambda;
 
-                    double C = dist - thickness;
-
-                    double deltaLambda = -C / wSum;
-
-                    pA.setPosition(pA.getPosition() + (wA * deltaLambda) * normal);
-                    pB.setPosition(pB.getPosition() - (wB * deltaLambda) * normal);
+                    pA.setPosition(pA.getPosition() + corr * wA);
+                    pB.setPosition(pB.getPosition() - corr * wB);
                 }
             }
         }
+    }
+
+    uint64_t Solver::getAdjacencyKey(int idA, int idB) const{
+        uint64_t low = static_cast<uint32_t>(std::min(idA, idB));
+        uint64_t high = static_cast<uint32_t>(std::max(idA, idB));
+
+        return (high << 32) | low;
     }
 
     void Solver::setIterations(int count) {

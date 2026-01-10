@@ -1,6 +1,7 @@
 #include <pybind11/pybind11.h>
 #include <pybind11/eigen.h>
 #include <pybind11/stl.h>
+#include <tuple>
 
 #include "physics/Particle.hpp"
 #include "physics/Constraint.hpp"
@@ -78,7 +79,9 @@ PYBIND11_MODULE(cloth_sdk, m) {
         .def("add_sphere_collider", &Solver::addSphereCollider)
         .def("set_wind", &Solver::setWind)
         .def("set_air_density", &Solver::setAirDensity)
-        .def("set_thickness", &Solver::setThickness);
+        .def("set_thickness", &Solver::setThickness)
+        .def("set_collision_compliance", &Solver::setCollisionCompliance)
+        .def("set_particle_inverse_mass", &Solver::setParticleInverseMass);
 
     py::class_<ClothMesh>(m, "ClothMesh")
         .def(py::init<>())
@@ -88,7 +91,13 @@ PYBIND11_MODULE(cloth_sdk, m) {
         .def("export_to_obj", &ClothMesh::exportToOBJ);
 
     py::class_<OBJLoader>(m, "OBJLoader")
-        .def_static("load", &OBJLoader::load);
+        .def_static("load", [](const std::string& path) {
+        std::vector<Eigen::Vector3d> pos;
+        std::vector<int> indices;
+        bool success = ClothSDK::OBJLoader::load(path, pos, indices);
+        
+        return std::make_tuple(success, pos, indices);
+    });
 
     py::class_<ConfigLoader>(m, "ConfigLoader")
         .def_static("load", &ConfigLoader::load)

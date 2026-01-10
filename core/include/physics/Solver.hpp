@@ -4,6 +4,7 @@
 #include "Constraint.hpp"
 #include "Collider.hpp"
 #include "SpatialHash.hpp"
+#include <unordered_set>
 #include <vector>
 #include <memory>
 #include <Eigen/Dense>
@@ -26,6 +27,7 @@ public:
     void setWind(const Eigen::Vector3d& wind) {m_wind = wind; }
     void setAirDensity(double density) {m_airDensity = density; }
     void setThickness(double thickness) { m_thickness = thickness; }
+    void setCollisionCompliance(double c) { m_collisionCompliance = c; }
 
     void addDistanceConstraint(int idA, int idB, double compliance);
     void addBendingConstraint(int a, int b, int c, int d, double restAngle, double compliance);
@@ -42,6 +44,7 @@ public:
     double getAirDensity() const { return m_airDensity; }
     const Eigen::Vector3d& getWind() const { return m_wind; }
     double getThickness() const { return m_thickness; }
+    double getCollisionCompliance() const { return m_collisionCompliance; }
 
 private:
     void step(double dt);
@@ -50,6 +53,7 @@ private:
     void solveConstraints(double dt); 
     void applyAerodynamics(double dt);
     void solveSelfCollisions(double dt);
+    uint64_t getAdjacencyKey(int idA, int idB) const;
 
     struct AeroFace {
         int a, b, c;
@@ -58,6 +62,8 @@ private:
     std::vector<Particle> m_particles; 
     std::vector<std::unique_ptr<Constraint>> m_constraints;
     std::vector<std::unique_ptr<Collider>> m_colliders;
+    std::vector<int> m_neighborsBuffer;
+    std::unordered_set<uint64_t> m_adjacencies;
     SpatialHash m_spatialHash;
     Eigen::Vector3d m_gravity;
     int m_substeps;
@@ -67,6 +73,7 @@ private:
     double m_airDensity;
     double m_time; 
     double m_thickness;
+    double m_collisionCompliance;
 };
 
 } 
