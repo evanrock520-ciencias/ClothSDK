@@ -3,19 +3,31 @@
 #include <memory>
 
 #include "Application.hpp"
+#include "engine/ClothMesh.hpp"
 #include "utils/Logger.hpp"
 #include "physics/Solver.hpp"
+#include "physics/Particle.hpp"
 #include "Renderer.hpp"
 #include "Camera.hpp"
 
 namespace ClothSDK {
 namespace Viewer {
 
+Application::Application() 
+    : m_window(nullptr), 
+    m_solver(nullptr), 
+    m_renderer(nullptr), 
+    m_camera(nullptr), 
+    m_deltaTime(0.0), 
+    m_lastFrame(0.0) 
+{
+
+}
+
 Application::~Application() = default;
 
 bool Application::init(int width, int height, const std::string& title) {
     if(!glfwInit()) return false;
-
     glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
     glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
     glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
@@ -34,10 +46,22 @@ bool Application::init(int width, int height, const std::string& title) {
         Logger::error("Failed to initialize GLAD");
         return false; 
     }
-
     m_solver = std::make_unique<Solver>();
     m_renderer = std::make_unique<Renderer>();
     m_camera = std::make_unique<Camera>();
+
+    if (!m_renderer->init()) {
+        Logger::error("Failed to initialize Renderer (Shaders/Buffers)");
+        return false;
+    }
+
+    m_camera->setAspectRatio((float)width / (float)height);
+
+    ClothMesh mesh; 
+    mesh.initGrid(20, 20, 0.1, *m_solver); 
+
+    for(int i = 0; i < 20; ++i) 
+        m_solver->setParticleInverseMass(mesh.getParticleID(19, i), 0.0);
 
     glViewport(0, 0, width, height);
     
@@ -77,7 +101,7 @@ void Application::render() {
     glClearColor(0.12f, 0.12f, 0.12f, 1.0f);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-    // TODO: m_renderer->draw(*m_solver, *m_camera);
+    m_renderer->render(*m_solver, *m_camera);
 }
 
 void Application::shutdown() {

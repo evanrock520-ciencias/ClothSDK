@@ -1,32 +1,31 @@
 #pragma once
-
-#include "Eigen/Dense"
+#include <Eigen/Dense>
+#include <vector>
+#include <string>
 
 namespace ClothSDK {
+    class Solver;
+    namespace Viewer {
+        class Camera;
 
-class Solver;
+        class Renderer {
+        public:
+            Renderer();
+            ~Renderer();
 
-namespace Viewer {
+            bool init();
+            void render(const ClothSDK::Solver& solver, const Camera& camera);
+            void cleanup();
 
-class Renderer {
-public:
-    Renderer();
-    ~Renderer();
+        private:
+            unsigned int compileShaders(const std::string& vertexPath, const std::string& fragmentPath);
+            std::string loadFile(const std::string& path);
 
-    void init();
-    void render(const ClothSDK::Solver& solver);
-    void cleanup();
-
-private:
-    unsigned int compileShaders(const char* vertexSrc, const char* fragmentSrc);
-
-    unsigned int m_shaderProgram;
-    unsigned int m_vao; 
-    unsigned int m_vbo; 
-    unsigned int m_ebo; 
-
-    std::vector<float> m_vertexBuffer;
-};
-
-}
+            unsigned int m_shaderProgram = 0;
+            unsigned int m_vao = 0;
+            unsigned int m_vbo = 0;
+            
+            std::vector<float> m_vertexBuffer; 
+        };
+    }
 }

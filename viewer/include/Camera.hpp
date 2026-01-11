@@ -15,7 +15,8 @@ public:
 
     void handleMouse(float xoffset, float yoffset);
     void handleZoom(float yoffset);
-    void setAspectRatio(float ratio);
+
+    void inline setAspectRatio(float ratio) { m_aspectRatio = ratio; }
 
 private:
     void updateCameraVectors();
@@ -23,6 +24,7 @@ private:
     Eigen::Vector3f m_position; 
     Eigen::Vector3f m_target;
     Eigen::Vector3f m_up;
+    Eigen::Vector3f m_direction;
 
     float m_yaw;  
     float m_pitch; 

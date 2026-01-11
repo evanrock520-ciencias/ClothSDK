@@ -2,13 +2,15 @@
 
 #include <memory>
 #include <string>
+
+struct GLFWwindow;
+
 namespace ClothSDK {
 
 class Solver;
 
 namespace Viewer {
 
-struct GLFWwindow;
 class Renderer;
 class Camera;
 
