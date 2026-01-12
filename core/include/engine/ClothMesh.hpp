@@ -27,10 +27,11 @@ public:
 
     int getParticleID(int row, int col) const;
 
-    double getDensity() const { return m_density; }
-    double getStructuralCompliance() const { return m_structuralCompliance; }
-    double getShearCompliance() const { return m_shearCompliance; }
-    double getBendingCompliance() const { return m_bendingCompliance; }
+    inline double getDensity() const { return m_density; }
+    inline double getStructuralCompliance() const { return m_structuralCompliance; }
+    inline double getShearCompliance() const { return m_shearCompliance; }
+    inline double getBendingCompliance() const { return m_bendingCompliance; }
+    inline std::vector<unsigned int> getVisualEdges() const { return m_visualEdges; }
 
 private:
     struct Edge {
@@ -47,6 +48,7 @@ private:
 
     std::vector<int> m_particlesIndices;
     std::vector<Triangle> m_triangles;
+    std::vector<unsigned int> m_visualEdges;
 
     double m_density;
     double m_structuralCompliance;

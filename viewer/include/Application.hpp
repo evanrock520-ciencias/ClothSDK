@@ -34,6 +34,10 @@ private:
     std::unique_ptr<Camera> m_camera;
     double m_deltaTime;
     double m_lastFrame;
+
+    double m_lastX;
+    double m_lastY;
+    bool m_firstMouse;
 };
 
 }

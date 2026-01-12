@@ -19,15 +19,25 @@ bool Renderer::init() {
 
     glGenVertexArrays(1, &m_vao);
     glGenBuffers(1, &m_vbo);
+    glGenBuffers(1, &m_ebo);
 
     glBindVertexArray(m_vao);
+
     glBindBuffer(GL_ARRAY_BUFFER, m_vbo);
+
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_ebo);
+    glBufferData(GL_ELEMENT_ARRAY_BUFFER, 
+                m_indices.size() * sizeof(unsigned int), 
+                m_indices.data(), 
+                GL_STATIC_DRAW);
 
     glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
     glEnableVertexAttribArray(0);
 
-    glBindBuffer(GL_ARRAY_BUFFER, 0);
     glBindVertexArray(0);
+
+    glBindBuffer(GL_ARRAY_BUFFER, 0);
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
 
     return true;
 }
@@ -57,6 +67,7 @@ void Renderer::render(const ClothSDK::Solver& solver, const Camera& camera) {
     glUniformMatrix4fv(glGetUniformLocation(m_shaderProgram, "uProjection"), 1, GL_FALSE, proj.data());
 
     glBindVertexArray(m_vao);
+    glDrawElements(GL_LINES, static_cast<GLsizei>(m_indices.size()), GL_UNSIGNED_INT, 0);
     glPointSize(5.0f);
     glDrawArrays(GL_POINTS, 0, (GLsizei)particles.size());
     
@@ -66,6 +77,7 @@ void Renderer::render(const ClothSDK::Solver& solver, const Camera& camera) {
 void Renderer::cleanup() {
     if (m_vao) glDeleteVertexArrays(1, &m_vao);
     if (m_vbo) glDeleteBuffers(1, &m_vbo);
+    if (m_ebo) glDeleteBuffers(1, &m_ebo);
     if (m_shaderProgram) glDeleteProgram(m_shaderProgram);
 }
 

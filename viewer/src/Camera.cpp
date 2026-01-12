@@ -1,5 +1,4 @@
 #include "Camera.hpp"
-#include "Eigen/src/Core/Matrix.h"
 #include <cmath>
 
 namespace ClothSDK {
@@ -61,7 +60,6 @@ Eigen::Matrix4f Camera::getViewMatrix() const {
             0    , 0    , 0    ,   1;
 
     return view;
-
 }
 
 void Camera::handleMouse(float xoffset, float yoffset) {

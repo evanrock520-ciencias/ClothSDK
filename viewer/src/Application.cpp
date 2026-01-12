@@ -46,20 +46,22 @@ bool Application::init(int width, int height, const std::string& title) {
         Logger::error("Failed to initialize GLAD");
         return false; 
     }
+    
     m_solver = std::make_unique<Solver>();
     m_renderer = std::make_unique<Renderer>();
-    m_camera = std::make_unique<Camera>();
-
-    if (!m_renderer->init()) {
-        Logger::error("Failed to initialize Renderer (Shaders/Buffers)");
-        return false;
-    }
-
-    m_camera->setAspectRatio((float)width / (float)height);
+    m_camera = std::make_unique<Camera>(Eigen::Vector3f(0, 5, 10), Eigen::Vector3f(1, 1, 0));
 
     ClothMesh mesh; 
     mesh.initGrid(20, 20, 0.1, *m_solver); 
 
+    m_renderer->setIndices(mesh.getVisualEdges());
+
+    if (!m_renderer->init()) {
+        Logger::error("Failed to initialize Renderer");
+        return false;
+    }
+
+    m_camera->setAspectRatio((float)width / (float)height);
     for(int i = 0; i < 20; ++i) 
         m_solver->setParticleInverseMass(mesh.getParticleID(19, i), 0.0);
 

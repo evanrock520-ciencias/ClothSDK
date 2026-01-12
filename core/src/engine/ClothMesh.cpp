@@ -28,12 +28,16 @@ void ClothMesh::initGrid(int rows, int cols, double spacing, Solver& solver) {
                 int idA = getParticleID(r, c);
                 int idB = getParticleID(r, c + 1);
                 solver.addDistanceConstraint(idA, idB, m_structuralCompliance);
+                m_visualEdges.push_back(idA);
+                m_visualEdges.push_back(idB);
             }
 
             if (r < rows - 1) {
                 int idA = getParticleID(r, c);
                 int idB = getParticleID(r + 1, c);
                 solver.addDistanceConstraint(idA, idB, m_structuralCompliance);
+                m_visualEdges.push_back(idA);
+                m_visualEdges.push_back(idB);
             }
 
             if (r < rows - 1 && c < cols - 1) {
@@ -45,6 +49,11 @@ void ClothMesh::initGrid(int rows, int cols, double spacing, Solver& solver) {
                 solver.addDistanceConstraint(idB, idC, m_shearCompliance);
 
                 solver.addBendingConstraint(idA, idD, idB, idC, 0.0, m_bendingCompliance);
+
+                m_visualEdges.push_back(idA);
+                m_visualEdges.push_back(idD);
+                m_visualEdges.push_back(idB);
+                m_visualEdges.push_back(idC);
 
                 m_triangles.push_back(Triangle({idA, idB, idD}));
                 m_triangles.push_back(Triangle({idA, idD, idC}));                
