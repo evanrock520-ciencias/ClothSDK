@@ -18,6 +18,7 @@ namespace ClothSDK {
             void cleanup();
 
             inline void setIndices(const std::vector<unsigned int>& indices) { m_indices = indices; }
+            inline void setShaderPath(const std::string& path) { m_shaderPath = path; }
 
         private:
             unsigned int compileShaders(const std::string& vertexPath, const std::string& fragmentPath);
@@ -30,6 +31,8 @@ namespace ClothSDK {
             
             std::vector<float> m_vertexBuffer; 
             std::vector<unsigned int> m_indices;
+
+            std::string m_shaderPath = "../viewer/shaders/";
         };
     }
 }

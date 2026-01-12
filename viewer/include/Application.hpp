@@ -8,6 +8,7 @@ struct GLFWwindow;
 namespace ClothSDK {
 
 class Solver;
+class ClothMesh;
 
 namespace Viewer {
 
@@ -19,9 +20,13 @@ public:
     Application();
     ~Application();
     
-    bool init(int width, int height, const std::string& title);
+    bool init(int width, int height, const std::string& title, const std::string& shaderPath);
     void run();
     void shutdown();
+
+    inline void setSolver(std::shared_ptr<Solver> solver) { m_solver = solver; }
+    inline void setMesh(std::shared_ptr<ClothMesh> mesh) { m_mesh = mesh; }
+    inline Renderer& getRenderer() { return *m_renderer; }
 
 private:
     void processInput();
@@ -29,9 +34,10 @@ private:
     void render();
 
     GLFWwindow* m_window;
-    std::unique_ptr<Solver> m_solver;
+    std::shared_ptr<Solver> m_solver;
     std::unique_ptr<Renderer> m_renderer;
     std::unique_ptr<Camera> m_camera;
+    std::shared_ptr<ClothMesh> m_mesh; 
     double m_deltaTime;
     double m_lastFrame;
 

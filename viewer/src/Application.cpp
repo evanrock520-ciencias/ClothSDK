@@ -26,7 +26,7 @@ Application::Application()
 
 Application::~Application() = default;
 
-bool Application::init(int width, int height, const std::string& title) {
+bool Application::init(int width, int height, const std::string& title, const std::string& shaderPath) {
     if(!glfwInit()) return false;
     glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
     glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
@@ -81,14 +81,27 @@ bool Application::init(int width, int height, const std::string& title) {
         }
     });
     
-    m_solver = std::make_unique<Solver>();
+    if (!m_solver) {
+        m_solver = std::make_shared<Solver>();
+    }
+
+    if (!m_mesh) {
+        m_mesh = std::make_shared<ClothMesh>();
+    }
+
     m_renderer = std::make_unique<Renderer>();
+    m_renderer->setShaderPath(shaderPath);
+
+    if (!m_renderer->init()) {
+        Logger::error("Failed to initialize Renderer with path: " + shaderPath);
+        return false;
+    }
+
     m_camera = std::make_unique<Camera>(Eigen::Vector3f(0, 5, 10), Eigen::Vector3f(1, 1, 0));
 
-    ClothMesh mesh; 
-    mesh.initGrid(20, 20, 0.1, *m_solver); 
+    m_mesh->initGrid(20, 20, 0.1, *m_solver); 
 
-    m_renderer->setIndices(mesh.getVisualEdges());
+    m_renderer->setIndices(m_mesh->getVisualEdges());
 
     if (!m_renderer->init()) {
         Logger::error("Failed to initialize Renderer");
@@ -97,7 +110,7 @@ bool Application::init(int width, int height, const std::string& title) {
 
     m_camera->setAspectRatio((float)width / (float)height);
     for(int i = 0; i < 20; ++i) 
-        m_solver->setParticleInverseMass(mesh.getParticleID(19, i), 0.0);
+        m_solver->setParticleInverseMass(m_mesh->getParticleID(19, i), 0.0);
 
     glViewport(0, 0, width, height);
     

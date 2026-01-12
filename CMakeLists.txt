@@ -5,6 +5,7 @@ if(POLICY CMP0135)
 endif()
 
 project(ClothSDK VERSION 1.0.0 LANGUAGES CXX)
+set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
@@ -86,14 +87,13 @@ if(BUILD_MAYA_PLUGIN)
 endif()
 
 add_subdirectory(core)
-
 add_subdirectory(viewer)
 
 add_executable(main main.cpp)
 target_link_libraries(main PRIVATE ClothCore GTest::gtest_main)
 
 pybind11_add_module(cloth_sdk python/src/bindings.cpp)
-target_link_libraries(cloth_sdk PRIVATE ClothCore)
+target_link_libraries(cloth_sdk PRIVATE ClothCore ViewerCore)
 
 if(BUILD_MAYA_PLUGIN)
     add_subdirectory(maya)

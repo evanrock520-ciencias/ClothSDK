@@ -14,7 +14,7 @@ Renderer::Renderer() {}
 Renderer::~Renderer() { cleanup(); }
 
 bool Renderer::init() {
-    m_shaderProgram = compileShaders("../viewer/shaders/cloth.vert", "../viewer/shaders/cloth.frag");
+    m_shaderProgram = compileShaders(m_shaderPath + "cloth.vert", m_shaderPath + "cloth.frag");
     if (m_shaderProgram == 0) return false;
 
     glGenVertexArrays(1, &m_vao);

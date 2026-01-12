@@ -16,6 +16,8 @@
 #include "io/ConfigLoader.hpp"
 #include "utils/Logger.hpp"
 #include "math/Types.hpp"
+#include "Application.hpp"
+#include "Renderer.hpp"
 
 namespace py = pybind11;
 using namespace ClothSDK;
@@ -63,7 +65,7 @@ PYBIND11_MODULE(cloth_sdk, m) {
     .def("query", &SpatialHash::query, 
         py::arg("particles"), py::arg("pos"), py::arg("radius"), py::arg("out_neighbors"));
 
-    py::class_<Solver>(m, "Solver")
+    py::class_<Solver, std::shared_ptr<ClothSDK::Solver>>(m, "Solver")
         .def(py::init<>())
         .def("update", &Solver::update, py::arg("delta_time"))
         .def("clear", &Solver::clear)
@@ -83,12 +85,13 @@ PYBIND11_MODULE(cloth_sdk, m) {
         .def("set_collision_compliance", &Solver::setCollisionCompliance)
         .def("set_particle_inverse_mass", &Solver::setParticleInverseMass);
 
-    py::class_<ClothMesh>(m, "ClothMesh")
+    py::class_<ClothMesh, std::shared_ptr<ClothSDK::ClothMesh>>(m, "ClothMesh")
         .def(py::init<>())
         .def("init_grid", &ClothMesh::initGrid)
         .def("build_from_mesh", &ClothMesh::buildFromMesh)
         .def("set_material", &ClothMesh::setMaterial)
-        .def("export_to_obj", &ClothMesh::exportToOBJ);
+        .def("export_to_obj", &ClothMesh::exportToOBJ)
+        .def("get_particle_id", &ClothMesh::getParticleID, py::arg("row"), py::arg("col"));
 
     py::class_<OBJLoader>(m, "OBJLoader")
         .def_static("load", [](const std::string& path) {
@@ -107,4 +110,19 @@ PYBIND11_MODULE(cloth_sdk, m) {
     .def_static("info", &Logger::info, py::arg("message"))
     .def_static("warn", &Logger::warn, py::arg("message"))
     .def_static("error", &Logger::error, py::arg("message"));
+
+    py::class_<ClothSDK::Viewer::Renderer, std::unique_ptr<ClothSDK::Viewer::Renderer>>(m, "Renderer")
+    .def("set_shader_path", &ClothSDK::Viewer::Renderer::setShaderPath, 
+        py::arg("path"), "Sets the directory where .vert and .frag files are located.");
+
+    py::class_<Viewer::Application>(m, "Application")
+    .def(py::init<>())
+    .def("init", &ClothSDK::Viewer::Application::init, 
+        py::arg("width"), py::arg("height"), py::arg("title"), py::arg("shader_path"))
+    .def("run", &ClothSDK::Viewer::Application::run)
+    .def("shutdown", &ClothSDK::Viewer::Application::shutdown)
+    .def("set_solver", &ClothSDK::Viewer::Application::setSolver, py::arg("solver"))
+    .def("set_mesh", &ClothSDK::Viewer::Application::setMesh, py::arg("mesh"))
+    .def("get_renderer", &ClothSDK::Viewer::Application::getRenderer, 
+        py::return_value_policy::reference_internal);    
 }
