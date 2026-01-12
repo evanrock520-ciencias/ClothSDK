@@ -40,12 +40,46 @@ bool Application::init(int width, int height, const std::string& title) {
     }
 
     glfwMakeContextCurrent(m_window);
+    glfwSetWindowUserPointer(m_window, this);
     glfwSwapInterval(1); 
 
     if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress)) {
         Logger::error("Failed to initialize GLAD");
         return false; 
     }
+
+    glfwSetCursorPosCallback(m_window, [](GLFWwindow* window, double xpos, double ypos) {
+        auto* app = static_cast<Application*>(glfwGetWindowUserPointer(window));
+
+        if (app->m_firstMouse) {
+            app->m_lastX = xpos;
+            app->m_firstMouse = ypos;
+            app->m_firstMouse = false;
+        }
+
+        float xoffset = static_cast<float>(xpos - app->m_lastX);
+        float yoffset = static_cast<float>(app->m_lastY - ypos);
+
+        app->m_lastX = xpos;
+        app->m_lastY = ypos;
+
+        if (glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_RIGHT) == GLFW_PRESS) 
+            app->m_camera->handleMouse(xoffset, yoffset);
+    });
+
+    glfwSetScrollCallback(m_window, [](GLFWwindow* window, double xoffset, double yoffset) {
+        auto* app = static_cast<Application*>(glfwGetWindowUserPointer(window));
+        app->m_camera->handleZoom(static_cast<float>(yoffset));
+    });
+
+    glfwSetFramebufferSizeCallback(m_window, [](GLFWwindow* window, int width, int height) {
+        glViewport(0, 0, width, height);
+        
+        auto* app = static_cast<Application*>(glfwGetWindowUserPointer(window));
+        if (app->m_camera) {
+            app->m_camera->setAspectRatio(static_cast<float>(width) / static_cast<float>(height));
+        }
+    });
     
     m_solver = std::make_unique<Solver>();
     m_renderer = std::make_unique<Renderer>();
