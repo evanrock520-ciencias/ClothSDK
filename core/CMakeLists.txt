@@ -19,6 +19,7 @@ add_library(ClothCore SHARED ${CORE_SOURCES})
 target_link_libraries(ClothCore PUBLIC Eigen3::Eigen)
 target_link_libraries(ClothCore PUBLIC tinyobjloader)
 target_link_libraries(ClothCore PUBLIC nlohmann_json::nlohmann_json)
+target_link_libraries(ClothCore PUBLIC OpenMP::OpenMP_CXX)
 
 
 target_include_directories(ClothCore PUBLIC 

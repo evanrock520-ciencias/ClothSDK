@@ -1,3 +1,5 @@
+#include <omp.h>
+
 #include "physics/Solver.hpp"
 #include "physics/DistanceConstraint.hpp"
 #include "physics/BendingConstraint.hpp"
@@ -41,6 +43,7 @@ namespace ClothSDK {
     }
 
     void Solver::applyForces(double dt) {
+        #pragma omp parallel for
         for(auto& particle : m_particles) {
             if(particle.getInverseMass() <= 0.0)
                 continue;
@@ -50,6 +53,7 @@ namespace ClothSDK {
     }
 
     void Solver::predictPositions(double dt) {
+        #pragma omp parallel for
         for (auto& particle : m_particles) {
             particle.integrate(dt);
         }
@@ -106,10 +110,15 @@ namespace ClothSDK {
     }
 
     void Solver::applyAerodynamics(double dt) {
+        if (dt < 1e-6) return; // Seguridad
+
         double gust = std::sin(m_time * 2.0) * 0.5 + 0.5;
         Eigen::Vector3d currentWind = m_wind * gust;
 
-        for (auto& face : m_aeroFaces) {
+        #pragma omp parallel for
+        for (int i = 0; i < (int)m_aeroFaces.size(); i++) {
+            auto& face = m_aeroFaces[i];
+            
             Particle& pA = m_particles[face.a];
             Particle& pB = m_particles[face.b];
             Particle& pC = m_particles[face.c];
@@ -126,17 +135,19 @@ namespace ClothSDK {
             Eigen::Vector3d n = edge1.cross(edge2);
 
             double area = 0.5 * n.norm();
-            if (area < 1e-6)
-                continue;
+            if (area < 1e-6) continue;
 
             Eigen::Vector3d normal = n.normalized();
-
             double pressure = vRelative.dot(normal);
             Eigen::Vector3d force = -0.5 * m_airDensity * area * pressure * normal;
+            Eigen::Vector3d forcePerVtx = force / 3.0;
 
-            pA.addForce(force / 3.0);
-            pB.addForce(force / 3.0);
-            pC.addForce(force / 3.0);
+            #pragma omp critical
+            {
+                pA.addForce(forcePerVtx);
+                pB.addForce(forcePerVtx);
+                pC.addForce(forcePerVtx);
+            }
         }
     }
 

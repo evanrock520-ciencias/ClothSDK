@@ -73,7 +73,7 @@ set(GLFW_BUILD_DOCS OFF CACHE BOOL "" FORCE)
 set(GLFW_INSTALL OFF CACHE BOOL "" FORCE)
 
 FetchContent_MakeAvailable(googletest eigen tinyobjloader json pybind11 glfw glad imgui)
-
+find_package(OpenMP REQUIRED)
 option(BUILD_MAYA_PLUGIN "Build the Maya plugin" OFF)
 
 if(BUILD_MAYA_PLUGIN)
