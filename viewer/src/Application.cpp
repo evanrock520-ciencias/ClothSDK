@@ -19,7 +19,8 @@ Application::Application()
     m_renderer(nullptr), 
     m_camera(nullptr), 
     m_deltaTime(0.0), 
-    m_lastFrame(0.0) 
+    m_lastFrame(0.0),
+    m_isPaused(false)
 {
 
 }
@@ -53,7 +54,7 @@ bool Application::init(int width, int height, const std::string& title, const st
 
         if (app->m_firstMouse) {
             app->m_lastX = xpos;
-            app->m_firstMouse = ypos;
+            app->m_lastY = ypos;
             app->m_firstMouse = false;
         }
 
@@ -140,10 +141,30 @@ void Application::run() {
 void Application::processInput() {
     if (glfwGetKey(m_window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
         glfwSetWindowShouldClose(m_window, true);
+
+    static bool spaceWasPressed = false; 
+    bool spaceIsPressed = (glfwGetKey(m_window, GLFW_KEY_SPACE) == GLFW_PRESS);
+
+    if (spaceIsPressed && !spaceWasPressed) {
+        m_isPaused = !m_isPaused;
+        Logger::info(m_isPaused ? "Simulation Paused" : "Simulation Resumed");
+    }
+    spaceWasPressed = spaceIsPressed;
+
+    if (glfwGetKey(m_window, GLFW_KEY_R) == GLFW_PRESS) {
+    m_solver->clear(); 
+    m_mesh->initGrid(20, 20, 0.1, *m_solver); 
+    m_renderer->setIndices(m_mesh->getVisualEdges()); 
+    for(int i = 0; i < 20; ++i) 
+        m_solver->setParticleInverseMass(m_mesh->getParticleID(19, i), 0.0);
+    
+    Logger::info("Simulation Reset");
+}
 }
 
 void Application::update() {
-    m_solver->update(m_deltaTime);
+    if (!m_isPaused)
+        m_solver->update(m_deltaTime);
 }
 
 void Application::render() {

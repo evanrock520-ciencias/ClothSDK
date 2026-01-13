@@ -44,6 +44,8 @@ private:
     double m_lastX = 0.0;
     double m_lastY = 0.0;
     bool m_firstMouse = true;
+
+    bool m_isPaused;
 };
 
 }

@@ -2,8 +2,8 @@ import os
 import sys
 from load_path import load
 
-# 1. Preparar el entorno e importar el motor
 load()
+
 try:
     import cloth_sdk as sdk
     import numpy as np
@@ -25,8 +25,8 @@ def run_curtain_simulation():
     solver = sdk.Solver()
     mesh = sdk.ClothMesh()
 
-    solver.set_gravity([0.0, -2.0, 0.0])
-    solver.set_substeps(10)
+    solver.set_gravity([0.0, -1.0, 0.0])
+    solver.set_substeps(20)
     solver.set_iterations(2) 
     
     solver.set_wind([0.0, 0.0, 0.0]) 
@@ -38,7 +38,7 @@ def run_curtain_simulation():
     rows, cols = 40, 40
     spacing = 0.1
     
-    mesh.set_material(0.2, 0.0, 1e-6, 0.005)
+    mesh.set_material(0.2, 0.0, 1e-6, 0.05)
     
     sdk.Logger.info(f"Weaving {rows}x{cols} curtain grid...")
     mesh.init_grid(rows, cols, spacing, solver)
