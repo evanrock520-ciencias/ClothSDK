@@ -1,8 +1,8 @@
 {
     "simulation": {
-        "substeps": 15,
+        "substeps": 5,
         "iterations": 2,
-        "gravity": [0.0, -9.81, 0.0]
+        "gravity": [0.0, 0.0, 0.0]
     },
     "material": {
         "density": 0.1,
@@ -13,8 +13,8 @@
         }
     },
     "aerodynamics": {
-        "wind_velocity": [5.0, 2.0, 10.0],
-        "air_density": 0.2
+        "wind_velocity": [0.0, 0.0, 0.0],
+        "air_density": 0.0
     },
     "collisions": {
         "thickness": 0.02

@@ -48,7 +48,7 @@ private:
     bool m_firstMouse = true;
 
     bool m_isPaused;
-    char m_configPathBuffer[256] = "../data/configs/silk.json";
+    char m_configPathBuffer[256] = "data/configs/silk.json";
 };
 
 }
