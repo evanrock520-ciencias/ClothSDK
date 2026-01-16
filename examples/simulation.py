@@ -26,16 +26,16 @@ def run_curtain_simulation():
     mesh = sdk.ClothMesh()
 
     solver.set_gravity([0.0, -1.0, 0.0])
-    solver.set_substeps(20)
-    solver.set_iterations(2) 
+    solver.set_substeps(5)
+    solver.set_iterations(10) 
     
     solver.set_wind([0.0, 0.0, 0.0]) 
-    solver.set_air_density(0.15)
+    solver.set_air_density(0.0)
     
-    dt = 1 / 60 * 0.5
+    dt = 1 / 120
     solver.update(dt)
 
-    rows, cols = 40, 40
+    rows, cols = 30, 30
     spacing = 0.1
     
     mesh.set_material(0.2, 0.0, 1e-6, 0.05)

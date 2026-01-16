@@ -14,6 +14,8 @@ namespace ClothSDK {
     m_airDensity(0.1), m_time(0.0), m_collisionCompliance(1e-9), m_thickness(0.08), m_spatialHash(10007, 0.08) {}
 
     void Solver::update(double deltaTime) {
+        m_spatialHash.setCellSize(m_thickness); 
+        m_spatialHash.build(m_particles);
         m_time += deltaTime;
         double substepDt = deltaTime / m_substeps;
         for (int i = 0; i < m_substeps; i++)
@@ -24,22 +26,19 @@ namespace ClothSDK {
         applyForces(dt);
         predictPositions(dt);
 
-        m_spatialHash.setCellSize(m_thickness); 
-        m_spatialHash.build(m_particles);
-
         for (auto& constraint : m_constraints) 
             constraint->resetLambda();
 
         for (int i = 0; i < m_iterations; i++) {
             for(auto& constraint : m_constraints)
                 constraint->solve(m_particles, dt);
-            
-            solveSelfCollisions(m_thickness);
         }
 
         for (auto& collider : m_colliders) {
             collider->resolve(m_particles, dt);
         }
+
+        solveSelfCollisions(m_thickness);
     }
 
     void Solver::applyForces(double dt) {

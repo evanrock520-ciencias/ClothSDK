@@ -74,30 +74,12 @@ set(GLFW_INSTALL OFF CACHE BOOL "" FORCE)
 
 FetchContent_MakeAvailable(googletest eigen tinyobjloader json pybind11 glfw glad imgui)
 find_package(OpenMP REQUIRED)
-option(BUILD_MAYA_PLUGIN "Build the Maya plugin" OFF)
-
-if(BUILD_MAYA_PLUGIN)
-    if(NOT DEFINED ENV{MAYA_DEVKIT_BASE})
-        message(WARNING "MAYA_DEVKIT_BASE not set. Maya plugin will not be built.")
-        set(BUILD_MAYA_PLUGIN OFF)
-    else()
-        set(MAYA_SDK_INCLUDE_DIR "$ENV{MAYA_DEVKIT_BASE}/include")
-        set(MAYA_SDK_LIBRARY_DIR "$ENV{MAYA_DEVKIT_BASE}/lib")
-    endif()
-endif()
 
 add_subdirectory(core)
 add_subdirectory(viewer)
 
-add_executable(main main.cpp)
-target_link_libraries(main PRIVATE ClothCore GTest::gtest_main)
-
 pybind11_add_module(cloth_sdk python/src/bindings.cpp)
 target_link_libraries(cloth_sdk PRIVATE ClothCore ViewerCore)
-
-if(BUILD_MAYA_PLUGIN)
-    add_subdirectory(maya)
-endif()
 
 enable_testing()
 add_subdirectory(tests)

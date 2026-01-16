@@ -3,10 +3,12 @@
 #include "physics/Solver.hpp"
 #include <fstream>
 #include <iostream>
+#include <filesystem> 
 
 namespace ClothSDK {
 
 bool ConfigLoader::load(const std::string& filepath, Solver& solver, ClothMesh& mesh) {
+    std::cout << "[Debug] Attempting to load: " << std::filesystem::absolute(filepath) << std::endl;
     std::ifstream file(filepath);
     if (!file.is_open()) return false;
 

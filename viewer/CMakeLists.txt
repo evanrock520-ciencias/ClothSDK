@@ -38,6 +38,3 @@ target_link_libraries(ViewerCore
 target_include_directories(ViewerCore PUBLIC include)
 
 set_target_properties(ViewerCore PROPERTIES POSITION_INDEPENDENT_CODE ON)
-
-add_executable(ClothViewer main.cpp)
-target_link_libraries(ClothViewer PRIVATE ViewerCore)

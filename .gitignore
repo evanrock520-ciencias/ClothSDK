@@ -22,5 +22,6 @@ data/cache/*
 
 .vscode/
 *.log
+*.ninja
 
 main.cpp

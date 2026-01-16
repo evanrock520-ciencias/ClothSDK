@@ -32,6 +32,8 @@ private:
     void processInput();
     void update();
     void render();
+    void drawUI();
+    void resetSimulation();
 
     GLFWwindow* m_window;
     std::shared_ptr<Solver> m_solver;
@@ -46,6 +48,7 @@ private:
     bool m_firstMouse = true;
 
     bool m_isPaused;
+    char m_configPathBuffer[256] = "../data/configs/silk.json";
 };
 
 }
