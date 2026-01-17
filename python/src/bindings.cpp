@@ -71,6 +71,7 @@ PYBIND11_MODULE(cloth_sdk, m) {
         .def("clear", &Solver::clear)
         .def("add_particle", &Solver::addParticle)
         .def("get_particles", &Solver::getParticles, py::return_value_policy::reference_internal)
+        .def("get_wind", &Solver::getWind)
         .def("set_gravity", &Solver::setGravity)
         .def("get_gravity", &Solver::getGravity)
         .def("set_substeps", &Solver::setSubsteps)

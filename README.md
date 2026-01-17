@@ -4,6 +4,9 @@
 ![License](https://img.shields.io/badge/License-Apache%202.0-orange.svg)
 ![Physics](https://img.shields.io/badge/Physics-XPBD-green.svg)
 
+ClothSDK is a C++ cloth simulation SDK designed to integrate into Digital Content
+Creation (DCC) tools such as Blender.
+
 ## How to Build
 
 ```bash

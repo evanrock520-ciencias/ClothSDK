@@ -65,7 +65,6 @@ def run_curtain_simulation():
     print("   - ESC: Exit")
 
     app.run()
-    
     app.shutdown()
     sdk.Logger.info("Simulation session closed.")
 

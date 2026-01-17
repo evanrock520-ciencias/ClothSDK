@@ -1,4 +1,5 @@
 #include "physics/BendingConstraint.hpp"
+#include "utils/Logger.hpp"
 #include <algorithm>
 #include <cmath>
 
@@ -13,52 +14,37 @@ void BendingConstraint::solve(std::vector<Particle>& particles, double dt) {
     Particle& pC = particles[m_idC];
     Particle& pD = particles[m_idD];
 
-    Eigen::Vector3d edgeVector = pB.getPosition() - pA.getPosition();
-    double length = edgeVector.norm();
-    Eigen::Vector3d CVector = pC.getPosition() - pA.getPosition();
-    Eigen::Vector3d DVector = pD.getPosition() - pA.getPosition();
+    Eigen::Vector3d e = pB.getPosition() - pA.getPosition();
+    double len = e.norm();
+    if (len < 1e-6) return;
 
-    Eigen::Vector3d normal1 = edgeVector.cross(CVector);
-    Eigen::Vector3d normal2 = edgeVector.cross(DVector);
+    Eigen::Vector3d n1 = e.cross(pC.getPosition() - pA.getPosition());
+    Eigen::Vector3d n2 = e.cross(pD.getPosition() - pA.getPosition());
 
-    double area1 = normal1.norm();
-    double area2 = normal2.norm();
+    double n1_sq = n1.squaredNorm();
+    double n2_sq = n2.squaredNorm();
 
-    if (area1 < 1e-6 || area2 < 1e-6 || length < 1e-6) return;
+    if (n1_sq < 1e-8 || n2_sq < 1e-8) return;
 
-    double cosTheta = normal1.dot(normal2) / (area1 * area2);
-    double clampedCos = std::clamp(cosTheta, -1.0, 1.0);
-    double currentAngle = std::acos(clampedCos);
-
-    if (normal1.squaredNorm() < 1e-6)
-        return;
-
-    Eigen::Vector3d gradC = (length / area1) * (normal1 / area1);
-    Eigen::Vector3d gradD = (length / area2) * (normal2 / area2);
-
-    double weightBC = (- (pB.getPosition() - pC.getPosition()).dot(edgeVector)) / length;
-    double weightBD = (- (pB.getPosition() - pD.getPosition()).dot(edgeVector)) / length;
-    double weightAC = (- (pA.getPosition() - pC.getPosition()).dot(edgeVector)) / length;
-    double weightAD = (- (pA.getPosition() - pD.getPosition()).dot(edgeVector)) / length;
-
-    Eigen::Vector3d gradA = -weightBC * gradC - weightBD * gradD;
-    Eigen::Vector3d gradB = weightAC * gradC + weightAD * gradD;
-
-    double wA = pA.getInverseMass();
-    double wB = pB.getInverseMass();
-    double wC = pC.getInverseMass();
-    double wD = pD.getInverseMass();
-
-    double wSum = wA * gradA.squaredNorm() + wB * gradB.squaredNorm() + wC * gradC.squaredNorm() + wD * gradD.squaredNorm();
+    double dot = n1.dot(n2) / std::sqrt(n1_sq * n2_sq);
+    dot = std::clamp(dot, -1.0, 1.0);
+    double angle = std::acos(dot);
     
-    double alphaHat = m_compliance / (dt * dt);
-    double deltaLambda = (-(currentAngle - m_restAngle) - alphaHat * m_lambda) / (wSum + alphaHat);
-    m_lambda += deltaLambda;
+    Eigen::Vector3d cross_n = n1.cross(n2);
+    if (e.dot(cross_n) < 0) angle = -angle;
 
-    pA.setPosition(pA.getPosition() + wA * gradA * deltaLambda);
-    pB.setPosition(pB.getPosition() + wB * gradB * deltaLambda);
-    pC.setPosition(pC.getPosition() + wC * gradC * deltaLambda);
-    pD.setPosition(pD.getPosition() + wD * gradD * deltaLambda);
+    Eigen::Vector3d gradC = (len / n1_sq) * n1;
+    Eigen::Vector3d gradD = -(len / n2_sq) * n2; 
+
+    double s1 = (pC.getPosition() - pB.getPosition()).dot(e) / (len * len); 
+    double s2 = (pD.getPosition() - pB.getPosition()).dot(e) / (len * len);
+    
+    Eigen::Vector3d gradA = s1 * gradC + s2 * gradD;
+    
+    double t1 = (pA.getPosition() - pC.getPosition()).dot(e) / (len * len);
+    double t2 = (pA.getPosition() - pD.getPosition()).dot(e) / (len * len);
+    
+    Eigen::Vector3d gradB = t1 * gradC + t2 * gradD;
 
 }
 
