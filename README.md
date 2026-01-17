@@ -1,5 +1,9 @@
 # ClothSDK 👗👕👖
 
+![Language](https://img.shields.io/badge/Language-C%2B%2B17-blue.svg)
+![License](https://img.shields.io/badge/License-Apache%202.0-orange.svg)
+![Physics](https://img.shields.io/badge/Physics-XPBD-green.svg)
+
 ## How to Build
 
 ```bash
