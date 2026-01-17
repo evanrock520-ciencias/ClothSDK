@@ -25,3 +25,8 @@ If you want to run the python scripting example.
 python3 examples/simulation.py
 ```
 
+## Gallery
+
+| Interactive Control Panel |
+| :---: |
+| ![Preview](docs/images/preview.png) |
