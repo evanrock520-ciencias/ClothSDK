@@ -9,30 +9,34 @@ SphereCollider::SphereCollider(const Eigen::Vector3d& center, double radius, dou
     m_friction = friction;
 }
 
-void SphereCollider::resolve(std::vector<Particle>& particles, double dt) {
-    double thickness = 0.01;
+void SphereCollider::resolve(std::vector<Particle>& particles, double dt, double thickness) {
+    
+    double collisionRadius = m_radius + thickness; 
+
     for (auto& particle : particles) {
         Eigen::Vector3d vec = particle.getPosition() - m_center;
         double distance = vec.norm();
 
         if (distance < 1e-6) {
-            vec = Eigen::Vector3d::UnitY() * (m_radius + thickness);
+            vec = Eigen::Vector3d::UnitY() * collisionRadius;
             distance = vec.norm();
         }
 
-
-        if (distance < (m_radius + thickness)) {
+        if (distance < collisionRadius) {
             Eigen::Vector3d normal = vec.normalized();
-            Eigen::Vector3d newPosition = m_center + normal * (m_radius + thickness);
+            
+            Eigen::Vector3d newPosition = m_center + normal * collisionRadius;
             particle.setPosition(newPosition);
 
-            Eigen::Vector3d displacement = particle.getPosition() - particle.getOldPosition();
-            Eigen::Vector3d normalDisp = normal * displacement.dot(normal);
-            Eigen::Vector3d tangentialDisp = displacement - normalDisp;
-            Eigen::Vector3d newDisplacement = normalDisp + tangentialDisp * (1.0 - m_friction);
+            Eigen::Vector3d velocity = particle.getPosition() - particle.getOldPosition();
+            
+            double normalVelMag = velocity.dot(normal);
+            Eigen::Vector3d normalVel = normal * normalVelMag;
+            Eigen::Vector3d tangentVel = velocity - normalVel;
 
-            particle.setOldPosition(particle.getPosition() - newDisplacement);
+            Eigen::Vector3d newVelocity = normalVel + tangentVel * (1.0 - m_friction);
 
+            particle.setOldPosition(particle.getPosition() - newVelocity);
         }
     }
 }

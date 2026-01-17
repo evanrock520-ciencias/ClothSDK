@@ -35,7 +35,7 @@ namespace ClothSDK {
         }
 
         for (auto& collider : m_colliders) {
-            collider->resolve(m_particles, dt);
+            collider->resolve(m_particles, dt, m_thickness);
         }
 
         solveSelfCollisions(m_thickness);

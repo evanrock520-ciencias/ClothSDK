@@ -16,6 +16,7 @@ namespace ClothSDK {
             bool init();
             void render(const ClothSDK::Solver& solver, const Camera& camera);
             void cleanup();
+            void updateTopology();
 
             inline void setIndices(const std::vector<unsigned int>& indices) { m_indices = indices; }
             inline void setShaderPath(const std::string& path) { m_shaderPath = path; }

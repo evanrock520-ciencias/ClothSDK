@@ -34,7 +34,7 @@ public:
      * @param particles Reference to the global particle buffer.
      * @param dt Current substep time delta.
      */
-    void resolve(std::vector<Particle>& particles, double dt);
+    void resolve(std::vector<Particle>& particles, double dt, double thickness);
 
 private:
     Eigen::Vector3d m_origin;   ///< World-space coordinate of a point in the plane.  

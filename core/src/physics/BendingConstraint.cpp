@@ -1,15 +1,21 @@
 #include "physics/BendingConstraint.hpp"
-#include "utils/Logger.hpp"
 #include <algorithm>
 #include <cmath>
 
 namespace ClothSDK {
 
-BendingConstraint::BendingConstraint(int idA, int idB, int idC, int idD, double restAngle, double compliance)
-: m_idA(idA), m_idB(idB), m_idC(idC), m_idD(idD), m_restAngle(restAngle) { m_compliance = compliance; }
+BendingConstraint::BendingConstraint(
+    int idA, int idB, int idC, int idD,
+    double restAngle, double compliance)
+: m_idA(idA), m_idB(idB), m_idC(idC), m_idD(idD),
+  m_restAngle(restAngle)
+{
+    m_compliance = compliance;
+}
 
 void BendingConstraint::solve(std::vector<Particle>& particles, double dt) {
     if (dt < 1e-6) return;
+
     Particle& pA = particles[m_idA];
     Particle& pB = particles[m_idB];
     Particle& pC = particles[m_idC];
@@ -31,25 +37,34 @@ void BendingConstraint::solve(std::vector<Particle>& particles, double dt) {
     double n2_sq = n2.squaredNorm();
     if (n1_sq < 1e-8 || n2_sq < 1e-8) return;
 
-    double dot = n1.dot(n2) / std::sqrt(n1_sq * n2_sq);
-    dot = std::clamp(dot, -1.0, 1.0);
+    // --- Ángulo estable con atan2 ---
+    double invLenN = 1.0 / std::sqrt(n1_sq * n2_sq);
+    double cosTheta = n1.dot(n2) * invLenN;
 
-    double angle = std::acos(dot);
-    if (e.dot(n1.cross(n2)) < 0.0)
-        angle = -angle;
+    Eigen::Vector3d cross_n = n1.cross(n2);
+    double sinTheta = cross_n.dot(e) / (len * std::sqrt(n1_sq * n2_sq));
+
+    double angle = std::atan2(sinTheta, cosTheta);
 
     double C = angle - m_restAngle;
 
+    // --- Early out: ya está satisfecho ---
+    if (std::abs(C) < 1e-6)
+        return;
+
+    // --- Gradientes ---
     Eigen::Vector3d gradC = (len / n1_sq) * n1;
     Eigen::Vector3d gradD = -(len / n2_sq) * n2;
 
-    double s1 = (xC - xB).dot(e) / (len * len);
-    double s2 = (xD - xB).dot(e) / (len * len);
-    Eigen::Vector3d gradA = s1 * gradC + s2 * gradD;
+    double invLen2 = 1.0 / (len * len);
 
-    double t1 = (xA - xC).dot(e) / (len * len);
-    double t2 = (xA - xD).dot(e) / (len * len);
-    Eigen::Vector3d gradB = t1 * gradC + t2 * gradD;
+    Eigen::Vector3d gradA =
+        ((xC - xB).dot(e) * invLen2) * gradC +
+        ((xD - xB).dot(e) * invLen2) * gradD;
+
+    Eigen::Vector3d gradB =
+        ((xA - xC).dot(e) * invLen2) * gradC +
+        ((xA - xD).dot(e) * invLen2) * gradD;
 
     double wA = pA.getInverseMass();
     double wB = pB.getInverseMass();
@@ -75,6 +90,5 @@ void BendingConstraint::solve(std::vector<Particle>& particles, double dt) {
     pC.setPosition(xC + wC * deltaLambda * gradC);
     pD.setPosition(xD + wD * deltaLambda * gradD);
 }
-
 
 }

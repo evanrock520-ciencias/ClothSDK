@@ -31,7 +31,7 @@ public:
      * @param particles Reference to the global particle buffer.
      * @param dt Current substep time delta. Required for kinematic friction calculations.
      */
-    virtual void resolve(std::vector<Particle>& particles, double dt) = 0;
+    virtual void resolve(std::vector<Particle>& particles, double dt, double thickness) = 0;
 
     /**
      * @brief Configures the surface friction coefficient.

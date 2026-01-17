@@ -138,5 +138,20 @@ std::string Renderer::loadFile(const std::string& path) {
     return ss.str();
 }
 
+void Renderer::updateTopology() {
+    if (m_vao == 0 || m_ebo == 0) return;
+
+    glBindVertexArray(m_vao);
+    
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_ebo);
+    glBufferData(GL_ELEMENT_ARRAY_BUFFER, 
+                 m_indices.size() * sizeof(unsigned int), 
+                 m_indices.data(), 
+                 GL_STATIC_DRAW);
+                 
+    glBindVertexArray(0);
+    Logger::info("GPU Topology updated: " + std::to_string(m_indices.size() / 2) + " edges.");
+}
+
 } 
 } 

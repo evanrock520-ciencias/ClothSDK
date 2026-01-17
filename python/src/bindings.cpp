@@ -122,6 +122,7 @@ PYBIND11_MODULE(cloth_sdk, m) {
         py::arg("width"), py::arg("height"), py::arg("title"), py::arg("shader_path"))
     .def("run", &ClothSDK::Viewer::Application::run)
     .def("shutdown", &ClothSDK::Viewer::Application::shutdown)
+    .def("sync_visual_topology", &ClothSDK::Viewer::Application::syncVisualTopology)
     .def("set_solver", &ClothSDK::Viewer::Application::setSolver, py::arg("solver"))
     .def("set_mesh", &ClothSDK::Viewer::Application::setMesh, py::arg("mesh"))
     .def("get_renderer", &ClothSDK::Viewer::Application::getRenderer, 

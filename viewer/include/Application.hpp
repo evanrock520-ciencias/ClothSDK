@@ -2,6 +2,7 @@
 
 #include <memory>
 #include <string>
+#include <vector>
 
 struct GLFWwindow;
 
@@ -23,6 +24,7 @@ public:
     bool init(int width, int height, const std::string& title, const std::string& shaderPath);
     void run();
     void shutdown();
+    void syncVisualTopology();
 
     inline void setSolver(std::shared_ptr<Solver> solver) { m_solver = solver; }
     inline void setMesh(std::shared_ptr<ClothMesh> mesh) { m_mesh = mesh; }
@@ -48,7 +50,13 @@ private:
     bool m_firstMouse = true;
 
     bool m_isPaused;
+    bool m_isGridScene;
+    int m_initRows, m_initCols;
+    double m_initSpacing;
     char m_configPathBuffer[256] = "data/configs/silk.json";
+
+    std::vector<Eigen::Vector3d> m_originalPositions;
+    std::vector<int> m_originalIndices;
 };
 
 }
