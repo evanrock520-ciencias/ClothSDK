@@ -257,6 +257,30 @@ void Application::drawUI() {
             if (subs < 1) subs = 1;
             m_solver->setSubsteps(subs);
         }
+
+        if (ImGui::CollapsingHeader("Wind", ImGuiTreeNodeFlags_DefaultOpen)) {
+            static bool windEnabled = true;
+            static float windStrength = 5.0f;
+            static float windDir[3] = {1.0f, 0.0f, 0.0f};
+
+            ImGui::Checkbox("Enable Wind", &windEnabled);
+
+            ImGui::SliderFloat("Strength", &windStrength, 0.0f, 20.0f);
+
+            ImGui::InputFloat3("Direction", windDir);
+
+            Eigen::Vector3d dir(windDir[0], windDir[1], windDir[2]);
+
+            if (dir.norm() > 1e-6) {
+                dir.normalize();
+            }
+
+            if (windEnabled) {
+                m_solver->setWind(dir * windStrength);
+            } else {
+                m_solver->setWind(Eigen::Vector3d::Zero());
+            }
+        }
     }
 
     ImGui::End();

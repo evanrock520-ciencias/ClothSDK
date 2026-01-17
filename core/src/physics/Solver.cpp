@@ -5,8 +5,8 @@
 #include "physics/BendingConstraint.hpp"
 #include "physics/PlaneCollider.hpp"
 #include "physics/SphereCollider.hpp"
+#include <Eigen/Dense>
 #include <memory>
-#include <vector>
 
 namespace ClothSDK {
     Solver::Solver()
@@ -49,6 +49,7 @@ namespace ClothSDK {
             particle.addForce(m_gravity);
         }
         applyAerodynamics(dt);
+        
     }
 
     void Solver::predictPositions(double dt) {
@@ -109,10 +110,10 @@ namespace ClothSDK {
     }
 
     void Solver::applyAerodynamics(double dt) {
-        if (dt < 1e-6) return; // Seguridad
+        if (dt < 1e-6) return;
 
-        double gust = std::sin(m_time * 2.0) * 0.5 + 0.5;
-        Eigen::Vector3d currentWind = m_wind * gust;
+        double gust = std::sin(m_time * 5.0) * 0.5 + 0.5;
+        Eigen::Vector3d currentWind = m_wind * (1.0 + gust);
 
         #pragma omp parallel for
         for (int i = 0; i < (int)m_aeroFaces.size(); i++) {
@@ -122,23 +123,23 @@ namespace ClothSDK {
             Particle& pB = m_particles[face.b];
             Particle& pC = m_particles[face.c];
 
-            Eigen::Vector3d vA = (pA.getPosition() - pA.getOldPosition()) / dt;
-            Eigen::Vector3d vB = (pB.getPosition() - pB.getOldPosition()) / dt;
-            Eigen::Vector3d vC = (pC.getPosition() - pC.getOldPosition()) / dt;
-
-            Eigen::Vector3d vFace = (vA + vB + vC) / 3.0;
-            Eigen::Vector3d vRelative = vFace - currentWind;
+            Eigen::Vector3d vFace = (pA.getVelocity(dt) + pB.getVelocity(dt) + pC.getVelocity(dt)) / 3.0;
+            Eigen::Vector3d vRel = vFace - currentWind;
+            double vMag = vRel.norm();
+            
+            if (vMag < 1e-4) continue;
 
             Eigen::Vector3d edge1 = pB.getPosition() - pA.getPosition();
             Eigen::Vector3d edge2 = pC.getPosition() - pA.getPosition();
             Eigen::Vector3d n = edge1.cross(edge2);
-
             double area = 0.5 * n.norm();
+            
             if (area < 1e-6) continue;
-
+            
             Eigen::Vector3d normal = n.normalized();
-            double pressure = vRelative.dot(normal);
-            Eigen::Vector3d force = -0.5 * m_airDensity * area * pressure * normal;
+
+            double pressure = vRel.dot(normal) / vMag;
+            Eigen::Vector3d force = -0.5 * m_airDensity * (vMag * vMag) * area * pressure * normal;
             Eigen::Vector3d forcePerVtx = force / 3.0;
 
             #pragma omp critical
@@ -149,6 +150,7 @@ namespace ClothSDK {
             }
         }
     }
+
 
     void Solver::solveSelfCollisions(double dt) {
         double alphaHat = m_collisionCompliance / (dt * dt);

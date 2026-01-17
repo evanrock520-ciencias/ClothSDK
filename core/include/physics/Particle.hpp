@@ -79,6 +79,12 @@ public:
     /** @return The current inverse mass value. */
     inline const double getInverseMass() const { return inverseMass; }
 
+    /** @return The derived velocity from Verlet state (m/s). */
+    inline Eigen::Vector3d getVelocity(double dt) const { 
+        if (dt < 1e-7) return Eigen::Vector3d::Zero();
+        return (m_position - m_oldPosition) / dt; 
+    }
+
 private:
     Eigen::Vector3d m_position;     ///< Current position in 3D world space.
     Eigen::Vector3d m_oldPosition;  ///< Position from the previous step.

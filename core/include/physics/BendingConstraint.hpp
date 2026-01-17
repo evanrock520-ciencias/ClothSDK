@@ -16,7 +16,6 @@ public:
 private:
     int m_idA, m_idB, m_idC, m_idD;
     double m_restAngle;
-    double m_compliance;
 };
 
 }
