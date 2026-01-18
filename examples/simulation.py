@@ -22,33 +22,30 @@ def run_curtain_simulation():
 
     solver = sdk.Solver()
     
-    solver.set_gravity([0.0, -9.81, 0.0])
-    solver.set_substeps(15)   
-    solver.set_iterations(2)  
+    solver.set_gravity([0.0, 0.0, 0.0])
+    solver.set_substeps(1)   
+    solver.set_iterations(1)  
     
     solver.set_thickness(0.04)             
     solver.set_collision_compliance(1e-4)  
     
-    solver.set_wind([1.0, 0.0, 3.0])
+    solver.set_wind([0.0, -1.0, 0.0])
     solver.set_air_density(0.1)
 
     mesh = sdk.ClothMesh()
     
-    mesh.set_material(0.1, 1e-9, 1e-7, 0.05)
+    mesh.set_material(0.1, 1e-9, 1e-7, 10.0)
     
-    rows, cols = 100, 100
+    rows, cols = 100, 50
     spacing = 0.1
     
     sdk.Logger.info(f"Weaving {rows}x{cols} curtain grid...")
     mesh.init_grid(rows, cols, spacing, solver)
 
-    top_row = rows - 1
-    p_id = mesh.get_particle_id(top_row, 0)
-    p_nid = mesh.get_particle_id(top_row, 99)
+    # top_row = rows - 1
+    # p_id = mesh.get_particle_id(top_row, 0)
     
-    solver.set_particle_inverse_mass(p_id, 0.0) 
-    solver.set_particle_inverse_mass(p_nid, 0.0) 
-    
+    # solver.set_particle_inverse_mass(p_id, 0.0) 
     
     app = sdk.Application()
     

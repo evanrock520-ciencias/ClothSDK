@@ -80,7 +80,7 @@ void BendingConstraint::solve(std::vector<Particle>& particles, double dt) {
         wD * gradD.squaredNorm() +
         alpha;
 
-    if (denom < 1e-8) return;
+    if (denom < 1e-12) return;
 
     double deltaLambda = -(C + alpha * m_lambda) / denom;
     m_lambda += deltaLambda;

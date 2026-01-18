@@ -30,7 +30,7 @@ namespace ClothSDK {
             ~Renderer();
 
             bool init();
-            void render(const ClothSDK::Solver& solver, const Camera& camera);
+            void render(const std::vector<Eigen::Vector3d>& positions, const Camera& camera);
             void cleanup();
             void updateTopology();
 
@@ -50,6 +50,7 @@ namespace ClothSDK {
             std::vector<unsigned int> m_indices;
 
             std::string m_shaderPath = "../viewer/shaders/";
+            int m_viewLoc, m_projLoc;
         };
     }
 }

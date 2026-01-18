@@ -42,17 +42,16 @@ bool Renderer::init() {
     glBindBuffer(GL_ARRAY_BUFFER, 0);
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
 
+    m_viewLoc = glGetUniformLocation(m_shaderProgram, "uView");
+    m_projLoc = glGetUniformLocation(m_shaderProgram, "uProjection");
+
     return true;
 }
 
-void Renderer::render(const ClothSDK::Solver& solver, const Camera& camera) {
-    const auto& particles = solver.getParticles();
-    if (particles.empty()) return;
-
+void Renderer::render(const std::vector<Eigen::Vector3d>& positions, const Camera& camera) {
     m_vertexBuffer.clear();
-    m_vertexBuffer.reserve(particles.size() * 3);
-    for (const auto& p : particles) {
-        Eigen::Vector3d pos = p.getPosition();
+    m_vertexBuffer.reserve(positions.size() * 3);
+    for (const auto& pos : positions) {
         m_vertexBuffer.push_back(static_cast<float>(pos.x()));
         m_vertexBuffer.push_back(static_cast<float>(pos.y()));
         m_vertexBuffer.push_back(static_cast<float>(pos.z()));
@@ -66,13 +65,13 @@ void Renderer::render(const ClothSDK::Solver& solver, const Camera& camera) {
     Eigen::Matrix4f view = camera.getViewMatrix();
     Eigen::Matrix4f proj = camera.getProjectionMatrix();
 
-    glUniformMatrix4fv(glGetUniformLocation(m_shaderProgram, "uView"), 1, GL_FALSE, view.data());
-    glUniformMatrix4fv(glGetUniformLocation(m_shaderProgram, "uProjection"), 1, GL_FALSE, proj.data());
+    glUniformMatrix4fv(m_viewLoc, 1, GL_FALSE, view.data());
+    glUniformMatrix4fv(m_projLoc, 1, GL_FALSE, proj.data());
 
     glBindVertexArray(m_vao);
     glDrawElements(GL_LINES, static_cast<GLsizei>(m_indices.size()), GL_UNSIGNED_INT, 0);
     glPointSize(5.0f);
-    glDrawArrays(GL_POINTS, 0, (GLsizei)particles.size());
+    glDrawArrays(GL_POINTS, 0, (GLsizei)positions.size());
     
     glBindVertexArray(0);
 }

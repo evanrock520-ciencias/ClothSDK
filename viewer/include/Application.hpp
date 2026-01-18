@@ -16,8 +16,11 @@
 
 #pragma once
 
+#include <atomic>
 #include <memory>
+#include <mutex>
 #include <string>
+#include <thread>
 #include <vector>
 
 struct GLFWwindow;
@@ -48,10 +51,10 @@ public:
 
 private:
     void processInput();
-    void update();
     void render();
     void drawUI();
     void resetSimulation();
+    void simulationLoop();
 
     GLFWwindow* m_window;
     std::shared_ptr<Solver> m_solver;
@@ -73,6 +76,11 @@ private:
 
     std::vector<Eigen::Vector3d> m_originalPositions;
     std::vector<int> m_originalIndices;
+
+    std::atomic<bool> m_isRunning;
+    std::thread m_simThread;
+    std::mutex m_dataMutex;
+    std::vector<Eigen::Vector3d> m_renderPositions;
 };
 
 }

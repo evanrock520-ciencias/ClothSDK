@@ -1,6 +1,7 @@
 // Copyright 2026 Evan M.
 // SPDX-License-Identifier: Apache-2.0
 
+#include <chrono>
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
 #include <imgui.h>
@@ -8,6 +9,8 @@
 #include <imgui_impl_opengl3.h>
 #include <memory>
 #include <Eigen/Dense>
+#include <mutex>
+#include <thread>
 
 #include "Application.hpp"
 #include "engine/ClothMesh.hpp"
@@ -139,8 +142,14 @@ bool Application::init(int width, int height, const std::string& title, const st
         }
     });
 
-    if (!m_solver) m_solver = std::make_shared<Solver>();
-    if (!m_mesh)   m_mesh   = std::make_shared<ClothMesh>();
+    if (m_solver == nullptr) {
+        m_solver = std::make_shared<Solver>();
+        Logger::warn("Solver was null, created new empty solver in init");
+    }
+    if (m_mesh == nullptr) {
+        m_mesh = std::make_shared<ClothMesh>();
+        Logger::warn("Mesh was null, created new empty mesh in init");
+    }
 
     m_renderer = std::make_unique<Renderer>();
     m_renderer->setShaderPath(shaderPath);
@@ -153,7 +162,7 @@ bool Application::init(int width, int height, const std::string& title, const st
     int bufferWidth, bufferHeight;
     glfwGetFramebufferSize(m_window, &bufferWidth, &bufferHeight);
 
-    m_camera = std::make_unique<Camera>(Eigen::Vector3f(0, 5, 10), Eigen::Vector3f(0, 2, 0));
+    m_camera = std::make_unique<Camera>(Eigen::Vector3f(0, 5, 10), Eigen::Vector3f(1, 1, 0));
     
     if (bufferHeight > 0) {
         m_camera->setAspectRatio(static_cast<float>(bufferWidth) / static_cast<float>(bufferHeight));
@@ -163,12 +172,17 @@ bool Application::init(int width, int height, const std::string& title, const st
     Logger::info("Window Size: " + std::to_string(width) + "x" + std::to_string(height));
     Logger::info("Framebuffer Size: " + std::to_string(bufferWidth) + "x" + std::to_string(bufferHeight));
     
+    syncVisualTopology();
     Logger::info("ClothSDK Viewer initialized successfully: OpenGL 3.3 Core Profile");
+    Logger::info("Init complete. Solver has " + std::to_string(m_solver->getParticleCount()) + " particles.");
     return true;
 }
 
 void Application::run() {
     m_lastFrame = glfwGetTime();
+    m_isRunning = true;
+    m_simThread = std::thread(&Application::simulationLoop, this);
+    Logger::info("Simulation thread launched.");
 
     while (!glfwWindowShouldClose(m_window)) {
         double currentFrame = glfwGetTime();
@@ -184,15 +198,18 @@ void Application::run() {
 
         drawUI();      
         processInput(); 
-
-        update();
-
         render(); 
 
         ImGui::Render();
         ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
 
         glfwSwapBuffers(m_window);
+    }
+
+    m_isRunning = false;
+    if (m_simThread.joinable()) {
+        m_simThread.join();
+        Logger::info("Simulation thread joined safely.");
     }
 }
 
@@ -210,20 +227,26 @@ void Application::processInput() {
     spaceWasPressed = spaceIsPressed;
 
     if (glfwGetKey(m_window, GLFW_KEY_R) == GLFW_PRESS) {
+        m_isPaused = true; 
+        std::this_thread::sleep_for(std::chrono::milliseconds(20)); 
+        
         resetSimulation();
+        
+        m_isPaused = false;
     }
-}
-
-void Application::update() {
-    if (!m_isPaused)
-        m_solver->update(m_deltaTime);
 }
 
 void Application::render() {
     glClearColor(0.12f, 0.12f, 0.12f, 1.0f);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-    m_renderer->render(*m_solver, *m_camera);
+    {
+        std::lock_guard<std::mutex> lock(m_dataMutex);
+        Logger::info("Render thread reading " + std::to_string(m_renderPositions.size()) + " particles");
+        if (!m_renderPositions.empty()) {
+            m_renderer->render(m_renderPositions, *m_camera);
+        }
+    }
 }
 
 void Application::shutdown() {    
@@ -329,14 +352,46 @@ void Application::resetSimulation() {
 }
 
 void Application::syncVisualTopology() {
-    if (!m_mesh || !m_renderer) {
-        Logger::warn("Cannot sync topology: Mesh or Renderer not initialized.");
-        return;
-    }
+    if (!m_mesh || !m_solver || !m_renderer) return;
 
-    const std::vector<unsigned int>& edges = m_mesh->getVisualEdges();
-    m_renderer->setIndices(edges);
+    std::lock_guard<std::mutex> lock(m_dataMutex);
+    
+    size_t count = m_solver->getParticleCount();
+    m_renderPositions.resize(count);
+    
+    m_renderer->setIndices(m_mesh->getVisualEdges());
     m_renderer->updateTopology();
+    
+    Logger::info("Topology Synced: " + std::to_string(count) + " particles buffered.");
+}
+
+void Application::simulationLoop() {
+    Logger::info("Sim thread published " + std::to_string(m_renderPositions.size()) + " particles");
+    while (m_isRunning) {
+        if (m_isPaused) {
+            std::this_thread::sleep_for(std::chrono::milliseconds(10));
+            continue;
+        }
+
+        auto start = std::chrono::high_resolution_clock::now();
+        m_solver->update(0.016);
+
+        {
+            std::lock_guard<std::mutex> lock(m_dataMutex);
+            const auto& particles = m_solver->getParticles();
+            
+            for (size_t i = 0; i < particles.size(); ++i) {
+                m_renderPositions[i] = particles[i].getPosition();
+            }
+        }
+
+        auto end = std::chrono::high_resolution_clock::now();
+        std::chrono::duration<double, std::micro> elapsed = end - start;
+        if (elapsed.count() < 16666.0) {
+            auto sleepTime = std::chrono::microseconds(16666) - std::chrono::duration_cast<std::chrono::microseconds>(elapsed);
+            std::this_thread::sleep_for(sleepTime);
+        }
+    }
 }
 
 } 

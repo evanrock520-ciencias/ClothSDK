@@ -1,0 +1,1643 @@
+diff --git a/core/include/engine/ClothMesh.hpp b/core/include/engine/ClothMesh.hpp
+index 2ca05ae..1af05b6 100644
+--- a/core/include/engine/ClothMesh.hpp
++++ b/core/include/engine/ClothMesh.hpp
+@@ -1,3 +1,19 @@
++/*
++ * Copyright 2026 Evan M.
++ *
++ * Licensed under the Apache License, Version 2.0 (the "License");
++ * you may not use this file except in compliance with the License.
++ * You may obtain a copy of the License at
++ *
++ *     http://www.apache.org/licenses/LICENSE-2.0
++ *
++ * Unless required by applicable law or agreed to in writing, software
++ * distributed under the License is distributed on an "AS IS" BASIS,
++ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
++ * See the License for the specific language governing permissions and
++ * limitations under the License.
++ */
++
+ #pragma once
+ 
+ #include "math/Types.hpp"
+diff --git a/core/include/io/ConfigLoader.hpp b/core/include/io/ConfigLoader.hpp
+index f69cb4c..23f4428 100644
+--- a/core/include/io/ConfigLoader.hpp
++++ b/core/include/io/ConfigLoader.hpp
+@@ -1,3 +1,20 @@
++/*
++ * Copyright 2026 Evan M.
++ *
++ * Licensed under the Apache License, Version 2.0 (the "License");
++ * you may not use this file except in compliance with the License.
++ * You may obtain a copy of the License at
++ *
++ *     http://www.apache.org/licenses/LICENSE-2.0
++ *
++ * Unless required by applicable law or agreed to in writing, software
++ * distributed under the License is distributed on an "AS IS" BASIS,
++ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
++ * See the License for the specific language governing permissions and
++ * limitations under the License.
++ */
++
++
+ #pragma once
+ 
+ #include <string>
+diff --git a/core/include/io/OBJLoader.hpp b/core/include/io/OBJLoader.hpp
+index b603e4a..9a5aac8 100644
+--- a/core/include/io/OBJLoader.hpp
++++ b/core/include/io/OBJLoader.hpp
+@@ -1,3 +1,19 @@
++/*
++ * Copyright 2026 Evan M.
++ *
++ * Licensed under the Apache License, Version 2.0 (the "License");
++ * you may not use this file except in compliance with the License.
++ * You may obtain a copy of the License at
++ *
++ *     http://www.apache.org/licenses/LICENSE-2.0
++ *
++ * Unless required by applicable law or agreed to in writing, software
++ * distributed under the License is distributed on an "AS IS" BASIS,
++ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
++ * See the License for the specific language governing permissions and
++ * limitations under the License.
++ */
++
+ #pragma once
+ #include <string>
+ #include <vector>
+diff --git a/core/include/math/Types.hpp b/core/include/math/Types.hpp
+index 5cb2030..ee3b4a3 100644
+--- a/core/include/math/Types.hpp
++++ b/core/include/math/Types.hpp
+@@ -1,3 +1,20 @@
++/*
++ * Copyright 2026 Evan M.
++ *
++ * Licensed under the Apache License, Version 2.0 (the "License");
++ * you may not use this file except in compliance with the License.
++ * You may obtain a copy of the License at
++ *
++ *     http://www.apache.org/licenses/LICENSE-2.0
++ *
++ * Unless required by applicable law or agreed to in writing, software
++ * distributed under the License is distributed on an "AS IS" BASIS,
++ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
++ * See the License for the specific language governing permissions and
++ * limitations under the License.
++ */
++
++
+ #pragma once
+ 
+ namespace ClothSDK {
+diff --git a/core/include/physics/BendingConstraint.hpp b/core/include/physics/BendingConstraint.hpp
+index 71051d2..1a410ba 100644
+--- a/core/include/physics/BendingConstraint.hpp
++++ b/core/include/physics/BendingConstraint.hpp
+@@ -1,3 +1,19 @@
++/*
++ * Copyright 2026 Evan M.
++ *
++ * Licensed under the Apache License, Version 2.0 (the "License");
++ * you may not use this file except in compliance with the License.
++ * You may obtain a copy of the License at
++ *
++ *     http://www.apache.org/licenses/LICENSE-2.0
++ *
++ * Unless required by applicable law or agreed to in writing, software
++ * distributed under the License is distributed on an "AS IS" BASIS,
++ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
++ * See the License for the specific language governing permissions and
++ * limitations under the License.
++ */
++
+ #pragma once
+ 
+ #include "Constraint.hpp"
+diff --git a/core/include/physics/Collider.hpp b/core/include/physics/Collider.hpp
+index b79eb68..2b2019c 100644
+--- a/core/include/physics/Collider.hpp
++++ b/core/include/physics/Collider.hpp
+@@ -1,3 +1,19 @@
++/*
++ * Copyright 2026 Evan M.
++ *
++ * Licensed under the Apache License, Version 2.0 (the "License");
++ * you may not use this file except in compliance with the License.
++ * You may obtain a copy of the License at
++ *
++ *     http://www.apache.org/licenses/LICENSE-2.0
++ *
++ * Unless required by applicable law or agreed to in writing, software
++ * distributed under the License is distributed on an "AS IS" BASIS,
++ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
++ * See the License for the specific language governing permissions and
++ * limitations under the License.
++ */
++
+ #pragma once
+ 
+ #include <vector>
+@@ -31,7 +47,7 @@ public:
+      * @param particles Reference to the global particle buffer.
+      * @param dt Current substep time delta. Required for kinematic friction calculations.
+      */
+-    virtual void resolve(std::vector<Particle>& particles, double dt) = 0;
++    virtual void resolve(std::vector<Particle>& particles, double dt, double thickness) = 0;
+ 
+     /**
+      * @brief Configures the surface friction coefficient.
+diff --git a/core/include/physics/Constraint.hpp b/core/include/physics/Constraint.hpp
+index 83031a9..8ce7cc7 100644
+--- a/core/include/physics/Constraint.hpp
++++ b/core/include/physics/Constraint.hpp
+@@ -1,3 +1,19 @@
++/*
++ * Copyright 2026 Evan M.
++ *
++ * Licensed under the Apache License, Version 2.0 (the "License");
++ * you may not use this file except in compliance with the License.
++ * You may obtain a copy of the License at
++ *
++ *     http://www.apache.org/licenses/LICENSE-2.0
++ *
++ * Unless required by applicable law or agreed to in writing, software
++ * distributed under the License is distributed on an "AS IS" BASIS,
++ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
++ * See the License for the specific language governing permissions and
++ * limitations under the License.
++ */
++
+ #pragma once
+ 
+ #include "Particle.hpp"
+diff --git a/core/include/physics/ContactConstraint.hpp b/core/include/physics/ContactConstraint.hpp
+new file mode 100644
+index 0000000..b6b8277
+--- /dev/null
++++ b/core/include/physics/ContactConstraint.hpp
+@@ -0,0 +1,32 @@
++/*
++ * Copyright 2026 Evan M.
++ *
++ * Licensed under the Apache License, Version 2.0 (the "License");
++ * you may not use this file except in compliance with the License.
++ * You may obtain a copy of the License at
++ *
++ *     http://www.apache.org/licenses/LICENSE-2.0
++ *
++ * Unless required by applicable law or agreed to in writing, software
++ * distributed under the License is distributed on an "AS IS" BASIS,
++ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
++ * See the License for the specific language governing permissions and
++ * limitations under the License.
++ */
++
++#pragma once
++
++#include "physics/Constraint.hpp"
++namespace ClothSDK {
++
++class ContactConstraint : public Constraint {
++public:
++    ContactConstraint(int idA, int idB, double thickness, double compliance);
++    void solve(std::vector<Particle>& particles, double dt) override;
++private:
++    int m_idA;
++    int m_idB;
++    double m_thickness;
++};
++
++}
+\ No newline at end of file
+diff --git a/core/include/physics/DistanceConstraint.hpp b/core/include/physics/DistanceConstraint.hpp
+index 5818fda..12d8eee 100644
+--- a/core/include/physics/DistanceConstraint.hpp
++++ b/core/include/physics/DistanceConstraint.hpp
+@@ -1,3 +1,19 @@
++/*
++ * Copyright 2026 Evan M.
++ *
++ * Licensed under the Apache License, Version 2.0 (the "License");
++ * you may not use this file except in compliance with the License.
++ * You may obtain a copy of the License at
++ *
++ *     http://www.apache.org/licenses/LICENSE-2.0
++ *
++ * Unless required by applicable law or agreed to in writing, software
++ * distributed under the License is distributed on an "AS IS" BASIS,
++ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
++ * See the License for the specific language governing permissions and
++ * limitations under the License.
++ */
++
+ #pragma once
+ 
+ #include "Constraint.hpp"
+diff --git a/core/include/physics/Particle.hpp b/core/include/physics/Particle.hpp
+index 9188081..a809460 100644
+--- a/core/include/physics/Particle.hpp
++++ b/core/include/physics/Particle.hpp
+@@ -1,3 +1,19 @@
++/*
++ * Copyright 2026 Evan M.
++ *
++ * Licensed under the Apache License, Version 2.0 (the "License");
++ * you may not use this file except in compliance with the License.
++ * You may obtain a copy of the License at
++ *
++ *     http://www.apache.org/licenses/LICENSE-2.0
++ *
++ * Unless required by applicable law or agreed to in writing, software
++ * distributed under the License is distributed on an "AS IS" BASIS,
++ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
++ * See the License for the specific language governing permissions and
++ * limitations under the License.
++ */
++
+ #pragma once
+ 
+ #include <Eigen/Dense>
+diff --git a/core/include/physics/PlaneCollider.hpp b/core/include/physics/PlaneCollider.hpp
+index f61c808..7f922f8 100644
+--- a/core/include/physics/PlaneCollider.hpp
++++ b/core/include/physics/PlaneCollider.hpp
+@@ -1,3 +1,19 @@
++/*
++ * Copyright 2026 Evan M.
++ *
++ * Licensed under the Apache License, Version 2.0 (the "License");
++ * you may not use this file except in compliance with the License.
++ * You may obtain a copy of the License at
++ *
++ *     http://www.apache.org/licenses/LICENSE-2.0
++ *
++ * Unless required by applicable law or agreed to in writing, software
++ * distributed under the License is distributed on an "AS IS" BASIS,
++ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
++ * See the License for the specific language governing permissions and
++ * limitations under the License.
++ */
++
+ #pragma once
+ 
+ #include "Collider.hpp"
+@@ -34,7 +50,7 @@ public:
+      * @param particles Reference to the global particle buffer.
+      * @param dt Current substep time delta.
+      */
+-    void resolve(std::vector<Particle>& particles, double dt);
++    void resolve(std::vector<Particle>& particles, double dt, double thickness);
+ 
+ private:
+     Eigen::Vector3d m_origin;   ///< World-space coordinate of a point in the plane.  
+diff --git a/core/include/physics/Solver.hpp b/core/include/physics/Solver.hpp
+index fdf990c..170afe0 100644
+--- a/core/include/physics/Solver.hpp
++++ b/core/include/physics/Solver.hpp
+@@ -1,3 +1,19 @@
++/*
++ * Copyright 2026 Evan M.
++ *
++ * Licensed under the Apache License, Version 2.0 (the "License");
++ * you may not use this file except in compliance with the License.
++ * You may obtain a copy of the License at
++ *
++ *     http://www.apache.org/licenses/LICENSE-2.0
++ *
++ * Unless required by applicable law or agreed to in writing, software
++ * distributed under the License is distributed on an "AS IS" BASIS,
++ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
++ * See the License for the specific language governing permissions and
++ * limitations under the License.
++ */
++
+ #pragma once
+ 
+ #include "Particle.hpp"  
+@@ -17,6 +33,7 @@ public:
+ 
+     int addParticle(const Particle& p);
+     void clear();
++    void assignToBatch(int constraintId, int batchId);
+ 
+     const std::vector<Particle>& getParticles() const;
+ 
+@@ -29,8 +46,8 @@ public:
+     void setThickness(double thickness) { m_thickness = thickness; }
+     void setCollisionCompliance(double c) { m_collisionCompliance = c; }
+ 
+-    void addDistanceConstraint(int idA, int idB, double compliance);
+-    void addBendingConstraint(int a, int b, int c, int d, double restAngle, double compliance);
++    int addDistanceConstraint(int idA, int idB, double compliance);
++    int addBendingConstraint(int a, int b, int c, int d, double restAngle, double compliance);
+     void addMassToParticle(int id, double mass);
+     void addPlaneCollider(const Eigen::Vector3d& origin, const Eigen::Vector3d& normal, double friction);
+     void addSphereCollider(const Eigen::Vector3d& center, double radius, double friction);
+@@ -38,13 +55,14 @@ public:
+ 
+     void update(double deltaTime);
+ 
+-    int getSubsteps() const { return m_substeps; }
+-    int getIterations() const { return m_iterations; }
+-    const Eigen::Vector3d& getGravity() const { return m_gravity; }
+-    double getAirDensity() const { return m_airDensity; }
+-    const Eigen::Vector3d& getWind() const { return m_wind; }
+-    double getThickness() const { return m_thickness; }
+-    double getCollisionCompliance() const { return m_collisionCompliance; }
++    inline int getSubsteps() const { return m_substeps; }
++    inline int getIterations() const { return m_iterations; }
++    inline const Eigen::Vector3d& getGravity() const { return m_gravity; }
++    inline double getAirDensity() const { return m_airDensity; }
++    inline const Eigen::Vector3d& getWind() const { return m_wind; }
++    inline double getThickness() const { return m_thickness; }
++    inline double getCollisionCompliance() const { return m_collisionCompliance; }
++    inline int getParticleCount() const { return m_particles.size(); };
+ 
+ private:
+     void step(double dt);
+@@ -63,6 +81,7 @@ private:
+     std::vector<std::unique_ptr<Constraint>> m_constraints;
+     std::vector<std::unique_ptr<Collider>> m_colliders;
+     std::vector<int> m_neighborsBuffer;
++    std::vector<std::vector<int>> m_constraintBatches;
+     std::unordered_set<uint64_t> m_adjacencies;
+     SpatialHash m_spatialHash;
+     Eigen::Vector3d m_gravity;
+diff --git a/core/include/physics/SpatialHash.hpp b/core/include/physics/SpatialHash.hpp
+index bf0d548..afe33f7 100644
+--- a/core/include/physics/SpatialHash.hpp
++++ b/core/include/physics/SpatialHash.hpp
+@@ -1,3 +1,19 @@
++/*
++ * Copyright 2026 Evan M.
++ *
++ * Licensed under the Apache License, Version 2.0 (the "License");
++ * you may not use this file except in compliance with the License.
++ * You may obtain a copy of the License at
++ *
++ *     http://www.apache.org/licenses/LICENSE-2.0
++ *
++ * Unless required by applicable law or agreed to in writing, software
++ * distributed under the License is distributed on an "AS IS" BASIS,
++ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
++ * See the License for the specific language governing permissions and
++ * limitations under the License.
++ */
++
+ #pragma once
+ 
+ #include <vector>
+diff --git a/core/include/physics/SphereCollider.hpp b/core/include/physics/SphereCollider.hpp
+index 5b6b7f4..9b35956 100644
+--- a/core/include/physics/SphereCollider.hpp
++++ b/core/include/physics/SphereCollider.hpp
+@@ -1,3 +1,19 @@
++/*
++ * Copyright 2026 Evan M.
++ *
++ * Licensed under the Apache License, Version 2.0 (the "License");
++ * you may not use this file except in compliance with the License.
++ * You may obtain a copy of the License at
++ *
++ *     http://www.apache.org/licenses/LICENSE-2.0
++ *
++ * Unless required by applicable law or agreed to in writing, software
++ * distributed under the License is distributed on an "AS IS" BASIS,
++ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
++ * See the License for the specific language governing permissions and
++ * limitations under the License.
++ */
++
+ #pragma once
+ 
+ #include "Collider.hpp"
+@@ -37,7 +53,7 @@ public:
+      * @param particles Reference to the global particle buffer.
+      * @param dt Current substep time delta.
+      */
+-    void resolve(std::vector<Particle>& particles, double dt);
++    void resolve(std::vector<Particle>& particles, double dt, double thickness);
+ 
+ private:
+     Eigen::Vector3d m_center;   ///< The center point of the sphere in 3D space.
+diff --git a/core/include/utils/Logger.hpp b/core/include/utils/Logger.hpp
+index 2d9aca9..cad649d 100644
+--- a/core/include/utils/Logger.hpp
++++ b/core/include/utils/Logger.hpp
+@@ -1,3 +1,19 @@
++/*
++ * Copyright 2026 Evan M.
++ *
++ * Licensed under the Apache License, Version 2.0 (the "License");
++ * you may not use this file except in compliance with the License.
++ * You may obtain a copy of the License at
++ *
++ *     http://www.apache.org/licenses/LICENSE-2.0
++ *
++ * Unless required by applicable law or agreed to in writing, software
++ * distributed under the License is distributed on an "AS IS" BASIS,
++ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
++ * See the License for the specific language governing permissions and
++ * limitations under the License.
++ */
++
+ #pragma once
+ 
+ #include <string>
+diff --git a/core/src/engine/ClothMesh.cpp b/core/src/engine/ClothMesh.cpp
+index 265a198..78148b0 100644
+--- a/core/src/engine/ClothMesh.cpp
++++ b/core/src/engine/ClothMesh.cpp
+@@ -1,8 +1,12 @@
++// Copyright 2026 Evan M.
++// SPDX-License-Identifier: Apache-2.0
++
+ #include "engine/ClothMesh.hpp"
+ #include "physics/Solver.hpp"
+ #include "physics/Particle.hpp"
+ #include <cmath>
+ #include <fstream>
++#include <vector>
+ 
+ namespace ClothSDK {
+ 
+@@ -22,12 +26,29 @@ void ClothMesh::initGrid(int rows, int cols, double spacing, Solver& solver) {
+         }
+     }
+ 
++    std::vector<uint64_t> particleMasks(solver.getParticleCount(), 0);
++
++    auto assignBatch = [&](const std::vector<int>& ids) -> int {
++        uint64_t combinedMask = 0;
++        for (int id : ids) combinedMask |= particleMasks[id];
++        
++        int batchId = __builtin_ctzll(~combinedMask);
++        uint64_t bit = (1ULL << batchId);
++        
++        for (int id : ids) particleMasks[id] |= bit;
++        return batchId;
++    };
++
+     for(int r = 0; r < m_rows; r++) {
+         for (int c = 0; c < m_cols; c++) {
+             if (c < cols - 1) {
+                 int idA = getParticleID(r, c);
+                 int idB = getParticleID(r, c + 1);
+-                solver.addDistanceConstraint(idA, idB, m_structuralCompliance);
++
++                int bId = assignBatch({idA, idB});
++                int cId = solver.addDistanceConstraint(idA, idB, m_structuralCompliance);
++                solver.assignToBatch(cId, bId);
++
+                 m_visualEdges.push_back(idA);
+                 m_visualEdges.push_back(idB);
+             }
+@@ -35,7 +56,11 @@ void ClothMesh::initGrid(int rows, int cols, double spacing, Solver& solver) {
+             if (r < rows - 1) {
+                 int idA = getParticleID(r, c);
+                 int idB = getParticleID(r + 1, c);
+-                solver.addDistanceConstraint(idA, idB, m_structuralCompliance);
++
++                int bId = assignBatch({idA, idB});
++                int cId = solver.addDistanceConstraint(idA, idB, m_structuralCompliance);
++                solver.assignToBatch(cId, bId);
++
+                 m_visualEdges.push_back(idA);
+                 m_visualEdges.push_back(idB);
+             }
+@@ -45,10 +70,18 @@ void ClothMesh::initGrid(int rows, int cols, double spacing, Solver& solver) {
+                 int idB = getParticleID(r, c + 1);
+                 int idC = getParticleID(r + 1, c);
+                 int idD = getParticleID(r + 1, c + 1);
+-                solver.addDistanceConstraint(idA, idD, m_shearCompliance);
+-                solver.addDistanceConstraint(idB, idC, m_shearCompliance);
+ 
+-                solver.addBendingConstraint(idA, idD, idB, idC, 0.0, m_bendingCompliance);
++                int bIdShear1 = assignBatch({idA, idD});
++                int cId1 = solver.addDistanceConstraint(idA, idD, m_shearCompliance);
++                solver.assignToBatch(cId1, bIdShear1);
++
++                int bIdShear2 = assignBatch({idB, idC});
++                int cId2 = solver.addDistanceConstraint(idB, idC, m_shearCompliance);
++                solver.assignToBatch(cId2, bIdShear2);
++
++                int bIdBending = assignBatch({idA, idD, idB, idC});
++                int cId3 = solver.addBendingConstraint(idA, idD, idB, idC, 0.0, m_bendingCompliance);
++                solver.assignToBatch(cId3, bIdBending);
+ 
+                 m_visualEdges.push_back(idA);
+                 m_visualEdges.push_back(idD);
+@@ -61,6 +94,8 @@ void ClothMesh::initGrid(int rows, int cols, double spacing, Solver& solver) {
+         }
+     }
+ 
++
++
+     const std::vector<Particle>& particles = solver.getParticles();
+ 
+     for(auto& triangle : m_triangles) {
+diff --git a/core/src/io/ConfigLoader.cpp b/core/src/io/ConfigLoader.cpp
+index dfb7a26..9021e46 100644
+--- a/core/src/io/ConfigLoader.cpp
++++ b/core/src/io/ConfigLoader.cpp
+@@ -1,3 +1,6 @@
++// Copyright 2026 Evan M.
++// SPDX-License-Identifier: Apache-2.0
++
+ #include "io/ConfigLoader.hpp"
+ #include "engine/ClothMesh.hpp"
+ #include "physics/Solver.hpp"
+diff --git a/core/src/io/OBJLoader.cpp b/core/src/io/OBJLoader.cpp
+index 54433d1..592a799 100644
+--- a/core/src/io/OBJLoader.cpp
++++ b/core/src/io/OBJLoader.cpp
+@@ -1,3 +1,6 @@
++// Copyright 2026 Evan M.
++// SPDX-License-Identifier: Apache-2.0
++
+ #include <vector>
+ #define TINYOBJLOADER_IMPLEMENTATION
+ #include "io/OBJLoader.hpp"
+diff --git a/core/src/physics/BendingConstraint.cpp b/core/src/physics/BendingConstraint.cpp
+index aa8f76e..b63fb01 100644
+--- a/core/src/physics/BendingConstraint.cpp
++++ b/core/src/physics/BendingConstraint.cpp
+@@ -1,15 +1,24 @@
++// Copyright 2026 Evan M.
++// SPDX-License-Identifier: Apache-2.0
++
+ #include "physics/BendingConstraint.hpp"
+-#include "utils/Logger.hpp"
+ #include <algorithm>
+ #include <cmath>
+ 
+ namespace ClothSDK {
+ 
+-BendingConstraint::BendingConstraint(int idA, int idB, int idC, int idD, double restAngle, double compliance)
+-: m_idA(idA), m_idB(idB), m_idC(idC), m_idD(idD), m_restAngle(restAngle) { m_compliance = compliance; }
++BendingConstraint::BendingConstraint(
++    int idA, int idB, int idC, int idD,
++    double restAngle, double compliance)
++: m_idA(idA), m_idB(idB), m_idC(idC), m_idD(idD),
++  m_restAngle(restAngle)
++{
++    m_compliance = compliance;
++}
+ 
+ void BendingConstraint::solve(std::vector<Particle>& particles, double dt) {
+     if (dt < 1e-6) return;
++
+     Particle& pA = particles[m_idA];
+     Particle& pB = particles[m_idB];
+     Particle& pC = particles[m_idC];
+@@ -31,25 +40,31 @@ void BendingConstraint::solve(std::vector<Particle>& particles, double dt) {
+     double n2_sq = n2.squaredNorm();
+     if (n1_sq < 1e-8 || n2_sq < 1e-8) return;
+ 
+-    double dot = n1.dot(n2) / std::sqrt(n1_sq * n2_sq);
+-    dot = std::clamp(dot, -1.0, 1.0);
++    double invLenN = 1.0 / std::sqrt(n1_sq * n2_sq);
++    double cosTheta = n1.dot(n2) * invLenN;
+ 
+-    double angle = std::acos(dot);
+-    if (e.dot(n1.cross(n2)) < 0.0)
+-        angle = -angle;
++    Eigen::Vector3d cross_n = n1.cross(n2);
++    double sinTheta = cross_n.dot(e) / (len * std::sqrt(n1_sq * n2_sq));
++
++    double angle = std::atan2(sinTheta, cosTheta);
+ 
+     double C = angle - m_restAngle;
+ 
++    if (std::abs(C) < 1e-6)
++        return;
++
+     Eigen::Vector3d gradC = (len / n1_sq) * n1;
+     Eigen::Vector3d gradD = -(len / n2_sq) * n2;
+ 
+-    double s1 = (xC - xB).dot(e) / (len * len);
+-    double s2 = (xD - xB).dot(e) / (len * len);
+-    Eigen::Vector3d gradA = s1 * gradC + s2 * gradD;
++    double invLen2 = 1.0 / (len * len);
+ 
+-    double t1 = (xA - xC).dot(e) / (len * len);
+-    double t2 = (xA - xD).dot(e) / (len * len);
+-    Eigen::Vector3d gradB = t1 * gradC + t2 * gradD;
++    Eigen::Vector3d gradA =
++        ((xC - xB).dot(e) * invLen2) * gradC +
++        ((xD - xB).dot(e) * invLen2) * gradD;
++
++    Eigen::Vector3d gradB =
++        ((xA - xC).dot(e) * invLen2) * gradC +
++        ((xA - xD).dot(e) * invLen2) * gradD;
+ 
+     double wA = pA.getInverseMass();
+     double wB = pB.getInverseMass();
+@@ -76,5 +91,4 @@ void BendingConstraint::solve(std::vector<Particle>& particles, double dt) {
+     pD.setPosition(xD + wD * deltaLambda * gradD);
+ }
+ 
+-
+-}
+\ No newline at end of file
++}
+diff --git a/core/src/physics/Collider.cpp b/core/src/physics/Collider.cpp
+index bceb671..cb8d7b8 100644
+--- a/core/src/physics/Collider.cpp
++++ b/core/src/physics/Collider.cpp
+@@ -1,3 +1,6 @@
++// Copyright 2026 Evan M.
++// SPDX-License-Identifier: Apache-2.0
++
+ #include "physics/Collider.hpp"
+ 
+ namespace ClothSDK {
+diff --git a/core/src/physics/Constraint.cpp b/core/src/physics/Constraint.cpp
+index af4e88a..68baf0c 100644
+--- a/core/src/physics/Constraint.cpp
++++ b/core/src/physics/Constraint.cpp
+@@ -1,3 +1,6 @@
++// Copyright 2026 Evan M.
++// SPDX-License-Identifier: Apache-2.0
++
+ #include "physics/Constraint.hpp"
+ 
+ namespace ClothSDK {
+diff --git a/core/src/physics/ContactConstraint.cpp b/core/src/physics/ContactConstraint.cpp
+new file mode 100644
+index 0000000..0d72079
+--- /dev/null
++++ b/core/src/physics/ContactConstraint.cpp
+@@ -0,0 +1,41 @@
++// Copyright 2026 Evan M.
++// SPDX-License-Identifier: Apache-2.0
++
++#include "physics/ContactConstraint.hpp"
++#include "physics/Particle.hpp"
++#include <Eigen/Dense>
++
++namespace ClothSDK {
++
++ContactConstraint::ContactConstraint(int idA, int idB, double thickness, double compliance)
++: m_idA(idA), m_idB(idB), m_thickness(thickness) { m_compliance = compliance; }
++
++void ContactConstraint::solve(std::vector<Particle>& particles, double dt)
++{
++    Particle& pA = particles[m_idA];
++    Particle& pB = particles[m_idB];
++
++    Eigen::Vector3d d = pA.getPosition() - pB.getPosition();
++    double dist = d.norm();
++
++    if (dist >= m_thickness || dist < 1e-8)
++        return;
++
++    Eigen::Vector3d n = d / dist;
++
++    double C = dist - m_thickness; 
++
++    double wA = pA.getInverseMass();
++    double wB = pB.getInverseMass();
++    double wSum = wA + wB;
++    if (wSum == 0.0)
++        return;
++
++    double correction = -C / wSum;
++
++    pA.setPosition(pA.getPosition() + wA * correction * n);
++    pB.setPosition(pB.getPosition() - wB * correction * n);
++}
++
++
++}
+\ No newline at end of file
+diff --git a/core/src/physics/DistanceConstraint.cpp b/core/src/physics/DistanceConstraint.cpp
+index f2f943e..05d9998 100644
+--- a/core/src/physics/DistanceConstraint.cpp
++++ b/core/src/physics/DistanceConstraint.cpp
+@@ -1,3 +1,6 @@
++// Copyright 2026 Evan M.
++// SPDX-License-Identifier: Apache-2.0
++
+ #include "physics/DistanceConstraint.hpp"
+ 
+ namespace ClothSDK {
+diff --git a/core/src/physics/Particle.cpp b/core/src/physics/Particle.cpp
+index 8069385..b03734f 100644
+--- a/core/src/physics/Particle.cpp
++++ b/core/src/physics/Particle.cpp
+@@ -1,3 +1,6 @@
++// Copyright 2026 Evan M.
++// SPDX-License-Identifier: Apache-2.0
++
+ #include "physics/Particle.hpp"
+ 
+ namespace ClothSDK {
+diff --git a/core/src/physics/PlaneCollider.cpp b/core/src/physics/PlaneCollider.cpp
+index d55135c..05b80c8 100644
+--- a/core/src/physics/PlaneCollider.cpp
++++ b/core/src/physics/PlaneCollider.cpp
+@@ -1,3 +1,6 @@
++// Copyright 2026 Evan M.
++// SPDX-License-Identifier: Apache-2.0
++
+ #include "physics/PlaneCollider.hpp"
+ #include "physics/Particle.hpp"
+ 
+@@ -8,25 +11,27 @@ PlaneCollider::PlaneCollider(const Eigen::Vector3d& origin, const Eigen::Vector3
+     m_friction = friction;
+ }
+ 
+-void PlaneCollider::resolve(std::vector<Particle>& particles, double) {
+-    double thickness = 0.01;
++void PlaneCollider::resolve(std::vector<Particle>& particles, double dt, double thickness) {
++    
+     for(auto& particle : particles) {
+         Eigen::Vector3d vec = particle.getPosition() - m_origin;
+         double distance = vec.dot(m_normal);
+ 
+         if (distance < thickness) {
++            
+             double penetration = thickness - distance;
+             Eigen::Vector3d newPosition = particle.getPosition() + m_normal * penetration;
+             particle.setPosition(newPosition);
+ 
+-            Eigen::Vector3d displacement = particle.getPosition() - particle.getOldPosition();
+-            Eigen::Vector3d normalDisp = m_normal * displacement.dot(m_normal);
+-            Eigen::Vector3d tangentialDisp = displacement - normalDisp;
+-            Eigen::Vector3d newDisplacement = normalDisp + tangentialDisp * (1.0 - m_friction);
+-
+-            particle.setOldPosition(particle.getPosition() - newDisplacement);
++            Eigen::Vector3d velocity = particle.getPosition() - particle.getOldPosition();
++            
++            double normalVelMag = velocity.dot(m_normal);
++            Eigen::Vector3d normalVel = m_normal * normalVelMag;
++            Eigen::Vector3d tangentVel = velocity - normalVel;
+ 
++            Eigen::Vector3d newVelocity = normalVel + tangentVel * (1.0 - m_friction);
+ 
++            particle.setOldPosition(particle.getPosition() - newVelocity);
+         }
+     }
+ }
+diff --git a/core/src/physics/Solver.cpp b/core/src/physics/Solver.cpp
+index e546be7..55a4ba1 100644
+--- a/core/src/physics/Solver.cpp
++++ b/core/src/physics/Solver.cpp
+@@ -1,3 +1,6 @@
++// Copyright 2026 Evan M.
++// SPDX-License-Identifier: Apache-2.0
++
+ #include <omp.h>
+ 
+ #include "physics/Solver.hpp"
+@@ -35,7 +38,7 @@ namespace ClothSDK {
+         }
+ 
+         for (auto& collider : m_colliders) {
+-            collider->resolve(m_particles, dt);
++            collider->resolve(m_particles, dt, m_thickness);
+         }
+ 
+         solveSelfCollisions(m_thickness);
+@@ -68,27 +71,31 @@ namespace ClothSDK {
+         m_particles.clear();
+         m_constraints.clear();
+         m_colliders.clear();
++        m_constraintBatches.clear();
+     }
+ 
+     const std::vector<Particle>& Solver::getParticles() const {
+         return m_particles;
+     }
+ 
+-    void Solver::addDistanceConstraint(int idA, int idB, double compliance) {
++    int Solver::addDistanceConstraint(int idA, int idB, double compliance) {
+         Particle& pA = m_particles[idA];
+         Particle& pB = m_particles[idB];
+         double restLength = (pA.getPosition() - pB.getPosition()).norm();
+         m_constraints.push_back(std::make_unique<DistanceConstraint>(idA, idB, restLength, compliance));
+         m_adjacencies.insert(getAdjacencyKey(idA, idB));
++
++        return static_cast<int>(m_constraints.size() - 1);
+     }
+ 
+-    void Solver::addBendingConstraint(int idA, int idB, int idC, int idD, double restAngle, double compliance) {
++    int Solver::addBendingConstraint(int idA, int idB, int idC, int idD, double restAngle, double compliance) {
+         m_constraints.push_back(std::make_unique<BendingConstraint>(idA, idB, idC, idD, restAngle, compliance));
+         m_adjacencies.insert(getAdjacencyKey(idA, idC));
+         m_adjacencies.insert(getAdjacencyKey(idB, idC));
+         m_adjacencies.insert(getAdjacencyKey(idA, idD));
+         m_adjacencies.insert(getAdjacencyKey(idB, idD));
+ 
++        return static_cast<int>(m_constraints.size() - 1);
+     }
+ 
+     void Solver::addPlaneCollider(const Eigen::Vector3d& origin, const Eigen::Vector3d& normal, double friction) {
+@@ -105,8 +112,15 @@ namespace ClothSDK {
+     }
+ 
+     void Solver::solveConstraints(double dt) {
+-        for(auto& constraint : m_constraints)
+-            constraint->solve(m_particles, dt);
++        for (const auto& batch : m_constraintBatches) {
++            
++            #pragma omp parallel for
++            for (int i = 0; i < (int)batch.size(); i++) {
++                int constraintId = batch[i];
++                
++                m_constraints[constraintId]->solve(m_particles, dt);
++            }
++        }
+     }
+ 
+     void Solver::applyAerodynamics(double dt) {
+@@ -200,6 +214,12 @@ namespace ClothSDK {
+         return (high << 32) | low;
+     }
+ 
++    void Solver::assignToBatch(int constraintId, int batchId) {
++        if (batchId >= m_constraintBatches.size())
++            m_constraintBatches.resize(batchId + 1);
++        m_constraintBatches[batchId].push_back(constraintId);
++    }
++
+     void Solver::setIterations(int count) {
+         m_iterations = count;
+     }
+diff --git a/core/src/physics/SpatialHash.cpp b/core/src/physics/SpatialHash.cpp
+index 3b5bd92..2b3e61a 100644
+--- a/core/src/physics/SpatialHash.cpp
++++ b/core/src/physics/SpatialHash.cpp
+@@ -1,3 +1,6 @@
++// Copyright 2026 Evan M.
++// SPDX-License-Identifier: Apache-2.0
++
+ #include "physics/SpatialHash.hpp"
+ #include "physics/Particle.hpp"
+ #include <cmath>
+diff --git a/core/src/physics/SphereCollider.cpp b/core/src/physics/SphereCollider.cpp
+index 1623726..f351572 100644
+--- a/core/src/physics/SphereCollider.cpp
++++ b/core/src/physics/SphereCollider.cpp
+@@ -1,3 +1,6 @@
++// Copyright 2026 Evan M.
++// SPDX-License-Identifier: Apache-2.0
++
+ #include "physics/SphereCollider.hpp"
+ #include "physics/Particle.hpp"
+ 
+@@ -9,30 +12,34 @@ SphereCollider::SphereCollider(const Eigen::Vector3d& center, double radius, dou
+     m_friction = friction;
+ }
+ 
+-void SphereCollider::resolve(std::vector<Particle>& particles, double dt) {
+-    double thickness = 0.01;
++void SphereCollider::resolve(std::vector<Particle>& particles, double dt, double thickness) {
++    
++    double collisionRadius = m_radius + thickness; 
++
+     for (auto& particle : particles) {
+         Eigen::Vector3d vec = particle.getPosition() - m_center;
+         double distance = vec.norm();
+ 
+         if (distance < 1e-6) {
+-            vec = Eigen::Vector3d::UnitY() * (m_radius + thickness);
++            vec = Eigen::Vector3d::UnitY() * collisionRadius;
+             distance = vec.norm();
+         }
+ 
+-
+-        if (distance < (m_radius + thickness)) {
++        if (distance < collisionRadius) {
+             Eigen::Vector3d normal = vec.normalized();
+-            Eigen::Vector3d newPosition = m_center + normal * (m_radius + thickness);
++            
++            Eigen::Vector3d newPosition = m_center + normal * collisionRadius;
+             particle.setPosition(newPosition);
+ 
+-            Eigen::Vector3d displacement = particle.getPosition() - particle.getOldPosition();
+-            Eigen::Vector3d normalDisp = normal * displacement.dot(normal);
+-            Eigen::Vector3d tangentialDisp = displacement - normalDisp;
+-            Eigen::Vector3d newDisplacement = normalDisp + tangentialDisp * (1.0 - m_friction);
++            Eigen::Vector3d velocity = particle.getPosition() - particle.getOldPosition();
++            
++            double normalVelMag = velocity.dot(normal);
++            Eigen::Vector3d normalVel = normal * normalVelMag;
++            Eigen::Vector3d tangentVel = velocity - normalVel;
+ 
+-            particle.setOldPosition(particle.getPosition() - newDisplacement);
++            Eigen::Vector3d newVelocity = normalVel + tangentVel * (1.0 - m_friction);
+ 
++            particle.setOldPosition(particle.getPosition() - newVelocity);
+         }
+     }
+ }
+diff --git a/core/src/utils/Logger.cpp b/core/src/utils/Logger.cpp
+index 25c483a..788eb0d 100644
+--- a/core/src/utils/Logger.cpp
++++ b/core/src/utils/Logger.cpp
+@@ -1,3 +1,6 @@
++// Copyright 2026 Evan M.
++// SPDX-License-Identifier: Apache-2.0
++
+ #include "utils/Logger.hpp"
+ #include <iostream>
+ 
+diff --git a/examples/simulation.py b/examples/simulation.py
+index 7c68cb3..caee204 100644
+--- a/examples/simulation.py
++++ b/examples/simulation.py
+@@ -14,59 +14,61 @@ except ImportError as e:
+ def run_curtain_simulation():
+     script_dir = os.path.dirname(os.path.abspath(__file__))
+     project_root = os.path.dirname(script_dir)
+-    
+     shader_path = os.path.join(project_root, "viewer", "shaders", "")
+     
+     sdk.Logger.info("========================================")
+-    print(f"[Python] Project Root: {project_root}")
+-    print(f"[Python] Shader Path:  {shader_path}")
++    sdk.Logger.info("   ClothSDK | Master Python Pipeline   ")
+     sdk.Logger.info("========================================")
+ 
+     solver = sdk.Solver()
+-    mesh = sdk.ClothMesh()
+-
++    
+     solver.set_gravity([0.0, -9.81, 0.0])
+-    solver.set_substeps(5)
+-    solver.set_iterations(20) 
++    solver.set_substeps(8)   
++    solver.set_iterations(1)  
+     
+-    solver.set_wind([6.0, 0.0, 10.0]) 
+-    solver.set_air_density(0.0)
++    solver.set_thickness(0.04)             
++    solver.set_collision_compliance(1e-4)  
+     
+-    dt = 1 / 60
+-    solver.update(dt)
++    solver.set_wind([1.0, 0.0, 3.0])
++    solver.set_air_density(0.1)
+ 
+-    rows, cols = 40, 40
+-    spacing = 0.2
++    mesh = sdk.ClothMesh()
+     
+-    mesh.set_material(0.2, 0.0, 1e-6, 0.05)
++    mesh.set_material(0.1, 1e-9, 1e-7, 0.05)
++    
++    rows, cols = 100, 50
++    spacing = 0.1
+     
+     sdk.Logger.info(f"Weaving {rows}x{cols} curtain grid...")
+     mesh.init_grid(rows, cols, spacing, solver)
+ 
+     top_row = rows - 1
+-    for c in range(cols):
+-        p_id = mesh.get_particle_id(top_row, c)
+-        solver.set_particle_inverse_mass(p_id, 0.0)
++    p_id = mesh.get_particle_id(top_row, 0)
++    
++    solver.set_particle_inverse_mass(p_id, 0.0) 
+     
+-    sdk.Logger.info(f"Pinned {cols} vertices to the top rail.")
+-
+     app = sdk.Application()
+     
+-    if not app.init(1280, 720, "ClothSDK | XPBD Real-time Simulation", shader_path):
+-        sdk.Logger.error("Could not initialize the viewer application.")
+-        return
+-
+     app.set_solver(solver)
+     app.set_mesh(mesh)
+ 
+-    sdk.Logger.info("Simulation started. Controls:")
+-    print("   - Right Mouse: Rotate Camera")
+-    print("   - Scroll: Zoom In/Out")
+-    print("   - ESC: Exit")
++    if not app.init(1280, 720, "ClothSDK | Live XPBD Simulation", shader_path):
++        sdk.Logger.error("Failed to initialize OpenGL context.")
++        return
++
++    sdk.Logger.info("Syncing topology with GPU...")
++    app.sync_visual_topology()
++
++    sdk.Logger.info("Simulating! Use mouse to orbit and ESC to close.")
++    print("   - Right Click + Move: Orbit")
++    print("   - Scroll: Zoom")
++    print("   - Space: Pause/Resume")
++    print("   - R: Reset Simulation")
+ 
+     app.run()
++    
+     app.shutdown()
+-    sdk.Logger.info("Simulation session closed.")
++    sdk.Logger.info("Simulation session finished.")
+ 
+ if __name__ == "__main__":
+-    run_curtain_simulation()
+\ No newline at end of file
++    run_curtain_simulation()
+diff --git a/imgui.ini b/imgui.ini
+index f053ae8..e2a96ee 100644
+--- a/imgui.ini
++++ b/imgui.ini
+@@ -9,7 +9,7 @@ Size=86,71
+ Collapsed=0
+ 
+ [Window][ClothSDK Control Panel]
+-Pos=88,55
+-Size=702,884
++Pos=232,60
++Size=537,484
+ Collapsed=0
+ 
+diff --git a/python/src/bindings.cpp b/python/src/bindings.cpp
+index fd5b745..89c4c2a 100644
+--- a/python/src/bindings.cpp
++++ b/python/src/bindings.cpp
+@@ -1,3 +1,6 @@
++// Copyright 2026 Evan M.
++// SPDX-License-Identifier: Apache-2.0
++
+ #include <pybind11/pybind11.h>
+ #include <pybind11/eigen.h>
+ #include <pybind11/stl.h>
+@@ -122,6 +125,7 @@ PYBIND11_MODULE(cloth_sdk, m) {
+         py::arg("width"), py::arg("height"), py::arg("title"), py::arg("shader_path"))
+     .def("run", &ClothSDK::Viewer::Application::run)
+     .def("shutdown", &ClothSDK::Viewer::Application::shutdown)
++    .def("sync_visual_topology", &ClothSDK::Viewer::Application::syncVisualTopology)
+     .def("set_solver", &ClothSDK::Viewer::Application::setSolver, py::arg("solver"))
+     .def("set_mesh", &ClothSDK::Viewer::Application::setMesh, py::arg("mesh"))
+     .def("get_renderer", &ClothSDK::Viewer::Application::getRenderer, 
+diff --git a/viewer/include/Application.hpp b/viewer/include/Application.hpp
+index 354d3fd..041646e 100644
+--- a/viewer/include/Application.hpp
++++ b/viewer/include/Application.hpp
+@@ -1,7 +1,27 @@
++/*
++ * Copyright 2026 Evan M.
++ *
++ * Licensed under the Apache License, Version 2.0 (the "License");
++ * you may not use this file except in compliance with the License.
++ * You may obtain a copy of the License at
++ *
++ *     http://www.apache.org/licenses/LICENSE-2.0
++ *
++ * Unless required by applicable law or agreed to in writing, software
++ * distributed under the License is distributed on an "AS IS" BASIS,
++ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
++ * See the License for the specific language governing permissions and
++ * limitations under the License.
++ */
++
+ #pragma once
+ 
++#include <atomic>
+ #include <memory>
++#include <mutex>
+ #include <string>
++#include <thread>
++#include <vector>
+ 
+ struct GLFWwindow;
+ 
+@@ -23,6 +43,7 @@ public:
+     bool init(int width, int height, const std::string& title, const std::string& shaderPath);
+     void run();
+     void shutdown();
++    void syncVisualTopology();
+ 
+     inline void setSolver(std::shared_ptr<Solver> solver) { m_solver = solver; }
+     inline void setMesh(std::shared_ptr<ClothMesh> mesh) { m_mesh = mesh; }
+@@ -30,10 +51,10 @@ public:
+ 
+ private:
+     void processInput();
+-    void update();
+     void render();
+     void drawUI();
+     void resetSimulation();
++    void simulationLoop();
+ 
+     GLFWwindow* m_window;
+     std::shared_ptr<Solver> m_solver;
+@@ -48,7 +69,18 @@ private:
+     bool m_firstMouse = true;
+ 
+     bool m_isPaused;
++    bool m_isGridScene;
++    int m_initRows, m_initCols;
++    double m_initSpacing;
+     char m_configPathBuffer[256] = "data/configs/silk.json";
++
++    std::vector<Eigen::Vector3d> m_originalPositions;
++    std::vector<int> m_originalIndices;
++
++    std::atomic<bool> m_isRunning;
++    std::thread m_simThread;
++    std::mutex m_dataMutex;
++    std::vector<Eigen::Vector3d> m_renderPositions;
+ };
+ 
+ }
+diff --git a/viewer/include/Camera.hpp b/viewer/include/Camera.hpp
+index 48769a4..1772675 100644
+--- a/viewer/include/Camera.hpp
++++ b/viewer/include/Camera.hpp
+@@ -1,3 +1,19 @@
++/*
++ * Copyright 2026 Evan M.
++ *
++ * Licensed under the Apache License, Version 2.0 (the "License");
++ * you may not use this file except in compliance with the License.
++ * You may obtain a copy of the License at
++ *
++ *     http://www.apache.org/licenses/LICENSE-2.0
++ *
++ * Unless required by applicable law or agreed to in writing, software
++ * distributed under the License is distributed on an "AS IS" BASIS,
++ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
++ * See the License for the specific language governing permissions and
++ * limitations under the License.
++ */
++
+ #pragma once
+ 
+ #include <Eigen/Dense>
+diff --git a/viewer/include/Renderer.hpp b/viewer/include/Renderer.hpp
+index a3ef6f7..7f1d837 100644
+--- a/viewer/include/Renderer.hpp
++++ b/viewer/include/Renderer.hpp
+@@ -1,3 +1,19 @@
++/*
++ * Copyright 2026 Evan M.
++ *
++ * Licensed under the Apache License, Version 2.0 (the "License");
++ * you may not use this file except in compliance with the License.
++ * You may obtain a copy of the License at
++ *
++ *     http://www.apache.org/licenses/LICENSE-2.0
++ *
++ * Unless required by applicable law or agreed to in writing, software
++ * distributed under the License is distributed on an "AS IS" BASIS,
++ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
++ * See the License for the specific language governing permissions and
++ * limitations under the License.
++ */
++
+ #pragma once
+ #include <Eigen/Dense>
+ #include <vector>
+@@ -14,8 +30,9 @@ namespace ClothSDK {
+             ~Renderer();
+ 
+             bool init();
+-            void render(const ClothSDK::Solver& solver, const Camera& camera);
++            void render(const std::vector<Eigen::Vector3d>& positions, const Camera& camera);
+             void cleanup();
++            void updateTopology();
+ 
+             inline void setIndices(const std::vector<unsigned int>& indices) { m_indices = indices; }
+             inline void setShaderPath(const std::string& path) { m_shaderPath = path; }
+@@ -33,6 +50,7 @@ namespace ClothSDK {
+             std::vector<unsigned int> m_indices;
+ 
+             std::string m_shaderPath = "../viewer/shaders/";
++            int m_viewLoc, m_projLoc;
+         };
+     }
+ }
+\ No newline at end of file
+diff --git a/viewer/shaders/cloth.frag b/viewer/shaders/cloth.frag
+index 59f50ae..1094bc6 100644
+--- a/viewer/shaders/cloth.frag
++++ b/viewer/shaders/cloth.frag
+@@ -3,5 +3,5 @@
+ out vec4 FragColor;
+ 
+ void main() {
+-    FragColor = vec4(1.0, 0.5, 0.2, 1.0);
++    FragColor = vec4(0.0, 0.5, 0.1, 1.0);
+ }
+\ No newline at end of file
+diff --git a/viewer/src/Application.cpp b/viewer/src/Application.cpp
+index 42af72e..fc0393d 100644
+--- a/viewer/src/Application.cpp
++++ b/viewer/src/Application.cpp
+@@ -1,9 +1,16 @@
++// Copyright 2026 Evan M.
++// SPDX-License-Identifier: Apache-2.0
++
++#include <chrono>
+ #include <glad/glad.h>
+ #include <GLFW/glfw3.h>
+ #include <imgui.h>
+ #include <imgui_impl_glfw.h>
+ #include <imgui_impl_opengl3.h>
+ #include <memory>
++#include <Eigen/Dense>
++#include <mutex>
++#include <thread>
+ 
+ #include "Application.hpp"
+ #include "engine/ClothMesh.hpp"
+@@ -14,6 +21,12 @@
+ #include "Camera.hpp"
+ #include "io/ConfigLoader.hpp" 
+ 
++extern IMGUI_IMPL_API void ImGui_ImplGlfw_CursorPosCallback(GLFWwindow* window, double x, double y);
++extern IMGUI_IMPL_API void ImGui_ImplGlfw_MouseButtonCallback(GLFWwindow* window, int button, int action, int mods);
++extern IMGUI_IMPL_API void ImGui_ImplGlfw_ScrollCallback(GLFWwindow* window, double xoffset, double yoffset);
++extern IMGUI_IMPL_API void ImGui_ImplGlfw_KeyCallback(GLFWwindow* window, int key, int scancode, int action, int mods);
++extern IMGUI_IMPL_API void ImGui_ImplGlfw_CharCallback(GLFWwindow* window, unsigned int c);
++
+ namespace ClothSDK {
+ namespace Viewer {
+ 
+@@ -32,10 +45,17 @@ Application::Application()
+ Application::~Application() = default;
+ 
+ bool Application::init(int width, int height, const std::string& title, const std::string& shaderPath) {
+-    if(!glfwInit()) return false;
++    if (!glfwInit()) {
++        Logger::error("Failed to initialize GLFW");
++        return false;
++    }
++
+     glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
+     glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
+     glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
++    glfwWindowHint(GLFW_SCALE_TO_MONITOR, GLFW_TRUE);
++    glfwWindowHint(GLFW_RESIZABLE, GLFW_TRUE);
++
+     m_window = glfwCreateWindow(width, height, title.c_str(), nullptr, nullptr);
+     if (!m_window) {
+         Logger::error("Failed to create GLFW window");
+@@ -44,30 +64,34 @@ bool Application::init(int width, int height, const std::string& title, const st
+     }
+ 
+     glfwMakeContextCurrent(m_window);
+-    glfwSetWindowUserPointer(m_window, this);
+-    glfwSwapInterval(0); 
++    glfwSetWindowUserPointer(m_window, this); 
++    glfwSwapInterval(1); 
+ 
+     if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress)) {
+         Logger::error("Failed to initialize GLAD");
+-        return false; 
++        return false;
+     }
+ 
++    IMGUI_CHECKVERSION();
+     ImGui::CreateContext();
++    ImGuiIO& io = ImGui::GetIO(); (void)io;
+     ImGui::StyleColorsDark();
+ 
+-    float fontSize = 32.0f; 
+-    ImGui::GetIO().Fonts->AddFontFromFileTTF(
+-        "/usr/share/fonts/liberation-sans-fonts/LiberationSans-Regular.ttf", 
+-        fontSize
+-    );
+-    ImGui::GetStyle().ScaleAllSizes(2.0f);
++    float fontSize = 24.0f; 
++    float scale = 2.0f; 
++    io.Fonts->AddFontFromFileTTF("/usr/share/fonts/liberation-sans-fonts/LiberationSans-Regular.ttf", fontSize);
++    ImGui::GetStyle().ScaleAllSizes(scale);
++    io.FontGlobalScale = 1.0f; 
++
++    ImGui_ImplGlfw_InitForOpenGL(m_window, false);
++    ImGui_ImplOpenGL3_Init("#version 330");
+ 
+     glfwSetCursorPosCallback(m_window, [](GLFWwindow* window, double xpos, double ypos) {
+-        ImGuiIO& io = ImGui::GetIO();
+-        if (io.WantCaptureMouse) return;
++        ImGui_ImplGlfw_CursorPosCallback(window, xpos, ypos);
++
++        if (ImGui::GetIO().WantCaptureMouse) return;
+ 
+         auto* app = static_cast<Application*>(glfwGetWindowUserPointer(window));
+-
+         if (app->m_firstMouse) {
+             app->m_lastX = xpos;
+             app->m_lastY = ypos;
+@@ -75,66 +99,81 @@ bool Application::init(int width, int height, const std::string& title, const st
+         }
+ 
+         float xoffset = static_cast<float>(xpos - app->m_lastX);
+-        float yoffset = static_cast<float>(app->m_lastY - ypos);
++        float yoffset = static_cast<float>(app->m_lastY - ypos); 
+ 
+         app->m_lastX = xpos;
+         app->m_lastY = ypos;
+ 
+-        if (glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_RIGHT) == GLFW_PRESS) 
++        if (glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_RIGHT) == GLFW_PRESS) {
+             app->m_camera->handleMouse(xoffset, yoffset);
++        }
+     });
+ 
+-    ImGui_ImplGlfw_InitForOpenGL(m_window, true); 
+-    ImGui_ImplOpenGL3_Init("#version 330");
++    glfwSetMouseButtonCallback(m_window, [](GLFWwindow* window, int button, int action, int mods) {
++        ImGui_ImplGlfw_MouseButtonCallback(window, button, action, mods);
++    });
+ 
+     glfwSetScrollCallback(m_window, [](GLFWwindow* window, double xoffset, double yoffset) {
++        ImGui_ImplGlfw_ScrollCallback(window, xoffset, yoffset);
++
++        if (ImGui::GetIO().WantCaptureMouse) return;
++        
+         auto* app = static_cast<Application*>(glfwGetWindowUserPointer(window));
+         app->m_camera->handleZoom(static_cast<float>(yoffset));
+     });
+ 
++    glfwSetKeyCallback(m_window, [](GLFWwindow* window, int key, int scancode, int action, int mods) {
++        ImGui_ImplGlfw_KeyCallback(window, key, scancode, action, mods);
++        
++        if (key == GLFW_KEY_ESCAPE && action == GLFW_PRESS)
++            glfwSetWindowShouldClose(window, true);
++    });
++
++    glfwSetCharCallback(m_window, [](GLFWwindow* window, unsigned int c) {
++        ImGui_ImplGlfw_CharCallback(window, c);
++    });
++
+     glfwSetFramebufferSizeCallback(m_window, [](GLFWwindow* window, int width, int height) {
+         glViewport(0, 0, width, height);
+-        
++
+         auto* app = static_cast<Application*>(glfwGetWindowUserPointer(window));
+-        if (app->m_camera) {
++        if (app->m_camera && height > 0) {
+             app->m_camera->setAspectRatio(static_cast<float>(width) / static_cast<float>(height));
+         }
+     });
+-    
+-    if (!m_solver) {
+-        m_solver = std::make_shared<Solver>();
+-    }
+ 
+-    if (!m_mesh) {
+-        m_mesh = std::make_shared<ClothMesh>();
+-    }
++    if (!m_solver) m_solver = std::make_shared<Solver>();
++    if (!m_mesh)   m_mesh   = std::make_shared<ClothMesh>();
+ 
+     m_renderer = std::make_unique<Renderer>();
+     m_renderer->setShaderPath(shaderPath);
+ 
+-    m_camera = std::make_unique<Camera>(Eigen::Vector3f(0, 5, 10), Eigen::Vector3f(1, 1, 0));
+-
+-    m_mesh->initGrid(20, 20, 0.1, *m_solver); 
+-
+-    m_renderer->setIndices(m_mesh->getVisualEdges());
+-
+     if (!m_renderer->init()) {
+-        Logger::error("Failed to initialize Renderer");
++        Logger::error("Failed to initialize Renderer with shader path: " + shaderPath);
+         return false;
+     }
+ 
+-    m_camera->setAspectRatio((float)width / (float)height);
+-    for(int i = 0; i < 20; ++i) 
+-        m_solver->setParticleInverseMass(m_mesh->getParticleID(19, i), 0.0);
++    int bufferWidth, bufferHeight;
++    glfwGetFramebufferSize(m_window, &bufferWidth, &bufferHeight);
+ 
+-    glViewport(0, 0, width, height);
++    m_camera = std::make_unique<Camera>(Eigen::Vector3f(0, 5, 10), Eigen::Vector3f(0, 2, 0));
+     
+-    Logger::info("Renderer initialized: OpenGL 3.3 Core");
++    if (bufferHeight > 0) {
++        m_camera->setAspectRatio(static_cast<float>(bufferWidth) / static_cast<float>(bufferHeight));
++        glViewport(0, 0, bufferWidth, bufferHeight);
++    }
++    
++    Logger::info("Window Size: " + std::to_string(width) + "x" + std::to_string(height));
++    Logger::info("Framebuffer Size: " + std::to_string(bufferWidth) + "x" + std::to_string(bufferHeight));
++    
++    Logger::info("ClothSDK Viewer initialized successfully: OpenGL 3.3 Core Profile");
+     return true;
+ }
+ 
+ void Application::run() {
+     m_lastFrame = glfwGetTime();
++    m_isRunning = true;
++    m_simThread = std::thread(&Application::simulationLoop, this);
+ 
+     while (!glfwWindowShouldClose(m_window)) {
+         double currentFrame = glfwGetTime();
+@@ -151,8 +190,6 @@ void Application::run() {
+         drawUI();      
+         processInput(); 
+ 
+-        update();
+-
+         render(); 
+ 
+         ImGui::Render();
+@@ -160,6 +197,10 @@ void Application::run() {
+ 
+         glfwSwapBuffers(m_window);
+     }
++
++    m_isRunning = false;
++    if (m_simThread.joinable())
++        m_simThread.join();
+ }
+ 
+ void Application::processInput() {
+@@ -176,26 +217,23 @@ void Application::processInput() {
+     spaceWasPressed = spaceIsPressed;
+ 
+     if (glfwGetKey(m_window, GLFW_KEY_R) == GLFW_PRESS) {
+-        m_solver->clear(); 
+-        m_mesh->initGrid(20, 20, 0.1, *m_solver); 
+-        m_renderer->setIndices(m_mesh->getVisualEdges()); 
+-        for(int i = 0; i < 20; ++i) 
+-            m_solver->setParticleInverseMass(m_mesh->getParticleID(19, i), 0.0);
++        m_isPaused = true; 
++        std::this_thread::sleep_for(std::chrono::milliseconds(20)); 
+         
+-        Logger::info("Simulation Reset");
++        resetSimulation();
++        
++        m_isPaused = false;
+     }
+ }
+ 
+-void Application::update() {
+-    if (!m_isPaused)
+-        m_solver->update(m_deltaTime);
+-}
+-
+ void Application::render() {
+     glClearColor(0.12f, 0.12f, 0.12f, 1.0f);
+     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+ 
+-    m_renderer->render(*m_solver, *m_camera);
++    {
++        std::lock_guard<std::mutex> lock(m_dataMutex);
++        m_renderer->render(m_renderPositions, *m_camera);
++    }
+ }
+ 
+ void Application::shutdown() {    
+@@ -287,13 +325,54 @@ void Application::drawUI() {
+ }
+ 
+ void Application::resetSimulation() {
+-    m_solver->clear(); 
+-    m_mesh->initGrid(20, 20, 0.1, *m_solver); 
+-    m_renderer->setIndices(m_mesh->getVisualEdges()); 
+-    for(int i = 0; i < 20; ++i) 
+-        m_solver->setParticleInverseMass(m_mesh->getParticleID(19, i), 0.0);
+-        
+-    Logger::info("Simulation Reset");
++    m_solver->clear();
++    
++    int rows = (m_initRows > 0) ? m_initRows : 20;
++    int cols = (m_initCols > 0) ? m_initCols : 20;
++    float spacing = (m_initSpacing > 0.0f) ? m_initSpacing : 0.1f;
++
++    m_mesh->initGrid(rows, cols, spacing, *m_solver);
++    
++    syncVisualTopology();
++    
++    Logger::info("Simulation Reset (Grid: " + std::to_string(rows) + "x" + std::to_string(cols) + ")");
++}
++
++void Application::syncVisualTopology() {
++    if (!m_mesh || !m_renderer) {
++        Logger::warn("Cannot sync topology: Mesh or Renderer not initialized.");
++        return;
++    }
++
++    std::lock_guard<std::mutex> lock(m_dataMutex);
++    size_t numParticles = m_solver->getParticleCount();
++
++    const std::vector<unsigned int>& edges = m_mesh->getVisualEdges();
++    m_renderer->setIndices(edges);
++    m_renderer->updateTopology();
++}
++
++void Application::simulationLoop() {
++    while (m_isRunning) {
++        if (m_isPaused) {
++            std::this_thread::sleep_for(std::chrono::milliseconds(10));
++            continue;
++        }
++
++        const double fixedStep = 1.0 / 60.0;
++        m_solver->update(fixedStep);
++
++        {
++            std::lock_guard<std::mutex> lock(m_dataMutex);
++            const auto& particles = m_solver->getParticles();
++            
++            if (m_renderPositions.size() != particles.size()) continue;
++
++            for (size_t i = 0; i < particles.size(); ++i) {
++                m_renderPositions[i] = particles[i].getPosition();
++            }
++        }
++    }
+ }
+ 
+ } 
+diff --git a/viewer/src/Camera.cpp b/viewer/src/Camera.cpp
+index 3b69d3b..998c659 100644
+--- a/viewer/src/Camera.cpp
++++ b/viewer/src/Camera.cpp
+@@ -1,3 +1,6 @@
++// Copyright 2026 Evan M.
++// SPDX-License-Identifier: Apache-2.0
++
+ #include "Camera.hpp"
+ #include <cmath>
+ 
+diff --git a/viewer/src/Renderer.cpp b/viewer/src/Renderer.cpp
+index 88f5f67..d76be34 100644
+--- a/viewer/src/Renderer.cpp
++++ b/viewer/src/Renderer.cpp
+@@ -1,3 +1,6 @@
++// Copyright 2026 Evan M.
++// SPDX-License-Identifier: Apache-2.0
++
+ #include <glad/glad.h>
+ #include "Renderer.hpp"
+ #include "physics/Solver.hpp"
+@@ -39,17 +42,16 @@ bool Renderer::init() {
+     glBindBuffer(GL_ARRAY_BUFFER, 0);
+     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
+ 
++    m_viewLoc = glGetUniformLocation(m_shaderProgram, "uView");
++    m_projLoc = glGetUniformLocation(m_shaderProgram, "uProjection");
++
+     return true;
+ }
+ 
+-void Renderer::render(const ClothSDK::Solver& solver, const Camera& camera) {
+-    const auto& particles = solver.getParticles();
+-    if (particles.empty()) return;
+-
++void Renderer::render(const std::vector<Eigen::Vector3d>& positions, const Camera& camera) {
+     m_vertexBuffer.clear();
+-    m_vertexBuffer.reserve(particles.size() * 3);
+-    for (const auto& p : particles) {
+-        Eigen::Vector3d pos = p.getPosition();
++    m_vertexBuffer.reserve(positions.size() * 3);
++    for (const auto& pos : positions) {
+         m_vertexBuffer.push_back(static_cast<float>(pos.x()));
+         m_vertexBuffer.push_back(static_cast<float>(pos.y()));
+         m_vertexBuffer.push_back(static_cast<float>(pos.z()));
+@@ -63,13 +65,13 @@ void Renderer::render(const ClothSDK::Solver& solver, const Camera& camera) {
+     Eigen::Matrix4f view = camera.getViewMatrix();
+     Eigen::Matrix4f proj = camera.getProjectionMatrix();
+ 
+-    glUniformMatrix4fv(glGetUniformLocation(m_shaderProgram, "uView"), 1, GL_FALSE, view.data());
+-    glUniformMatrix4fv(glGetUniformLocation(m_shaderProgram, "uProjection"), 1, GL_FALSE, proj.data());
++    glUniformMatrix4fv(m_viewLoc, 1, GL_FALSE, view.data());
++    glUniformMatrix4fv(m_projLoc, 1, GL_FALSE, proj.data());
+ 
+     glBindVertexArray(m_vao);
+     glDrawElements(GL_LINES, static_cast<GLsizei>(m_indices.size()), GL_UNSIGNED_INT, 0);
+     glPointSize(5.0f);
+-    glDrawArrays(GL_POINTS, 0, (GLsizei)particles.size());
++    glDrawArrays(GL_POINTS, 0, (GLsizei)positions.size());
+     
+     glBindVertexArray(0);
+ }
+@@ -138,5 +140,20 @@ std::string Renderer::loadFile(const std::string& path) {
+     return ss.str();
+ }
+ 
++void Renderer::updateTopology() {
++    if (m_vao == 0 || m_ebo == 0) return;
++
++    glBindVertexArray(m_vao);
++    
++    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_ebo);
++    glBufferData(GL_ELEMENT_ARRAY_BUFFER, 
++                 m_indices.size() * sizeof(unsigned int), 
++                 m_indices.data(), 
++                 GL_STATIC_DRAW);
++                 
++    glBindVertexArray(0);
++    Logger::info("GPU Topology updated: " + std::to_string(m_indices.size() / 2) + " edges.");
++}
++
+ } 
+ } 
+\ No newline at end of file

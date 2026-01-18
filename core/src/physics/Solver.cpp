@@ -112,8 +112,15 @@ namespace ClothSDK {
     }
 
     void Solver::solveConstraints(double dt) {
-        for(auto& constraint : m_constraints)
-            constraint->solve(m_particles, dt);
+        for (const auto& batch : m_constraintBatches) {
+            
+            #pragma omp parallel for
+            for (int i = 0; i < (int)batch.size(); i++) {
+                int constraintId = batch[i];
+                
+                m_constraints[constraintId]->solve(m_particles, dt);
+            }
+        }
     }
 
     void Solver::applyAerodynamics(double dt) {
