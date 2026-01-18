@@ -36,21 +36,20 @@ def run_curtain_simulation():
     
     mesh.set_material(0.1, 1e-9, 1e-7, 0.05)
     
-    rows, cols = 40, 40
+    rows, cols = 100, 100
     spacing = 0.1
     
     sdk.Logger.info(f"Weaving {rows}x{cols} curtain grid...")
     mesh.init_grid(rows, cols, spacing, solver)
 
     top_row = rows - 1
-    pinned_count = 0
-    for c in range(cols):
-        p_id = mesh.get_particle_id(top_row, c)
-        solver.set_particle_inverse_mass(p_id, 0.0) 
-        pinned_count += 1
+    p_id = mesh.get_particle_id(top_row, 0)
+    p_nid = mesh.get_particle_id(top_row, 99)
     
-    sdk.Logger.info(f"Successfully pinned {pinned_count} vertices at the top rail.")
-
+    solver.set_particle_inverse_mass(p_id, 0.0) 
+    solver.set_particle_inverse_mass(p_nid, 0.0) 
+    
+    
     app = sdk.Application()
     
     app.set_solver(solver)
