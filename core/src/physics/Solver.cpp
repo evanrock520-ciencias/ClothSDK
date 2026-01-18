@@ -71,27 +71,31 @@ namespace ClothSDK {
         m_particles.clear();
         m_constraints.clear();
         m_colliders.clear();
+        m_constraintBatches.clear();
     }
 
     const std::vector<Particle>& Solver::getParticles() const {
         return m_particles;
     }
 
-    void Solver::addDistanceConstraint(int idA, int idB, double compliance) {
+    int Solver::addDistanceConstraint(int idA, int idB, double compliance) {
         Particle& pA = m_particles[idA];
         Particle& pB = m_particles[idB];
         double restLength = (pA.getPosition() - pB.getPosition()).norm();
         m_constraints.push_back(std::make_unique<DistanceConstraint>(idA, idB, restLength, compliance));
         m_adjacencies.insert(getAdjacencyKey(idA, idB));
+
+        return static_cast<int>(m_constraints.size() - 1);
     }
 
-    void Solver::addBendingConstraint(int idA, int idB, int idC, int idD, double restAngle, double compliance) {
+    int Solver::addBendingConstraint(int idA, int idB, int idC, int idD, double restAngle, double compliance) {
         m_constraints.push_back(std::make_unique<BendingConstraint>(idA, idB, idC, idD, restAngle, compliance));
         m_adjacencies.insert(getAdjacencyKey(idA, idC));
         m_adjacencies.insert(getAdjacencyKey(idB, idC));
         m_adjacencies.insert(getAdjacencyKey(idA, idD));
         m_adjacencies.insert(getAdjacencyKey(idB, idD));
 
+        return static_cast<int>(m_constraints.size() - 1);
     }
 
     void Solver::addPlaneCollider(const Eigen::Vector3d& origin, const Eigen::Vector3d& normal, double friction) {
@@ -201,6 +205,12 @@ namespace ClothSDK {
         uint64_t high = static_cast<uint32_t>(std::max(idA, idB));
 
         return (high << 32) | low;
+    }
+
+    void Solver::assignToBatch(int constraintId, int batchId) {
+        if (batchId >= m_constraintBatches.size())
+            m_constraintBatches.resize(batchId + 1);
+        m_constraintBatches[batchId].push_back(constraintId);
     }
 
     void Solver::setIterations(int count) {

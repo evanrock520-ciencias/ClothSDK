@@ -33,6 +33,7 @@ public:
 
     int addParticle(const Particle& p);
     void clear();
+    void assignToBatch(int constraintId, int batchId);
 
     const std::vector<Particle>& getParticles() const;
 
@@ -45,8 +46,8 @@ public:
     void setThickness(double thickness) { m_thickness = thickness; }
     void setCollisionCompliance(double c) { m_collisionCompliance = c; }
 
-    void addDistanceConstraint(int idA, int idB, double compliance);
-    void addBendingConstraint(int a, int b, int c, int d, double restAngle, double compliance);
+    int addDistanceConstraint(int idA, int idB, double compliance);
+    int addBendingConstraint(int a, int b, int c, int d, double restAngle, double compliance);
     void addMassToParticle(int id, double mass);
     void addPlaneCollider(const Eigen::Vector3d& origin, const Eigen::Vector3d& normal, double friction);
     void addSphereCollider(const Eigen::Vector3d& center, double radius, double friction);
@@ -54,13 +55,14 @@ public:
 
     void update(double deltaTime);
 
-    int getSubsteps() const { return m_substeps; }
-    int getIterations() const { return m_iterations; }
-    const Eigen::Vector3d& getGravity() const { return m_gravity; }
-    double getAirDensity() const { return m_airDensity; }
-    const Eigen::Vector3d& getWind() const { return m_wind; }
-    double getThickness() const { return m_thickness; }
-    double getCollisionCompliance() const { return m_collisionCompliance; }
+    inline int getSubsteps() const { return m_substeps; }
+    inline int getIterations() const { return m_iterations; }
+    inline const Eigen::Vector3d& getGravity() const { return m_gravity; }
+    inline double getAirDensity() const { return m_airDensity; }
+    inline const Eigen::Vector3d& getWind() const { return m_wind; }
+    inline double getThickness() const { return m_thickness; }
+    inline double getCollisionCompliance() const { return m_collisionCompliance; }
+    inline int getParticleCount() const { return m_particles.size(); };
 
 private:
     void step(double dt);
@@ -79,6 +81,7 @@ private:
     std::vector<std::unique_ptr<Constraint>> m_constraints;
     std::vector<std::unique_ptr<Collider>> m_colliders;
     std::vector<int> m_neighborsBuffer;
+    std::vector<std::vector<int>> m_constraintBatches;
     std::unordered_set<uint64_t> m_adjacencies;
     SpatialHash m_spatialHash;
     Eigen::Vector3d m_gravity;

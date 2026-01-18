@@ -40,7 +40,6 @@ void BendingConstraint::solve(std::vector<Particle>& particles, double dt) {
     double n2_sq = n2.squaredNorm();
     if (n1_sq < 1e-8 || n2_sq < 1e-8) return;
 
-    // --- Ángulo estable con atan2 ---
     double invLenN = 1.0 / std::sqrt(n1_sq * n2_sq);
     double cosTheta = n1.dot(n2) * invLenN;
 
@@ -51,11 +50,9 @@ void BendingConstraint::solve(std::vector<Particle>& particles, double dt) {
 
     double C = angle - m_restAngle;
 
-    // --- Early out: ya está satisfecho ---
     if (std::abs(C) < 1e-6)
         return;
 
-    // --- Gradientes ---
     Eigen::Vector3d gradC = (len / n1_sq) * n1;
     Eigen::Vector3d gradD = -(len / n2_sq) * n2;
 

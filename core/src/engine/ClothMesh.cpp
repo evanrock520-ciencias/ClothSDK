@@ -6,6 +6,7 @@
 #include "physics/Particle.hpp"
 #include <cmath>
 #include <fstream>
+#include <vector>
 
 namespace ClothSDK {
 
@@ -25,12 +26,29 @@ void ClothMesh::initGrid(int rows, int cols, double spacing, Solver& solver) {
         }
     }
 
+    std::vector<uint64_t> particleMasks(solver.getParticleCount(), 0);
+
+    auto assignBatch = [&](const std::vector<int>& ids) -> int {
+        uint64_t combinedMask = 0;
+        for (int id : ids) combinedMask |= particleMasks[id];
+        
+        int batchId = __builtin_ctzll(~combinedMask);
+        uint64_t bit = (1ULL << batchId);
+        
+        for (int id : ids) particleMasks[id] |= bit;
+        return batchId;
+    };
+
     for(int r = 0; r < m_rows; r++) {
         for (int c = 0; c < m_cols; c++) {
             if (c < cols - 1) {
                 int idA = getParticleID(r, c);
                 int idB = getParticleID(r, c + 1);
-                solver.addDistanceConstraint(idA, idB, m_structuralCompliance);
+
+                int bId = assignBatch({idA, idB});
+                int cId = solver.addDistanceConstraint(idA, idB, m_structuralCompliance);
+                solver.assignToBatch(cId, bId);
+
                 m_visualEdges.push_back(idA);
                 m_visualEdges.push_back(idB);
             }
@@ -38,7 +56,11 @@ void ClothMesh::initGrid(int rows, int cols, double spacing, Solver& solver) {
             if (r < rows - 1) {
                 int idA = getParticleID(r, c);
                 int idB = getParticleID(r + 1, c);
-                solver.addDistanceConstraint(idA, idB, m_structuralCompliance);
+
+                int bId = assignBatch({idA, idB});
+                int cId = solver.addDistanceConstraint(idA, idB, m_structuralCompliance);
+                solver.assignToBatch(cId, bId);
+
                 m_visualEdges.push_back(idA);
                 m_visualEdges.push_back(idB);
             }
@@ -48,10 +70,18 @@ void ClothMesh::initGrid(int rows, int cols, double spacing, Solver& solver) {
                 int idB = getParticleID(r, c + 1);
                 int idC = getParticleID(r + 1, c);
                 int idD = getParticleID(r + 1, c + 1);
-                solver.addDistanceConstraint(idA, idD, m_shearCompliance);
-                solver.addDistanceConstraint(idB, idC, m_shearCompliance);
 
-                solver.addBendingConstraint(idA, idD, idB, idC, 0.0, m_bendingCompliance);
+                int bIdShear1 = assignBatch({idA, idD});
+                int cId1 = solver.addDistanceConstraint(idA, idD, m_shearCompliance);
+                solver.assignToBatch(cId1, bIdShear1);
+
+                int bIdShear2 = assignBatch({idB, idC});
+                int cId2 = solver.addDistanceConstraint(idB, idC, m_shearCompliance);
+                solver.assignToBatch(cId2, bIdShear2);
+
+                int bIdBending = assignBatch({idA, idD, idB, idC});
+                int cId3 = solver.addBendingConstraint(idA, idD, idB, idC, 0.0, m_bendingCompliance);
+                solver.assignToBatch(cId3, bIdBending);
 
                 m_visualEdges.push_back(idA);
                 m_visualEdges.push_back(idD);
@@ -63,6 +93,8 @@ void ClothMesh::initGrid(int rows, int cols, double spacing, Solver& solver) {
             }
         }
     }
+
+
 
     const std::vector<Particle>& particles = solver.getParticles();
 
