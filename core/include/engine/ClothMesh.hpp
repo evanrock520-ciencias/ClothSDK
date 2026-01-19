@@ -48,6 +48,7 @@ public:
     inline double getShearCompliance() const { return m_shearCompliance; }
     inline double getBendingCompliance() const { return m_bendingCompliance; }
     inline std::vector<unsigned int> getVisualEdges() const { return m_visualEdges; }
+    inline const std::vector<Triangle>& getTriangles() const { return m_triangles; }
 
 private:
     struct Edge {

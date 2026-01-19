@@ -11,8 +11,12 @@ set(CORE_SOURCES
     src/engine/ClothMesh.cpp
     src/io/OBJLoader.cpp
     src/io/ConfigLoader.cpp
+    src/io/AlembicExporter.cpp
     src/utils/Logger.cpp
 )
+
+find_package(Alembic REQUIRED)
+find_package(Imath REQUIRED)
 
 add_library(ClothCore SHARED ${CORE_SOURCES})
 
@@ -20,6 +24,10 @@ target_link_libraries(ClothCore PUBLIC Eigen3::Eigen)
 target_link_libraries(ClothCore PUBLIC tinyobjloader)
 target_link_libraries(ClothCore PUBLIC nlohmann_json::nlohmann_json)
 target_link_libraries(ClothCore PUBLIC OpenMP::OpenMP_CXX)
+target_link_libraries(ClothCore PUBLIC 
+    Alembic::Alembic 
+    Imath::Imath
+)
 
 
 target_include_directories(ClothCore PUBLIC 

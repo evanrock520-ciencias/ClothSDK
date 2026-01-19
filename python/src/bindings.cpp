@@ -21,6 +21,7 @@
 #include "math/Types.hpp"
 #include "Application.hpp"
 #include "Renderer.hpp"
+#include "io/AlembicExporter.hpp"
 
 namespace py = pybind11;
 using namespace ClothSDK;
@@ -95,6 +96,15 @@ PYBIND11_MODULE(cloth_sdk, m) {
         .def("build_from_mesh", &ClothMesh::buildFromMesh)
         .def("set_material", &ClothMesh::setMaterial)
         .def("export_to_obj", &ClothMesh::exportToOBJ)
+        .def("get_triangles", [](const ClothSDK::ClothMesh& mesh) {
+        std::vector<int> flat_indices;
+            for(const auto& t : mesh.getTriangles()) {
+                flat_indices.push_back(t.a);
+                flat_indices.push_back(t.b);
+                flat_indices.push_back(t.c);
+            }
+            return flat_indices;
+        })
         .def("get_particle_id", &ClothMesh::getParticleID, py::arg("row"), py::arg("col"));
 
     py::class_<OBJLoader>(m, "OBJLoader")
@@ -130,4 +140,10 @@ PYBIND11_MODULE(cloth_sdk, m) {
     .def("set_mesh", &ClothSDK::Viewer::Application::setMesh, py::arg("mesh"))
     .def("get_renderer", &ClothSDK::Viewer::Application::getRenderer, 
         py::return_value_policy::reference_internal);    
+
+    py::class_<ClothSDK::AlembicExporter>(m, "AlembicExporter")
+    .def(py::init<>())
+    .def("open", &ClothSDK::AlembicExporter::open, py::arg("path"), py::arg("positions"), py::arg("indices"))
+    .def("write_frame", &ClothSDK::AlembicExporter::writeFrame, py::arg("positions"), py::arg("time"))
+    .def("close", &ClothSDK::AlembicExporter::close);
 }
