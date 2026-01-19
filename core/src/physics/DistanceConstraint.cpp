@@ -1,3 +1,6 @@
+// Copyright 2026 Evan M.
+// SPDX-License-Identifier: Apache-2.0
+
 #include "physics/DistanceConstraint.hpp"
 
 namespace ClothSDK {
@@ -25,7 +28,9 @@ void DistanceConstraint::solve(std::vector<Particle>& particles, double dt) {
     double C = currentLength - m_restLength;  
 
     double alphaHat = m_compliance / (dt * dt);
-    double deltaLambda = (-C - alphaHat * m_lambda) / (wSum + alphaHat);
+    double denominator = wSum + alphaHat;
+    if (denominator < 1e-12) return; 
+    double deltaLambda = (-C - alphaHat * m_lambda) / denominator;
     m_lambda += deltaLambda;
 
     pA.setPosition(pA.getPosition() + wA * n * deltaLambda);

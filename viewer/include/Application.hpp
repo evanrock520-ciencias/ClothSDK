@@ -1,7 +1,27 @@
+/*
+ * Copyright 2026 Evan M.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 #pragma once
 
+#include <atomic>
 #include <memory>
+#include <mutex>
 #include <string>
+#include <thread>
+#include <vector>
 
 struct GLFWwindow;
 
@@ -23,6 +43,7 @@ public:
     bool init(int width, int height, const std::string& title, const std::string& shaderPath);
     void run();
     void shutdown();
+    void syncVisualTopology();
 
     inline void setSolver(std::shared_ptr<Solver> solver) { m_solver = solver; }
     inline void setMesh(std::shared_ptr<ClothMesh> mesh) { m_mesh = mesh; }
@@ -30,10 +51,10 @@ public:
 
 private:
     void processInput();
-    void update();
     void render();
     void drawUI();
     void resetSimulation();
+    void simulationLoop();
 
     GLFWwindow* m_window;
     std::shared_ptr<Solver> m_solver;
@@ -48,7 +69,18 @@ private:
     bool m_firstMouse = true;
 
     bool m_isPaused;
+    bool m_isGridScene;
+    int m_initRows, m_initCols;
+    double m_initSpacing;
     char m_configPathBuffer[256] = "data/configs/silk.json";
+
+    std::vector<Eigen::Vector3d> m_originalPositions;
+    std::vector<int> m_originalIndices;
+
+    std::atomic<bool> m_isRunning;
+    std::thread m_simThread;
+    std::mutex m_dataMutex;
+    std::vector<Eigen::Vector3d> m_renderPositions;
 };
 
 }

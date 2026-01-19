@@ -1,9 +1,16 @@
+// Copyright 2026 Evan M.
+// SPDX-License-Identifier: Apache-2.0
+
+#include <chrono>
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
 #include <imgui.h>
 #include <imgui_impl_glfw.h>
 #include <imgui_impl_opengl3.h>
 #include <memory>
+#include <Eigen/Dense>
+#include <mutex>
+#include <thread>
 
 #include "Application.hpp"
 #include "engine/ClothMesh.hpp"
@@ -13,6 +20,12 @@
 #include "Renderer.hpp"
 #include "Camera.hpp"
 #include "io/ConfigLoader.hpp" 
+
+extern IMGUI_IMPL_API void ImGui_ImplGlfw_CursorPosCallback(GLFWwindow* window, double x, double y);
+extern IMGUI_IMPL_API void ImGui_ImplGlfw_MouseButtonCallback(GLFWwindow* window, int button, int action, int mods);
+extern IMGUI_IMPL_API void ImGui_ImplGlfw_ScrollCallback(GLFWwindow* window, double xoffset, double yoffset);
+extern IMGUI_IMPL_API void ImGui_ImplGlfw_KeyCallback(GLFWwindow* window, int key, int scancode, int action, int mods);
+extern IMGUI_IMPL_API void ImGui_ImplGlfw_CharCallback(GLFWwindow* window, unsigned int c);
 
 namespace ClothSDK {
 namespace Viewer {
@@ -32,10 +45,17 @@ Application::Application()
 Application::~Application() = default;
 
 bool Application::init(int width, int height, const std::string& title, const std::string& shaderPath) {
-    if(!glfwInit()) return false;
+    if (!glfwInit()) {
+        Logger::error("Failed to initialize GLFW");
+        return false;
+    }
+
     glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
     glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
     glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
+    glfwWindowHint(GLFW_SCALE_TO_MONITOR, GLFW_TRUE);
+    glfwWindowHint(GLFW_RESIZABLE, GLFW_TRUE);
+
     m_window = glfwCreateWindow(width, height, title.c_str(), nullptr, nullptr);
     if (!m_window) {
         Logger::error("Failed to create GLFW window");
@@ -44,30 +64,34 @@ bool Application::init(int width, int height, const std::string& title, const st
     }
 
     glfwMakeContextCurrent(m_window);
-    glfwSetWindowUserPointer(m_window, this);
-    glfwSwapInterval(0); 
+    glfwSetWindowUserPointer(m_window, this); 
+    glfwSwapInterval(1); 
 
     if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress)) {
         Logger::error("Failed to initialize GLAD");
-        return false; 
+        return false;
     }
 
+    IMGUI_CHECKVERSION();
     ImGui::CreateContext();
+    ImGuiIO& io = ImGui::GetIO(); (void)io;
     ImGui::StyleColorsDark();
 
-    float fontSize = 32.0f; 
-    ImGui::GetIO().Fonts->AddFontFromFileTTF(
-        "/usr/share/fonts/liberation-sans-fonts/LiberationSans-Regular.ttf", 
-        fontSize
-    );
-    ImGui::GetStyle().ScaleAllSizes(2.0f);
+    float fontSize = 24.0f; 
+    float scale = 2.0f; 
+    io.Fonts->AddFontFromFileTTF("/usr/share/fonts/liberation-sans-fonts/LiberationSans-Regular.ttf", fontSize);
+    ImGui::GetStyle().ScaleAllSizes(scale);
+    io.FontGlobalScale = 1.0f; 
+
+    ImGui_ImplGlfw_InitForOpenGL(m_window, false);
+    ImGui_ImplOpenGL3_Init("#version 330");
 
     glfwSetCursorPosCallback(m_window, [](GLFWwindow* window, double xpos, double ypos) {
-        ImGuiIO& io = ImGui::GetIO();
-        if (io.WantCaptureMouse) return;
+        ImGui_ImplGlfw_CursorPosCallback(window, xpos, ypos);
+
+        if (ImGui::GetIO().WantCaptureMouse) return;
 
         auto* app = static_cast<Application*>(glfwGetWindowUserPointer(window));
-
         if (app->m_firstMouse) {
             app->m_lastX = xpos;
             app->m_lastY = ypos;
@@ -75,66 +99,90 @@ bool Application::init(int width, int height, const std::string& title, const st
         }
 
         float xoffset = static_cast<float>(xpos - app->m_lastX);
-        float yoffset = static_cast<float>(app->m_lastY - ypos);
+        float yoffset = static_cast<float>(app->m_lastY - ypos); 
 
         app->m_lastX = xpos;
         app->m_lastY = ypos;
 
-        if (glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_RIGHT) == GLFW_PRESS) 
+        if (glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_RIGHT) == GLFW_PRESS) {
             app->m_camera->handleMouse(xoffset, yoffset);
+        }
     });
 
-    ImGui_ImplGlfw_InitForOpenGL(m_window, true); 
-    ImGui_ImplOpenGL3_Init("#version 330");
+    glfwSetMouseButtonCallback(m_window, [](GLFWwindow* window, int button, int action, int mods) {
+        ImGui_ImplGlfw_MouseButtonCallback(window, button, action, mods);
+    });
 
     glfwSetScrollCallback(m_window, [](GLFWwindow* window, double xoffset, double yoffset) {
+        ImGui_ImplGlfw_ScrollCallback(window, xoffset, yoffset);
+
+        if (ImGui::GetIO().WantCaptureMouse) return;
+        
         auto* app = static_cast<Application*>(glfwGetWindowUserPointer(window));
         app->m_camera->handleZoom(static_cast<float>(yoffset));
     });
 
+    glfwSetKeyCallback(m_window, [](GLFWwindow* window, int key, int scancode, int action, int mods) {
+        ImGui_ImplGlfw_KeyCallback(window, key, scancode, action, mods);
+        
+        if (key == GLFW_KEY_ESCAPE && action == GLFW_PRESS)
+            glfwSetWindowShouldClose(window, true);
+    });
+
+    glfwSetCharCallback(m_window, [](GLFWwindow* window, unsigned int c) {
+        ImGui_ImplGlfw_CharCallback(window, c);
+    });
+
     glfwSetFramebufferSizeCallback(m_window, [](GLFWwindow* window, int width, int height) {
         glViewport(0, 0, width, height);
-        
+
         auto* app = static_cast<Application*>(glfwGetWindowUserPointer(window));
-        if (app->m_camera) {
+        if (app->m_camera && height > 0) {
             app->m_camera->setAspectRatio(static_cast<float>(width) / static_cast<float>(height));
         }
     });
-    
-    if (!m_solver) {
-        m_solver = std::make_shared<Solver>();
-    }
 
-    if (!m_mesh) {
+    if (m_solver == nullptr) {
+        m_solver = std::make_shared<Solver>();
+        Logger::warn("Solver was null, created new empty solver in init");
+    }
+    if (m_mesh == nullptr) {
         m_mesh = std::make_shared<ClothMesh>();
+        Logger::warn("Mesh was null, created new empty mesh in init");
     }
 
     m_renderer = std::make_unique<Renderer>();
     m_renderer->setShaderPath(shaderPath);
 
-    m_camera = std::make_unique<Camera>(Eigen::Vector3f(0, 5, 10), Eigen::Vector3f(1, 1, 0));
-
-    m_mesh->initGrid(20, 20, 0.1, *m_solver); 
-
-    m_renderer->setIndices(m_mesh->getVisualEdges());
-
     if (!m_renderer->init()) {
-        Logger::error("Failed to initialize Renderer");
+        Logger::error("Failed to initialize Renderer with shader path: " + shaderPath);
         return false;
     }
 
-    m_camera->setAspectRatio((float)width / (float)height);
-    for(int i = 0; i < 20; ++i) 
-        m_solver->setParticleInverseMass(m_mesh->getParticleID(19, i), 0.0);
+    int bufferWidth, bufferHeight;
+    glfwGetFramebufferSize(m_window, &bufferWidth, &bufferHeight);
 
-    glViewport(0, 0, width, height);
+    m_camera = std::make_unique<Camera>(Eigen::Vector3f(0, 5, 10), Eigen::Vector3f(1, 1, 0));
     
-    Logger::info("Renderer initialized: OpenGL 3.3 Core");
+    if (bufferHeight > 0) {
+        m_camera->setAspectRatio(static_cast<float>(bufferWidth) / static_cast<float>(bufferHeight));
+        glViewport(0, 0, bufferWidth, bufferHeight);
+    }
+    
+    Logger::info("Window Size: " + std::to_string(width) + "x" + std::to_string(height));
+    Logger::info("Framebuffer Size: " + std::to_string(bufferWidth) + "x" + std::to_string(bufferHeight));
+    
+    syncVisualTopology();
+    Logger::info("ClothSDK Viewer initialized successfully: OpenGL 3.3 Core Profile");
+    Logger::info("Init complete. Solver has " + std::to_string(m_solver->getParticleCount()) + " particles.");
     return true;
 }
 
 void Application::run() {
     m_lastFrame = glfwGetTime();
+    m_isRunning = true;
+    m_simThread = std::thread(&Application::simulationLoop, this);
+    Logger::info("Simulation thread launched.");
 
     while (!glfwWindowShouldClose(m_window)) {
         double currentFrame = glfwGetTime();
@@ -150,15 +198,18 @@ void Application::run() {
 
         drawUI();      
         processInput(); 
-
-        update();
-
         render(); 
 
         ImGui::Render();
         ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
 
         glfwSwapBuffers(m_window);
+    }
+
+    m_isRunning = false;
+    if (m_simThread.joinable()) {
+        m_simThread.join();
+        Logger::info("Simulation thread joined safely.");
     }
 }
 
@@ -176,26 +227,26 @@ void Application::processInput() {
     spaceWasPressed = spaceIsPressed;
 
     if (glfwGetKey(m_window, GLFW_KEY_R) == GLFW_PRESS) {
-        m_solver->clear(); 
-        m_mesh->initGrid(20, 20, 0.1, *m_solver); 
-        m_renderer->setIndices(m_mesh->getVisualEdges()); 
-        for(int i = 0; i < 20; ++i) 
-            m_solver->setParticleInverseMass(m_mesh->getParticleID(19, i), 0.0);
+        m_isPaused = true; 
+        std::this_thread::sleep_for(std::chrono::milliseconds(20)); 
         
-        Logger::info("Simulation Reset");
+        resetSimulation();
+        
+        m_isPaused = false;
     }
-}
-
-void Application::update() {
-    if (!m_isPaused)
-        m_solver->update(m_deltaTime);
 }
 
 void Application::render() {
     glClearColor(0.12f, 0.12f, 0.12f, 1.0f);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-    m_renderer->render(*m_solver, *m_camera);
+    {
+        std::lock_guard<std::mutex> lock(m_dataMutex);
+        Logger::info("Render thread reading " + std::to_string(m_renderPositions.size()) + " particles");
+        if (!m_renderPositions.empty()) {
+            m_renderer->render(m_renderPositions, *m_camera);
+        }
+    }
 }
 
 void Application::shutdown() {    
@@ -287,13 +338,60 @@ void Application::drawUI() {
 }
 
 void Application::resetSimulation() {
-    m_solver->clear(); 
-    m_mesh->initGrid(20, 20, 0.1, *m_solver); 
-    m_renderer->setIndices(m_mesh->getVisualEdges()); 
-    for(int i = 0; i < 20; ++i) 
-        m_solver->setParticleInverseMass(m_mesh->getParticleID(19, i), 0.0);
-        
-    Logger::info("Simulation Reset");
+    m_solver->clear();
+    
+    int rows = (m_initRows > 0) ? m_initRows : 20;
+    int cols = (m_initCols > 0) ? m_initCols : 20;
+    float spacing = (m_initSpacing > 0.0f) ? m_initSpacing : 0.1f;
+
+    m_mesh->initGrid(rows, cols, spacing, *m_solver);
+    
+    syncVisualTopology();
+    
+    Logger::info("Simulation Reset (Grid: " + std::to_string(rows) + "x" + std::to_string(cols) + ")");
+}
+
+void Application::syncVisualTopology() {
+    if (!m_mesh || !m_solver || !m_renderer) return;
+
+    std::lock_guard<std::mutex> lock(m_dataMutex);
+    
+    size_t count = m_solver->getParticleCount();
+    m_renderPositions.resize(count);
+    
+    m_renderer->setIndices(m_mesh->getVisualEdges());
+    m_renderer->updateTopology();
+    
+    Logger::info("Topology Synced: " + std::to_string(count) + " particles buffered.");
+}
+
+void Application::simulationLoop() {
+    Logger::info("Sim thread published " + std::to_string(m_renderPositions.size()) + " particles");
+    while (m_isRunning) {
+        if (m_isPaused) {
+            std::this_thread::sleep_for(std::chrono::milliseconds(10));
+            continue;
+        }
+
+        auto start = std::chrono::high_resolution_clock::now();
+        m_solver->update(0.016);
+
+        {
+            std::lock_guard<std::mutex> lock(m_dataMutex);
+            const auto& particles = m_solver->getParticles();
+            
+            for (size_t i = 0; i < particles.size(); ++i) {
+                m_renderPositions[i] = particles[i].getPosition();
+            }
+        }
+
+        auto end = std::chrono::high_resolution_clock::now();
+        std::chrono::duration<double, std::micro> elapsed = end - start;
+        if (elapsed.count() < 16666.0) {
+            auto sleepTime = std::chrono::microseconds(16666) - std::chrono::duration_cast<std::chrono::microseconds>(elapsed);
+            std::this_thread::sleep_for(sleepTime);
+        }
+    }
 }
 
 } 

@@ -16,22 +16,17 @@
 
 #pragma once
 
-#include "Constraint.hpp"
-
-#include "Particle.hpp"
-#include <vector>
-
+#include "physics/Constraint.hpp"
 namespace ClothSDK {
 
-class BendingConstraint : public Constraint {
+class ContactConstraint : public Constraint {
 public:
-    BendingConstraint(int idA, int idB, int idc, int idD, double restAngle, double compliance);
-
+    ContactConstraint(int idA, int idB, double thickness, double compliance);
     void solve(std::vector<Particle>& particles, double dt) override;
-
 private:
-    int m_idA, m_idB, m_idC, m_idD;
-    double m_restAngle;
+    int m_idA;
+    int m_idB;
+    double m_thickness;
 };
 
 }

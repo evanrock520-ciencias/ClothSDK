@@ -1,3 +1,6 @@
+// Copyright 2026 Evan M.
+// SPDX-License-Identifier: Apache-2.0
+
 #include <omp.h>
 
 #include "physics/Solver.hpp"
@@ -35,7 +38,7 @@ namespace ClothSDK {
         }
 
         for (auto& collider : m_colliders) {
-            collider->resolve(m_particles, dt);
+            collider->resolve(m_particles, dt, m_thickness);
         }
 
         solveSelfCollisions(m_thickness);
@@ -68,27 +71,31 @@ namespace ClothSDK {
         m_particles.clear();
         m_constraints.clear();
         m_colliders.clear();
+        m_constraintBatches.clear();
     }
 
     const std::vector<Particle>& Solver::getParticles() const {
         return m_particles;
     }
 
-    void Solver::addDistanceConstraint(int idA, int idB, double compliance) {
+    int Solver::addDistanceConstraint(int idA, int idB, double compliance) {
         Particle& pA = m_particles[idA];
         Particle& pB = m_particles[idB];
         double restLength = (pA.getPosition() - pB.getPosition()).norm();
         m_constraints.push_back(std::make_unique<DistanceConstraint>(idA, idB, restLength, compliance));
         m_adjacencies.insert(getAdjacencyKey(idA, idB));
+
+        return static_cast<int>(m_constraints.size() - 1);
     }
 
-    void Solver::addBendingConstraint(int idA, int idB, int idC, int idD, double restAngle, double compliance) {
+    int Solver::addBendingConstraint(int idA, int idB, int idC, int idD, double restAngle, double compliance) {
         m_constraints.push_back(std::make_unique<BendingConstraint>(idA, idB, idC, idD, restAngle, compliance));
         m_adjacencies.insert(getAdjacencyKey(idA, idC));
         m_adjacencies.insert(getAdjacencyKey(idB, idC));
         m_adjacencies.insert(getAdjacencyKey(idA, idD));
         m_adjacencies.insert(getAdjacencyKey(idB, idD));
 
+        return static_cast<int>(m_constraints.size() - 1);
     }
 
     void Solver::addPlaneCollider(const Eigen::Vector3d& origin, const Eigen::Vector3d& normal, double friction) {
@@ -105,8 +112,15 @@ namespace ClothSDK {
     }
 
     void Solver::solveConstraints(double dt) {
-        for(auto& constraint : m_constraints)
-            constraint->solve(m_particles, dt);
+        for (const auto& batch : m_constraintBatches) {
+            
+            #pragma omp parallel for
+            for (int i = 0; i < (int)batch.size(); i++) {
+                int constraintId = batch[i];
+                
+                m_constraints[constraintId]->solve(m_particles, dt);
+            }
+        }
     }
 
     void Solver::applyAerodynamics(double dt) {
@@ -198,6 +212,12 @@ namespace ClothSDK {
         uint64_t high = static_cast<uint32_t>(std::max(idA, idB));
 
         return (high << 32) | low;
+    }
+
+    void Solver::assignToBatch(int constraintId, int batchId) {
+        if (batchId >= m_constraintBatches.size())
+            m_constraintBatches.resize(batchId + 1);
+        m_constraintBatches[batchId].push_back(constraintId);
     }
 
     void Solver::setIterations(int count) {
