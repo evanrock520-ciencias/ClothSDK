@@ -18,34 +18,35 @@ def run_alembic_simulation():
 
     solver = sdk.Solver()
     
-    solver.set_gravity([0.0, -9.81, 0.0])
+    solver.set_gravity([0.0, -15, 0.0])
     solver.set_substeps(15)   
     solver.set_iterations(2)  
     
     solver.set_thickness(0.04)             
     solver.set_collision_compliance(1e-4)  
-    solver.set_wind([2.0, 0.0, 8.0])
+    solver.set_wind([2.0, 0.0, 6.0])
     solver.set_air_density(0.15)
 
     mesh = sdk.ClothMesh()
     
-    mesh.set_material(0.15, 1e-10, 1e-8, 0.005)
+    mesh.set_material(0.1, 1e-9, 1e-8, 0.1)
     
-    rows, cols = 50, 50 
+    rows, cols = 120, 90 
     spacing = 0.1
     
     sdk.Logger.info(f"Weaving {rows}x{cols} cloth grid...")
     mesh.init_grid(rows, cols, spacing, solver)
 
     top_row = rows - 1
-    for c in range(cols):
-        p_id = mesh.get_particle_id(top_row, c)
-        solver.set_particle_inverse_mass(p_id, 0.0)
+    p_id = mesh.get_particle_id(top_row, 0)
+    p_id2 = mesh.get_particle_id(top_row, 89)
+    solver.set_particle_inverse_mass(p_id, 0.0)
+    solver.set_particle_inverse_mass(p_id2, 0.0)
     
     sdk.Logger.info(f"Pinned {cols} vertices at the top rail.")
 
     exporter = sdk.AlembicExporter()
-    output_filename = "curtain_wind_sim.abc"
+    output_filename = "data/animations/curtain_wind_sim.abc"
     
     particles = solver.get_particles()
     initial_pos = [p.get_position() for p in particles]
@@ -57,7 +58,7 @@ def run_alembic_simulation():
         sdk.Logger.error("Failed to open Alembic file for writing!")
         return
 
-    total_frames = 120 
+    total_frames = 600 
     fps = 60.0
     dt = 1.0 / fps
     
