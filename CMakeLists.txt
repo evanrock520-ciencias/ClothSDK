@@ -82,5 +82,28 @@ add_subdirectory(viewer)
 pybind11_add_module(cloth_sdk python/src/bindings.cpp)
 target_link_libraries(cloth_sdk PRIVATE ClothCore ViewerCore)
 
+set(STUB_OUTPUT
+    ${CMAKE_CURRENT_BINARY_DIR}/cloth_sdk.pyi
+)
+
+find_program(STUBGEN_EXECUTABLE stubgen REQUIRED)
+
+add_custom_command(
+    OUTPUT ${STUB_OUTPUT}
+    COMMAND ${CMAKE_COMMAND} -E rm -f ${STUB_OUTPUT}
+    COMMAND ${CMAKE_COMMAND} -E env
+            "PYTHONPATH=$<TARGET_FILE_DIR:cloth_sdk>"
+            ${STUBGEN_EXECUTABLE}
+            -m cloth_sdk
+            --output ${CMAKE_CURRENT_BINARY_DIR}
+    DEPENDS cloth_sdk
+    WORKING_DIRECTORY $<TARGET_FILE_DIR:cloth_sdk>
+    COMMENT "Generating Python stubs for cloth_sdk"
+)
+
+add_custom_target(cloth_sdk_stubs ALL
+    DEPENDS ${STUB_OUTPUT}
+)
+
 enable_testing()
 add_subdirectory(tests)
