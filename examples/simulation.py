@@ -12,13 +12,21 @@ except ImportError as e:
     sys.exit(1)
 
 def run_alembic_simulation():
+    script_dir = os.path.dirname(os.path.abspath(__file__))
+    project_root = os.path.dirname(script_dir)
+    
+    output_dir = os.path.join(project_root, "data", "animations")
+    if not os.path.exists(output_dir):
+        os.makedirs(output_dir)
+        
+    output_filename = os.path.join(output_dir, "curtain_wind_sim.abc")
+
     sdk.Logger.info("========================================")
     sdk.Logger.info("   ClothSDK | Alembic Export Pipeline   ")
     sdk.Logger.info("========================================")
 
     solver = sdk.Solver()
-    
-    solver.set_gravity([0.0, -15, 0.0])
+    solver.set_gravity([0.0, -9.81, 0.0])
     solver.set_substeps(15)   
     solver.set_iterations(2)  
     
@@ -28,29 +36,30 @@ def run_alembic_simulation():
     solver.set_air_density(0.15)
 
     mesh = sdk.ClothMesh()
-    
-    mesh.set_material(0.1, 1e-9, 1e-8, 0.1)
+    mesh.set_material(0.1, 1e-10, 1e-9, 0.01)
     
     rows, cols = 120, 90 
     spacing = 0.1
     
-    sdk.Logger.info(f"Weaving {rows}x{cols} cloth grid...")
+    sdk.Logger.info(f"Weaving {rows}x{cols} cloth grid (10,800 particles)...")
     mesh.init_grid(rows, cols, spacing, solver)
 
+    particles = solver.get_particles()
     top_row = rows - 1
-    p_id = mesh.get_particle_id(top_row, 0)
-    p_id2 = mesh.get_particle_id(top_row, 89)
-    solver.set_particle_inverse_mass(p_id, 0.0)
-    solver.set_particle_inverse_mass(p_id2, 0.0)
+
+    p_id_left = mesh.get_particle_id(top_row, 0)
+    pos_left = particles[p_id_left].get_position()
+    solver.add_pin(p_id_left, pos_left, 0.0) 
     
-    sdk.Logger.info(f"Pinned {cols} vertices at the top rail.")
+    p_id_right = mesh.get_particle_id(top_row, cols - 1)
+    pos_right = particles[p_id_right].get_position()
+    solver.add_pin(p_id_right, pos_right, 0.0)
+
+    sdk.Logger.info(f"Pinned corners using PinConstraints.")
 
     exporter = sdk.AlembicExporter()
-    output_filename = "data/animations/curtain_wind_sim.abc"
     
-    particles = solver.get_particles()
     initial_pos = [p.get_position() for p in particles]
-    
     indices = mesh.get_triangles()
 
     sdk.Logger.info(f"Creating Alembic Archive: {output_filename}")
@@ -58,18 +67,17 @@ def run_alembic_simulation():
         sdk.Logger.error("Failed to open Alembic file for writing!")
         return
 
-    total_frames = 600 
+    total_frames = 240
     fps = 60.0
     dt = 1.0 / fps
     
-    sdk.Logger.info(f"Starting Export of {total_frames} frames...")
     start_wall_time = time.time()
+    sdk.Logger.info(f"Exporting {total_frames} frames...")
 
     for f in range(total_frames):
         solver.update(dt)
         
-        current_particles = solver.get_particles()
-        current_pos = [p.get_position() for p in current_particles]
+        current_pos = [p.get_position() for p in solver.get_particles()]
         
         exporter.write_frame(current_pos, f * dt)
         

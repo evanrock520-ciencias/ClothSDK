@@ -82,6 +82,7 @@ PYBIND11_MODULE(cloth_sdk, m) {
         .def("set_iterations", &Solver::setIterations)
         .def("add_distance_constraint", &Solver::addDistanceConstraint)
         .def("add_bending_constraint", &Solver::addBendingConstraint)
+        .def("add_pin", &Solver::addPin)
         .def("add_plane_collider", &Solver::addPlaneCollider)
         .def("add_sphere_collider", &Solver::addSphereCollider)
         .def("set_wind", &Solver::setWind)

@@ -47,6 +47,7 @@ public:
 
     void addDistanceConstraint(int idA, int idB, double compliance);
     void addBendingConstraint(int a, int b, int c, int d, double restAngle, double compliance);
+    void addPin(int id, const Eigen::Vector3d& pos, double compliance = 0.0);
     void addMassToParticle(int id, double mass);
     void addPlaneCollider(const Eigen::Vector3d& origin, const Eigen::Vector3d& normal, double friction);
     void addSphereCollider(const Eigen::Vector3d& center, double radius, double friction);

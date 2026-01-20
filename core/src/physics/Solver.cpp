@@ -6,6 +6,7 @@
 #include "physics/Solver.hpp"
 #include "physics/DistanceConstraint.hpp"
 #include "physics/BendingConstraint.hpp"
+#include "physics/PinConstraint.hpp"
 #include "physics/PlaneCollider.hpp"
 #include "physics/SphereCollider.hpp"
 #include <Eigen/Dense>
@@ -71,6 +72,7 @@ namespace ClothSDK {
         m_particles.clear();
         m_constraints.clear();
         m_colliders.clear();
+        m_adjacencies.clear();
     }
 
     const std::vector<Particle>& Solver::getParticles() const {
@@ -91,7 +93,10 @@ namespace ClothSDK {
         m_adjacencies.insert(getAdjacencyKey(idB, idC));
         m_adjacencies.insert(getAdjacencyKey(idA, idD));
         m_adjacencies.insert(getAdjacencyKey(idB, idD));
+    }
 
+    void Solver::addPin(int id, const Eigen::Vector3d& pos, double compliance) {
+        m_constraints.push_back(std::make_unique<PinConstraint>(id, pos, compliance));
     }
 
     void Solver::addPlaneCollider(const Eigen::Vector3d& origin, const Eigen::Vector3d& normal, double friction) {
