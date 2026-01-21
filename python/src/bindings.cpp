@@ -6,6 +6,7 @@
 #include <pybind11/stl.h>
 #include <tuple>
 
+#include "engine/Cloth.hpp"
 #include "physics/Particle.hpp"
 #include "physics/Constraint.hpp"
 #include "physics/DistanceConstraint.hpp"
@@ -34,6 +35,14 @@ PYBIND11_MODULE(cloth_sdk, m) {
         .def_readwrite("a", &Triangle::a)
         .def_readwrite("b", &Triangle::b)
         .def_readwrite("c", &Triangle::c);
+
+    py::class_<ClothSDK::ClothMaterial, std::shared_ptr<ClothSDK::ClothMaterial>>(m, "ClothMaterial")
+        .def(py::init<double, double, double, double>(),
+            py::arg("density"), py::arg("structural"), py::arg("shear"), py::arg("bending"))
+        .def_readwrite("density", &ClothMaterial::density)
+        .def_readwrite("structural_compliance", &ClothMaterial::structuralCompliance)
+        .def_readwrite("shear_compliance", &ClothMaterial::shearCompliance)
+        .def_readwrite("bending_compliance", &ClothMaterial::bendingCompliance);
 
     py::class_<Particle>(m, "Particle")
         .def(py::init<const Eigen::Vector3d&>(), py::arg("initial_pos"))
@@ -93,20 +102,26 @@ PYBIND11_MODULE(cloth_sdk, m) {
 
     py::class_<ClothMesh, std::shared_ptr<ClothSDK::ClothMesh>>(m, "ClothMesh")
         .def(py::init<>())
-        .def("init_grid", &ClothMesh::initGrid)
-        .def("build_from_mesh", &ClothMesh::buildFromMesh)
-        .def("set_material", &ClothMesh::setMaterial)
-        .def("export_to_obj", &ClothMesh::exportToOBJ)
-        .def("get_triangles", [](const ClothSDK::ClothMesh& mesh) {
-        std::vector<int> flat_indices;
-            for(const auto& t : mesh.getTriangles()) {
-                flat_indices.push_back(t.a);
-                flat_indices.push_back(t.b);
-                flat_indices.push_back(t.c);
+        .def("init_grid", &ClothMesh::initGrid, 
+            py::arg("rows"), py::arg("cols"), py::arg("spacing"), py::arg("out_cloth"), py::arg("solver"))
+        .def("build_from_mesh", &ClothMesh::buildFromMesh, 
+            py::arg("positions"), py::arg("indices"), py::arg("out_cloth"), py::arg("solver"));
+
+    py::class_<ClothSDK::Cloth, std::shared_ptr<ClothSDK::Cloth>>(m, "Cloth")
+        .def(py::init<const std::string&, std::shared_ptr<ClothMaterial>>(), 
+            py::arg("name"), py::arg("material"))
+        .def("get_name", &Cloth::getName)
+        .def("get_particle_id", &Cloth::getParticleID, py::arg("row"), py::arg("col"))
+        .def("get_material", &Cloth::getMaterial)
+        .def("set_material", &Cloth::setMaterial)
+        .def("get_particle_indices", &Cloth::getParticleIndices)
+        .def("get_triangles", [](const Cloth& cloth) {
+            std::vector<int> flat;
+            for (const auto& t : cloth.getTriangles()) {
+                flat.push_back(t.a); flat.push_back(t.b); flat.push_back(t.c);
             }
-            return flat_indices;
-        })
-        .def("get_particle_id", &ClothMesh::getParticleID, py::arg("row"), py::arg("col"));
+            return flat;
+        });
 
     py::class_<OBJLoader>(m, "OBJLoader")
         .def_static("load", [](const std::string& path) {
@@ -138,6 +153,7 @@ PYBIND11_MODULE(cloth_sdk, m) {
     .def("shutdown", &ClothSDK::Viewer::Application::shutdown)
     .def("sync_visual_topology", &ClothSDK::Viewer::Application::syncVisualTopology)
     .def("set_solver", &ClothSDK::Viewer::Application::setSolver, py::arg("solver"))
+    .def("set_cloth", &ClothSDK::Viewer::Application::setCloth)
     .def("set_mesh", &ClothSDK::Viewer::Application::setMesh, py::arg("mesh"))
     .def("get_renderer", &ClothSDK::Viewer::Application::getRenderer, 
         py::return_value_policy::reference_internal);    

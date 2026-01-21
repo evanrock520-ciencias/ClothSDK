@@ -10,6 +10,7 @@ set(CORE_SOURCES
     src/physics/SphereCollider.cpp
     src/physics/SpatialHash.cpp
     src/engine/ClothMesh.cpp
+    src/engine/Cloth.cpp
     src/io/OBJLoader.cpp
     src/io/ConfigLoader.cpp
     src/io/AlembicExporter.cpp

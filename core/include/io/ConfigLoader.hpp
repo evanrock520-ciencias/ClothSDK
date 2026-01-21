@@ -17,6 +17,7 @@
 
 #pragma once
 
+#include "math/Types.hpp"
 #include <string>
 #include <nlohmann/json.hpp>
 #include <Eigen/Dense>
@@ -30,15 +31,14 @@ class ClothMesh;
 class ConfigLoader {
 public:
 
-    static bool load(const std::string& filepath, Solver& solver, ClothMesh& mesh);
-
-    static bool save(const std::string& filepath, const Solver& solver, ClothMesh& mesh);
+    static bool load(const std::string& filepath, Solver& solver, ClothMaterial& outMaterial);
+    static bool save(const std::string& filepath, const Solver& solver, const ClothMaterial& material);
 
 private:
 
     static Eigen::Vector3d jsonToVector(const nlohmann::json& json);
-
     static nlohmann::json vectorToJson(const Eigen::Vector3d& vector);
+    
 };
 
 }

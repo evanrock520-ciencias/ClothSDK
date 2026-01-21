@@ -24,4 +24,23 @@ struct Triangle {
     Triangle(int _a, int _b, int _c) : a(_a), b(_b), c(_c) {}
 };
 
+
+struct ClothMaterial {
+    double density;
+    double structuralCompliance;
+    double shearCompliance;
+    double bendingCompliance;
+
+    ClothMaterial(double _density, double _structuralCompliance, double _shearCompliance, double _bendingCompliance)
+    : density(_density), structuralCompliance(_structuralCompliance), shearCompliance(_shearCompliance), bendingCompliance(_bendingCompliance) {}
+
+    ClothMaterial() : density(0.1), structuralCompliance(1e-6), shearCompliance(1e-6), bendingCompliance(0.01) {}
+
+    inline double getDensity() const { return density; }
+    inline double getStructuralCompliance() const { return structuralCompliance; }
+    inline double getShearCompliance() const { return shearCompliance; }
+    inline double getBendingCompliance() const { return bendingCompliance; }
+
+};
+
 }

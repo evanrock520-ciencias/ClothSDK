@@ -10,7 +10,7 @@
 
 namespace ClothSDK {
 
-bool ConfigLoader::load(const std::string& filepath, Solver& solver, ClothMesh& mesh) {
+bool ConfigLoader::load(const std::string& filepath, Solver& solver, ClothMaterial& outMaterial) {
     std::cout << "[Debug] Attempting to load: " << std::filesystem::absolute(filepath) << std::endl;
     std::ifstream file(filepath);
     if (!file.is_open()) return false;
@@ -37,12 +37,10 @@ bool ConfigLoader::load(const std::string& filepath, Solver& solver, ClothMesh& 
         auto mat = data["material"];
         auto comp = mat.value("compliance", nlohmann::json::object());
 
-        mesh.setMaterial(
-            mat.value("density", 0.1),
-            comp.value("structural", 1e-6),
-            comp.value("shear", 1e-6),
-            comp.value("bending", 1e-4)
-        );
+        outMaterial.density = mat.value("density", 0.1);
+        outMaterial.structuralCompliance = comp.value("structural", 1e-6);
+        outMaterial.shearCompliance = comp.value("shear", 1e-6);
+        outMaterial.bendingCompliance = comp.value("bending", 1e-4);
     }
 
     if (data.contains("aerodynamics")) {
@@ -65,7 +63,7 @@ bool ConfigLoader::load(const std::string& filepath, Solver& solver, ClothMesh& 
     return true;
 }
 
-bool ConfigLoader::save(const std::string& filepath, const Solver& solver, ClothMesh& mesh) {
+bool ConfigLoader::save(const std::string& filepath, const Solver& solver, const ClothMaterial& material) {
     std::ofstream file(filepath);
     if (!file.is_open()) return false;
 
@@ -75,9 +73,10 @@ bool ConfigLoader::save(const std::string& filepath, const Solver& solver, Cloth
     data["simulation"]["iterations"] = solver.getIterations();
     data["simulation"]["gravity"] = vectorToJson(solver.getGravity());
 
-    data["material"]["compliance"]["structural"] = mesh.getStructuralCompliance();
-    data["material"]["compliance"]["shear"] = mesh.getShearCompliance();
-    data["material"]["compliance"]["bending"] = mesh.getBendingCompliance();
+    data["material"]["density"] = material.density;
+    data["material"]["compliance"]["structural"] = material.structuralCompliance;
+    data["material"]["compliance"]["shear"] = material.shearCompliance;
+    data["material"]["compliance"]["bending"] = material.bendingCompliance;
 
     data["aerodynamics"]["wind_velocity"] = vectorToJson(solver.getWind());
     data["aerodynamics"]["air_density"] = solver.getAirDensity();

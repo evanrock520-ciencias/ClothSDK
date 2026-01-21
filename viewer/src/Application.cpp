@@ -36,7 +36,8 @@ Application::Application()
     m_lastFrame(0.0),
     m_isPaused(false)
 {
-
+    auto defaultMat = std::make_shared<ClothMaterial>();
+    m_cloth = std::make_shared<Cloth>("MainCloth", defaultMat);
 }
 
 Application::~Application() = default;
@@ -244,7 +245,7 @@ void Application::drawUI() {
         ImGui::InputText("Config Path", m_configPathBuffer, sizeof(m_configPathBuffer));
 
         if (ImGui::Button("Load JSON Config")) {
-            if (ConfigLoader::load(m_configPathBuffer, *m_solver, *m_mesh)) {
+            if (ConfigLoader::load(m_configPathBuffer, *m_solver, *(m_cloth->getMaterial()))) {
                 Logger::info("Configuration loaded successfully from: " + std::string(m_configPathBuffer));
             } else {
                 Logger::error("Failed to load config: " + std::string(m_configPathBuffer));
@@ -254,7 +255,7 @@ void Application::drawUI() {
         ImGui::SameLine();
 
         if (ImGui::Button("Save Current Settings")) {
-            if (ConfigLoader::save("exported_config.json", *m_solver, *m_mesh)) {
+            if (ConfigLoader::save("exported_config.json", *m_solver, *(m_cloth->getMaterial()))) {
                 Logger::info("Settings saved to exported_config.json");
             }
         }
@@ -321,7 +322,7 @@ void Application::resetSimulation() {
     int cols = (m_initCols > 0) ? m_initCols : 20;
     float spacing = (m_initSpacing > 0.0f) ? m_initSpacing : 0.1f;
 
-    m_mesh->initGrid(rows, cols, spacing, *m_solver);
+    m_mesh->initGrid(rows, cols, spacing, *m_cloth, *m_solver);
     
     syncVisualTopology();
     
@@ -334,7 +335,7 @@ void Application::syncVisualTopology() {
         return;
     }
 
-    const std::vector<unsigned int>& edges = m_mesh->getVisualEdges();
+    const std::vector<unsigned int>& edges = m_cloth->getVisualEdges();
     m_renderer->setIndices(edges);
     m_renderer->updateTopology();
 }

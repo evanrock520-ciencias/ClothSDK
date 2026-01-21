@@ -2,150 +2,113 @@
 // SPDX-License-Identifier: Apache-2.0
 
 #include "engine/ClothMesh.hpp"
+#include "engine/Cloth.hpp"
+#include "math/Types.hpp"
 #include "physics/Solver.hpp"
 #include "physics/Particle.hpp"
 #include <cmath>
 #include <fstream>
+#include <map>
+#include <vector>
 
 namespace ClothSDK {
 
-ClothMesh::ClothMesh() 
-: m_density(1.0), m_structuralCompliance(0.8), m_shearCompliance(0.5), m_bendingCompliance(0.2), m_cols(0), m_rows(0) {} 
+void ClothMesh::initGrid(int rows, int cols, double spacing, Cloth& outCloth, Solver& solver) {
+    outCloth.setGridDimensions(rows, cols);
+    std::vector<int> gridIndices;
+    gridIndices.reserve(rows * cols);   
+    auto mat = outCloth.getMaterial();
+    double stComp = mat->structuralCompliance;
+    double shComp = mat->shearCompliance;
+    double beComp = mat->bendingCompliance;
+    double dens = mat->density;
+    outCloth.clear();
 
-void ClothMesh::initGrid(int rows, int cols, double spacing, Solver& solver) {
-    m_rows = rows;
-    m_cols = cols;
-    m_triangles.clear();
-
-    for(int r = 0; r < m_rows; r++) {
-        for(int c = 0; c < m_cols; c++) {
+    auto getLocalID = [&](int r, int c) {
+        return gridIndices[r * cols + c];
+    };
+    
+    for(int r = 0; r < rows; r++) {
+        for(int c = 0; c < cols; c++) {
             Eigen::Vector3d pos(c * spacing, r * spacing, 0.0);
             int id = solver.addParticle(Particle(pos));
-            m_particlesIndices.push_back(id);
+            gridIndices.push_back(id);
+            outCloth.addParticleId(id);
         }
     }
 
-    for(int r = 0; r < m_rows; r++) {
-        for (int c = 0; c < m_cols; c++) {
+    for(int r = 0; r < rows; r++) {
+        for (int c = 0; c < cols; c++) {
             if (c < cols - 1) {
-                int idA = getParticleID(r, c);
-                int idB = getParticleID(r, c + 1);
-                solver.addDistanceConstraint(idA, idB, m_structuralCompliance);
-                m_visualEdges.push_back(idA);
-                m_visualEdges.push_back(idB);
+                int idA = getLocalID(r, c);
+                int idB = getLocalID(r, c + 1);
+                solver.addDistanceConstraint(idA, idB, stComp);
+                outCloth.addVisualEdge(idA, idB);
             }
 
             if (r < rows - 1) {
-                int idA = getParticleID(r, c);
-                int idB = getParticleID(r + 1, c);
-                solver.addDistanceConstraint(idA, idB, m_structuralCompliance);
-                m_visualEdges.push_back(idA);
-                m_visualEdges.push_back(idB);
+                int idA = getLocalID(r, c);
+                int idB = getLocalID(r + 1, c);
+                solver.addDistanceConstraint(idA, idB, stComp);
+                outCloth.addVisualEdge(idA, idB);
             }
 
             if (r < rows - 1 && c < cols - 1) {
-                int idA = getParticleID(r, c);
-                int idB = getParticleID(r, c + 1);
-                int idC = getParticleID(r + 1, c);
-                int idD = getParticleID(r + 1, c + 1);
-                solver.addDistanceConstraint(idA, idD, m_shearCompliance);
-                solver.addDistanceConstraint(idB, idC, m_shearCompliance);
+                int idA = getLocalID(r, c);
+                int idB = getLocalID(r, c + 1);
+                int idC = getLocalID(r + 1, c);
+                int idD = getLocalID(r + 1, c + 1);
+                solver.addDistanceConstraint(idA, idD, shComp);
+                solver.addDistanceConstraint(idB, idC, shComp);
 
-                solver.addBendingConstraint(idA, idD, idB, idC, 0.0, m_bendingCompliance);
+                solver.addBendingConstraint(idA, idD, idB, idC, 0.0, beComp);
 
-                m_visualEdges.push_back(idA);
-                m_visualEdges.push_back(idD);
-                m_visualEdges.push_back(idB);
-                m_visualEdges.push_back(idC);
+                outCloth.addVisualEdge(idA, idD);
+                outCloth.addVisualEdge(idB, idC);
 
-                m_triangles.push_back(Triangle({idA, idB, idD}));
-                m_triangles.push_back(Triangle({idA, idD, idC}));                
+                outCloth.addTriangle(Triangle{idA, idB, idD});
+                outCloth.addTriangle(Triangle({idA, idD, idC}));                
             }
         }
     }
 
-    const std::vector<Particle>& particles = solver.getParticles();
-
-    for(auto& triangle : m_triangles) {
-        const Particle& pA = particles[triangle.a];
-        const Particle& pB = particles[triangle.b];
-        const Particle& pC = particles[triangle.c];
-
-        Eigen::Vector3d vA = pB.getPosition() - pA.getPosition();
-        Eigen::Vector3d vB = pC.getPosition() - pA.getPosition();
-
-        double area = 0.5 * vA.cross(vB).norm();
-        double massPerVertex = (area * m_density) / 3.0;
-
-        solver.addMassToParticle(triangle.a, massPerVertex);
-        solver.addMassToParticle(triangle.b, massPerVertex);
-        solver.addMassToParticle(triangle.c, massPerVertex);
-        solver.addAeroFace(triangle.a, triangle.b, triangle.c);
-    }
+    computePhysicalAttributes(outCloth, solver);
 }
 
-void ClothMesh::setMaterial(double density, double stretch, double shear, double bend) {
-    m_density = density;
-    m_structuralCompliance = stretch;
-    m_shearCompliance = shear;
-    m_bendingCompliance = bend;
-}
-
-int ClothMesh::getParticleID(int row, int col) const {
-    int localIndex = row * m_cols + col;
-    return m_particlesIndices[localIndex];
-}
-
-void ClothMesh::exportToOBJ(const std::string& filename, const Solver& solver) const {
-    std::ofstream file(filename);
-    if (!file.is_open()) return;
-
-    const std::vector<Particle>& particles = solver.getParticles();
-
-    for (int id : m_particlesIndices) {
-        const Eigen::Vector3d& pos = particles[id].getPosition();
-        
-        file << "v " << pos.x() << " " << pos.y() << " " << pos.z() << "\n";
-    }
-
-    for (const auto& t : m_triangles) {
-        file << "f " << t.a + 1 << " " << t.b + 1 << " " << t.c + 1 << "\n";
-    }
-
-    file.close();
-}
-
-void ClothMesh::buildFromMesh(const std::vector<Eigen::Vector3d>& positions, const std::vector<int>& indices, Solver& solver) {
+void ClothMesh::buildFromMesh(const std::vector<Eigen::Vector3d>& positions, const std::vector<int>& indices, Cloth& outCloth, Solver& solver) {
     std::map<Edge, std::vector<int>> edgeToTriangles;
-    m_particlesIndices.clear();
-    m_triangles.clear();
+    std::vector<int> localToGlobal; 
+    localToGlobal.reserve(positions.size());
+    outCloth.clear();
+    auto mat = outCloth.getMaterial();
+    double stComp = mat->structuralCompliance;
+    double shComp = mat->shearCompliance;
+    double beComp = mat->bendingCompliance;
+    double dens = mat->density;
+
 
     for (auto& position : positions) {
         auto id = solver.addParticle(Particle(position));
-        m_particlesIndices.push_back(id);
+        outCloth.addParticleId(id);
+        localToGlobal.push_back(id);
     }
 
-    std::vector<int> solver_indices;
-    solver_indices.reserve(indices.size());
+    for (size_t i = 0; i < indices.size(); i += 3) {
+        int vA = localToGlobal[indices[i]];
+        int vB = localToGlobal[indices[i+1]];
+        int vC = localToGlobal[indices[i+2]];
 
-    for (const auto& indice : indices) {
-        solver_indices.push_back(m_particlesIndices[indice]);
-    }
-
-    for (size_t i = 0; i < solver_indices.size(); i += 3) {
-        auto vA = solver_indices[i];
-        auto vB = solver_indices[i + 1];
-        auto vC = solver_indices[i + 2];
-
-        m_triangles.push_back({vA, vB, vC});
-        int id = m_triangles.size() - 1;
+        outCloth.addTriangle({vA, vB, vC});
+        
+        int currentTriId = outCloth.getTriangles().size() - 1;
 
         Edge edges[3] = { {vA, vB}, {vB, vC}, {vC, vA} };
-
         for (auto& edge : edges) {
-            if (edgeToTriangles.find(edge) == edgeToTriangles.end()) 
-                solver.addDistanceConstraint(edge.v1, edge.v2, m_structuralCompliance);
-            edgeToTriangles[edge].push_back(id);
+            if (edgeToTriangles.find(edge) == edgeToTriangles.end()) {
+                solver.addDistanceConstraint(edge.v1, edge.v2, stComp);
+                outCloth.addVisualEdge(edge.v1, edge.v2); 
+            }
+            edgeToTriangles[edge].push_back(currentTriId);
         }
     }
 
@@ -154,40 +117,19 @@ void ClothMesh::buildFromMesh(const std::vector<Eigen::Vector3d>& positions, con
             int v1 = key.v1;
             int v2 = key.v2;
 
-            const Triangle& t1 = m_triangles[triList[0]];
-            const Triangle& t2 = m_triangles[triList[1]];
+            const Triangle& t1 = outCloth.getTriangles()[triList[0]];
+            const Triangle& t2 = outCloth.getTriangles()[triList[1]];
 
             int v3 = getOppositeVertex(t1, v1, v2);
             int v4 = getOppositeVertex(t2, v1, v2);
 
             double initialAngle = calculateInitialAngle(v1, v2, v3, v4, solver);
 
-            solver.addBendingConstraint(v1, v2, v3, v4, initialAngle, m_bendingCompliance);
+            solver.addBendingConstraint(v1, v2, v3, v4, initialAngle, beComp);
         }
     }
 
-    const auto& particles = solver.getParticles();
-
-    for (int id : m_particlesIndices) {
-        solver.setParticleInverseMass(id, 1e6); 
-    }
-
-    for(auto& triangle : m_triangles) {
-        const Particle& pA = particles[triangle.a];
-        const Particle& pB = particles[triangle.b];
-        const Particle& pC = particles[triangle.c];
-
-        Eigen::Vector3d vA = pB.getPosition() - pA.getPosition();
-        Eigen::Vector3d vB = pC.getPosition() - pA.getPosition();
-
-        double area = 0.5 * vA.cross(vB).norm();
-        double massPerVertex = (area * m_density) / 3.0;
-
-        solver.addMassToParticle(triangle.a, massPerVertex);
-        solver.addMassToParticle(triangle.b, massPerVertex);
-        solver.addMassToParticle(triangle.c, massPerVertex);
-        solver.addAeroFace(triangle.a, triangle.b, triangle.c);
-    }
+    computePhysicalAttributes(outCloth, solver);
 }
 
 int ClothMesh::getOppositeVertex(const Triangle& tri, int v1, int v2) const{
@@ -218,6 +160,31 @@ double ClothMesh::calculateInitialAngle(int id1, int id2, int id3, int id4, cons
     double cosTheta = n1.dot(n2) / (len1 * len2);
     
     return std::acos(std::clamp(cosTheta, -1.0, 1.0));
+}
+
+void ClothMesh::computePhysicalAttributes(Cloth& cloth, Solver& solver) const {
+    const auto& particles = solver.getParticles();
+    const auto& triangles = cloth.getTriangles();
+    const auto& indices = cloth.getParticleIndices();
+    double density = cloth.getMaterial()->density;
+
+    for(const auto& triangle : triangles) {
+        const Particle& pA = particles[triangle.a];
+        const Particle& pB = particles[triangle.b];
+        const Particle& pC = particles[triangle.c];
+
+        Eigen::Vector3d v1 = pB.getPosition() - pA.getPosition();
+        Eigen::Vector3d v2 = pC.getPosition() - pA.getPosition();
+
+        double area = 0.5 * v1.cross(v2).norm();
+        double massPerVertex = (area * density) / 3.0;
+
+        solver.addMassToParticle(triangle.a, massPerVertex);
+        solver.addMassToParticle(triangle.b, massPerVertex);
+        solver.addMassToParticle(triangle.c, massPerVertex);
+        
+        solver.addAeroFace(triangle.a, triangle.b, triangle.c);
+    }
 }
 
 
