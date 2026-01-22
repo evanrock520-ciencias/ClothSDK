@@ -1,0 +1,239 @@
+diff --git a/CMakeLists.txt b/CMakeLists.txt
+index 9bbdb57..c706ac9 100644
+--- a/CMakeLists.txt
++++ b/CMakeLists.txt
+@@ -105,5 +105,4 @@ add_custom_target(cloth_sdk_stubs ALL
+     DEPENDS ${STUB_OUTPUT}
+ )
+ 
+-enable_testing()
+-add_subdirectory(tests)
+\ No newline at end of file
++enable_testing()
+\ No newline at end of file
+diff --git a/core/include/engine/Cloth.hpp b/core/include/engine/Cloth.hpp
+index b19fea1..a3bc333 100644
+--- a/core/include/engine/Cloth.hpp
++++ b/core/include/engine/Cloth.hpp
+@@ -1,6 +1,7 @@
+ #pragma once
+ 
+ #include "math/Types.hpp"
++#include "physics/AerodynamicForce.hpp"
+ #include <memory>
+ #include <string>
+ #include <vector>
+@@ -20,6 +21,8 @@ public:
+     inline const std::vector<int>& getParticleIndices() const { return m_particleIndices; }
+     inline const std::vector<Triangle>& getTriangles() const { return m_triangles; }
+     inline const std::vector<unsigned int>& getVisualEdges() const { return m_visualEdges; }
++    inline void addAeroFace(int a, int b, int c) { m_faces.push_back({a, b, c}); }
++    inline const std::vector<AeroFace>& getAeroFaces() const { return m_faces; }
+     inline int getParticleID(int r, int c) const { 
+         int localIndex = r * m_gridCols + c;
+         return m_particleIndices[localIndex];
+@@ -37,6 +40,7 @@ private:
+     std::vector<int> m_particleIndices;
+     std::vector<Triangle> m_triangles;
+     std::vector<unsigned int> m_visualEdges;
++    std::vector<AeroFace> m_faces;
+     int m_gridRows;
+     int m_gridCols;
+ };
+diff --git a/core/include/physics/Solver.hpp b/core/include/physics/Solver.hpp
+index 60fe49e..3822e62 100644
+--- a/core/include/physics/Solver.hpp
++++ b/core/include/physics/Solver.hpp
+@@ -20,6 +20,7 @@
+ #include "Constraint.hpp"
+ #include "Collider.hpp"
+ #include "SpatialHash.hpp"
++#include "physics/Force.hpp"
+ #include <unordered_set>
+ #include <vector>
+ #include <memory>
+@@ -33,6 +34,7 @@ public:
+ 
+     int addParticle(const Particle& p);
+     void clear();
++    void clearForces();
+ 
+     const std::vector<Particle>& getParticles() const;
+ 
+@@ -52,16 +54,17 @@ public:
+     void addPlaneCollider(const Eigen::Vector3d& origin, const Eigen::Vector3d& normal, double friction);
+     void addSphereCollider(const Eigen::Vector3d& center, double radius, double friction);
+     void addAeroFace(int idA, int idB, int idC);
++    void addForce(std::unique_ptr<Force> force);
+ 
+     void update(double deltaTime);
+ 
+-    int getSubsteps() const { return m_substeps; }
+-    int getIterations() const { return m_iterations; }
+-    const Eigen::Vector3d& getGravity() const { return m_gravity; }
+-    double getAirDensity() const { return m_airDensity; }
+-    const Eigen::Vector3d& getWind() const { return m_wind; }
+-    double getThickness() const { return m_thickness; }
+-    double getCollisionCompliance() const { return m_collisionCompliance; }
++    inline int getSubsteps() const { return m_substeps; }
++    inline int getIterations() const { return m_iterations; }
++    inline const Eigen::Vector3d& getGravity() const { return m_gravity; }
++    inline double getAirDensity() const { return m_airDensity; }
++    inline const Eigen::Vector3d& getWind() const { return m_wind; }
++    inline double getThickness() const { return m_thickness; }
++    inline double getCollisionCompliance() const { return m_collisionCompliance; }
+ 
+ private:
+     void step(double dt);
+@@ -80,6 +83,7 @@ private:
+     std::vector<std::unique_ptr<Constraint>> m_constraints;
+     std::vector<std::unique_ptr<Collider>> m_colliders;
+     std::vector<int> m_neighborsBuffer;
++    std::vector<std::unique_ptr<Force>> m_forces;
+     std::unordered_set<uint64_t> m_adjacencies;
+     SpatialHash m_spatialHash;
+     Eigen::Vector3d m_gravity;
+diff --git a/core/src/engine/ClothMesh.cpp b/core/src/engine/ClothMesh.cpp
+index 1b910fc..56940e9 100644
+--- a/core/src/engine/ClothMesh.cpp
++++ b/core/src/engine/ClothMesh.cpp
+@@ -183,7 +183,7 @@ void ClothMesh::computePhysicalAttributes(Cloth& cloth, Solver& solver) const {
+         solver.addMassToParticle(triangle.b, massPerVertex);
+         solver.addMassToParticle(triangle.c, massPerVertex);
+         
+-        solver.addAeroFace(triangle.a, triangle.b, triangle.c);
++        cloth.addAeroFace(triangle.a, triangle.b, triangle.c);
+     }
+ }
+ 
+diff --git a/core/src/physics/Solver.cpp b/core/src/physics/Solver.cpp
+index 50e7554..fb2e1e2 100644
+--- a/core/src/physics/Solver.cpp
++++ b/core/src/physics/Solver.cpp
+@@ -42,19 +42,14 @@ namespace ClothSDK {
+             collider->resolve(m_particles, dt, m_thickness);
+         }
+ 
+-        solveSelfCollisions(m_thickness);
++        solveSelfCollisions(dt);
+     }
+ 
+     void Solver::applyForces(double dt) {
+-        #pragma omp parallel for
+-        for(auto& particle : m_particles) {
+-            if(particle.getInverseMass() <= 0.0)
+-                continue;
+-            particle.addForce(m_gravity);
+-        }
+-        applyAerodynamics(dt);
+-        
++    for (auto& force : m_forces) {
++        force->apply(m_particles, dt);
+     }
++}
+ 
+     void Solver::predictPositions(double dt) {
+         #pragma omp parallel for
+@@ -227,4 +222,13 @@ namespace ClothSDK {
+     void Solver::addAeroFace(int idA, int idB, int idC) {
+         m_aeroFaces.push_back({idA, idB, idC});
+     }
++
++    void Solver::addForce(std::unique_ptr<Force> force) {
++        m_forces.push_back(std::move(force));
++    }
++
++    void Solver::clearForces() {
++        m_forces.clear();
++    }
++
+ }
+diff --git a/data/animations/falling.abc b/data/animations/falling.abc
+index 732de79..799ff46 100644
+Binary files a/data/animations/falling.abc and b/data/animations/falling.abc differ
+diff --git a/examples/simulation.py b/examples/simulation.py
+index cd14df6..809f83c 100644
+--- a/examples/simulation.py
++++ b/examples/simulation.py
+@@ -46,7 +46,7 @@ def falling():
+         sdk.Logger.error("Failed to create Alembic file!")
+         return
+ 
+-    frames = 100
++    frames = 600
+     dt = 0.016
+ 
+     sdk.Logger.info(f"Simulating {frames} frames to {output_path}...")
+diff --git a/python/src/bindings.cpp b/python/src/bindings.cpp
+index 084278e..2134abf 100644
+--- a/python/src/bindings.cpp
++++ b/python/src/bindings.cpp
+@@ -14,6 +14,9 @@
+ #include "physics/Collider.hpp"
+ #include "physics/PlaneCollider.hpp"
+ #include "physics/SphereCollider.hpp"
++#include "physics/Force.hpp"
++#include "physics/AerodynamicForce.hpp"
++#include "physics/GravityForce.hpp"
+ #include "physics/Solver.hpp"
+ #include "engine/ClothMesh.hpp"
+ #include "io/OBJLoader.hpp"
+@@ -44,6 +47,21 @@ PYBIND11_MODULE(cloth_sdk, m) {
+         .def_readwrite("shear_compliance", &ClothMaterial::shearCompliance)
+         .def_readwrite("bending_compliance", &ClothMaterial::bendingCompliance);
+ 
++    py::class_<ClothSDK::AeroFace>(m, "AeroFace")
++        .def(py::init<int, int, int>(), py::arg("a"), py::arg("b"), py::arg("c"))
++        .def_readwrite("a", &AeroFace::a)
++        .def_readwrite("b", &AeroFace::b)
++        .def_readwrite("c", &AeroFace::c);
++
++    py::class_<ClothSDK::Force, std::unique_ptr<ClothSDK::Force>>(m, "Force");
++
++    py::class_<ClothSDK::GravityForce, ClothSDK::Force, std::unique_ptr<ClothSDK::GravityForce>>(m, "GravityForce")
++        .def(py::init<const Eigen::Vector3d&>(), py::arg("gravity"));
++
++    py::class_<ClothSDK::AerodynamicForce, ClothSDK::Force, std::unique_ptr<ClothSDK::AerodynamicForce>>(m, "AerodynamicForce")
++        .def(py::init<const std::vector<AeroFace>&, const Eigen::Vector3d&, double>(), 
++                py::arg("faces"), py::arg("wind"), py::arg("air_density"));
++
+     py::class_<Particle>(m, "Particle")
+         .def(py::init<const Eigen::Vector3d&>(), py::arg("initial_pos"))
+         .def("get_position", &Particle::getPosition)
+@@ -84,9 +102,6 @@ PYBIND11_MODULE(cloth_sdk, m) {
+         .def("clear", &Solver::clear)
+         .def("add_particle", &Solver::addParticle)
+         .def("get_particles", &Solver::getParticles, py::return_value_policy::reference_internal)
+-        .def("get_wind", &Solver::getWind)
+-        .def("set_gravity", &Solver::setGravity)
+-        .def("get_gravity", &Solver::getGravity)
+         .def("set_substeps", &Solver::setSubsteps)
+         .def("set_iterations", &Solver::setIterations)
+         .def("add_distance_constraint", &Solver::addDistanceConstraint)
+@@ -94,11 +109,15 @@ PYBIND11_MODULE(cloth_sdk, m) {
+         .def("add_pin", &Solver::addPin)
+         .def("add_plane_collider", &Solver::addPlaneCollider)
+         .def("add_sphere_collider", &Solver::addSphereCollider)
+-        .def("set_wind", &Solver::setWind)
+-        .def("set_air_density", &Solver::setAirDensity)
+         .def("set_thickness", &Solver::setThickness)
+         .def("set_collision_compliance", &Solver::setCollisionCompliance)
+-        .def("set_particle_inverse_mass", &Solver::setParticleInverseMass);
++        .def("set_particle_inverse_mass", &Solver::setParticleInverseMass)
++        .def("add_force", [](Solver &s, py::object force_obj) {
++            auto force_ptr = force_obj.cast<Force*>(); 
++            s.addForce(std::unique_ptr<Force>(force_obj.cast<Force*>()));
++            force_obj.inc_ref(); 
++        }, py::keep_alive<1, 2>())
++        .def("clear_forces", &Solver::clearForces);;
+ 
+     py::class_<ClothMesh, std::shared_ptr<ClothSDK::ClothMesh>>(m, "ClothMesh")
+         .def(py::init<>())
+@@ -115,6 +134,7 @@ PYBIND11_MODULE(cloth_sdk, m) {
+         .def("get_material", &Cloth::getMaterial)
+         .def("set_material", &Cloth::setMaterial)
+         .def("get_particle_indices", &Cloth::getParticleIndices)
++        .def("get_aerofaces", &Cloth::getAeroFaces)
+         .def("get_triangles", [](const Cloth& cloth) {
+             std::vector<int> flat;
+             for (const auto& t : cloth.getTriangles()) {

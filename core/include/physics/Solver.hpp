@@ -20,6 +20,7 @@
 #include "Constraint.hpp"
 #include "Collider.hpp"
 #include "SpatialHash.hpp"
+#include "physics/Force.hpp"
 #include <unordered_set>
 #include <vector>
 #include <memory>
@@ -33,6 +34,7 @@ public:
 
     int addParticle(const Particle& p);
     void clear();
+    void clearForces();
 
     const std::vector<Particle>& getParticles() const;
 
@@ -52,16 +54,17 @@ public:
     void addPlaneCollider(const Eigen::Vector3d& origin, const Eigen::Vector3d& normal, double friction);
     void addSphereCollider(const Eigen::Vector3d& center, double radius, double friction);
     void addAeroFace(int idA, int idB, int idC);
+    void addForce(std::unique_ptr<Force> force);
 
     void update(double deltaTime);
 
-    int getSubsteps() const { return m_substeps; }
-    int getIterations() const { return m_iterations; }
-    const Eigen::Vector3d& getGravity() const { return m_gravity; }
-    double getAirDensity() const { return m_airDensity; }
-    const Eigen::Vector3d& getWind() const { return m_wind; }
-    double getThickness() const { return m_thickness; }
-    double getCollisionCompliance() const { return m_collisionCompliance; }
+    inline int getSubsteps() const { return m_substeps; }
+    inline int getIterations() const { return m_iterations; }
+    inline const Eigen::Vector3d& getGravity() const { return m_gravity; }
+    inline double getAirDensity() const { return m_airDensity; }
+    inline const Eigen::Vector3d& getWind() const { return m_wind; }
+    inline double getThickness() const { return m_thickness; }
+    inline double getCollisionCompliance() const { return m_collisionCompliance; }
 
 private:
     void step(double dt);
@@ -80,6 +83,7 @@ private:
     std::vector<std::unique_ptr<Constraint>> m_constraints;
     std::vector<std::unique_ptr<Collider>> m_colliders;
     std::vector<int> m_neighborsBuffer;
+    std::vector<std::unique_ptr<Force>> m_forces;
     std::unordered_set<uint64_t> m_adjacencies;
     SpatialHash m_spatialHash;
     Eigen::Vector3d m_gravity;

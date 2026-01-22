@@ -42,19 +42,14 @@ namespace ClothSDK {
             collider->resolve(m_particles, dt, m_thickness);
         }
 
-        solveSelfCollisions(m_thickness);
+        solveSelfCollisions(dt);
     }
 
     void Solver::applyForces(double dt) {
-        #pragma omp parallel for
-        for(auto& particle : m_particles) {
-            if(particle.getInverseMass() <= 0.0)
-                continue;
-            particle.addForce(m_gravity);
-        }
-        applyAerodynamics(dt);
-        
+    for (auto& force : m_forces) {
+        force->apply(m_particles, dt);
     }
+}
 
     void Solver::predictPositions(double dt) {
         #pragma omp parallel for
@@ -227,4 +222,13 @@ namespace ClothSDK {
     void Solver::addAeroFace(int idA, int idB, int idC) {
         m_aeroFaces.push_back({idA, idB, idC});
     }
+
+    void Solver::addForce(std::unique_ptr<Force> force) {
+        m_forces.push_back(std::move(force));
+    }
+
+    void Solver::clearForces() {
+        m_forces.clear();
+    }
+
 }

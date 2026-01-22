@@ -13,9 +13,10 @@ except ImportError as e:
 
 def falling():
     solver = sdk.Solver()
-    solver.set_gravity([0.0, -9.81, 0.0])
-    solver.set_air_density(0.1)
-    solver.set_wind([2.0, 0.0, 8.0])
+    
+    gravity = sdk.GravityForce([0.0, -9.81, 0.0])
+    solver.add_force(gravity)
+    
     solver.set_substeps(10)
     solver.set_iterations(2)
     solver.set_thickness(0.05)
@@ -27,7 +28,12 @@ def falling():
     rows, cols = 120, 80
     spacing = 0.1
     sdk.Logger.info(f"Weaving {rows}x{cols} mesh...")
+    
     factory.init_grid(rows, cols, spacing, curtain, solver)
+
+    aero_faces = curtain.get_aerofaces()
+    wind_force = sdk.AerodynamicForce(aero_faces, [2.0, 0.0, 8.0], 0.1)
+    solver.add_force(wind_force)
 
     particles = solver.get_particles()
     top_row = rows - 1
@@ -46,7 +52,7 @@ def falling():
         sdk.Logger.error("Failed to create Alembic file!")
         return
 
-    frames = 100
+    frames = 600
     dt = 0.016
 
     sdk.Logger.info(f"Simulating {frames} frames to {output_path}...")

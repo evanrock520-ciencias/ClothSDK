@@ -14,6 +14,9 @@
 #include "physics/Collider.hpp"
 #include "physics/PlaneCollider.hpp"
 #include "physics/SphereCollider.hpp"
+#include "physics/Force.hpp"
+#include "physics/AerodynamicForce.hpp"
+#include "physics/GravityForce.hpp"
 #include "physics/Solver.hpp"
 #include "engine/ClothMesh.hpp"
 #include "io/OBJLoader.hpp"
@@ -43,6 +46,21 @@ PYBIND11_MODULE(cloth_sdk, m) {
         .def_readwrite("structural_compliance", &ClothMaterial::structuralCompliance)
         .def_readwrite("shear_compliance", &ClothMaterial::shearCompliance)
         .def_readwrite("bending_compliance", &ClothMaterial::bendingCompliance);
+
+    py::class_<ClothSDK::AeroFace>(m, "AeroFace")
+        .def(py::init<int, int, int>(), py::arg("a"), py::arg("b"), py::arg("c"))
+        .def_readwrite("a", &AeroFace::a)
+        .def_readwrite("b", &AeroFace::b)
+        .def_readwrite("c", &AeroFace::c);
+
+    py::class_<ClothSDK::Force, std::unique_ptr<ClothSDK::Force>>(m, "Force");
+
+    py::class_<ClothSDK::GravityForce, ClothSDK::Force, std::unique_ptr<ClothSDK::GravityForce>>(m, "GravityForce")
+        .def(py::init<const Eigen::Vector3d&>(), py::arg("gravity"));
+
+    py::class_<ClothSDK::AerodynamicForce, ClothSDK::Force, std::unique_ptr<ClothSDK::AerodynamicForce>>(m, "AerodynamicForce")
+        .def(py::init<const std::vector<AeroFace>&, const Eigen::Vector3d&, double>(), 
+                py::arg("faces"), py::arg("wind"), py::arg("air_density"));
 
     py::class_<Particle>(m, "Particle")
         .def(py::init<const Eigen::Vector3d&>(), py::arg("initial_pos"))
@@ -84,9 +102,6 @@ PYBIND11_MODULE(cloth_sdk, m) {
         .def("clear", &Solver::clear)
         .def("add_particle", &Solver::addParticle)
         .def("get_particles", &Solver::getParticles, py::return_value_policy::reference_internal)
-        .def("get_wind", &Solver::getWind)
-        .def("set_gravity", &Solver::setGravity)
-        .def("get_gravity", &Solver::getGravity)
         .def("set_substeps", &Solver::setSubsteps)
         .def("set_iterations", &Solver::setIterations)
         .def("add_distance_constraint", &Solver::addDistanceConstraint)
@@ -94,11 +109,15 @@ PYBIND11_MODULE(cloth_sdk, m) {
         .def("add_pin", &Solver::addPin)
         .def("add_plane_collider", &Solver::addPlaneCollider)
         .def("add_sphere_collider", &Solver::addSphereCollider)
-        .def("set_wind", &Solver::setWind)
-        .def("set_air_density", &Solver::setAirDensity)
         .def("set_thickness", &Solver::setThickness)
         .def("set_collision_compliance", &Solver::setCollisionCompliance)
-        .def("set_particle_inverse_mass", &Solver::setParticleInverseMass);
+        .def("set_particle_inverse_mass", &Solver::setParticleInverseMass)
+        .def("add_force", [](Solver &s, py::object force_obj) {
+            auto force_ptr = force_obj.cast<Force*>(); 
+            s.addForce(std::unique_ptr<Force>(force_obj.cast<Force*>()));
+            force_obj.inc_ref(); 
+        }, py::keep_alive<1, 2>())
+        .def("clear_forces", &Solver::clearForces);;
 
     py::class_<ClothMesh, std::shared_ptr<ClothSDK::ClothMesh>>(m, "ClothMesh")
         .def(py::init<>())
@@ -115,6 +134,7 @@ PYBIND11_MODULE(cloth_sdk, m) {
         .def("get_material", &Cloth::getMaterial)
         .def("set_material", &Cloth::setMaterial)
         .def("get_particle_indices", &Cloth::getParticleIndices)
+        .def("get_aerofaces", &Cloth::getAeroFaces)
         .def("get_triangles", [](const Cloth& cloth) {
             std::vector<int> flat;
             for (const auto& t : cloth.getTriangles()) {

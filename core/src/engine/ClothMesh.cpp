@@ -183,7 +183,7 @@ void ClothMesh::computePhysicalAttributes(Cloth& cloth, Solver& solver) const {
         solver.addMassToParticle(triangle.b, massPerVertex);
         solver.addMassToParticle(triangle.c, massPerVertex);
         
-        solver.addAeroFace(triangle.a, triangle.b, triangle.c);
+        cloth.addAeroFace(triangle.a, triangle.b, triangle.c);
     }
 }
 

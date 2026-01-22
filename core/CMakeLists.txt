@@ -8,6 +8,9 @@ set(CORE_SOURCES
     src/physics/Collider.cpp
     src/physics/PlaneCollider.cpp
     src/physics/SphereCollider.cpp
+    src/physics/Force.cpp
+    src/physics/GravityForce.cpp
+    src/physics/AerodynamicForce.cpp
     src/physics/SpatialHash.cpp
     src/engine/ClothMesh.cpp
     src/engine/Cloth.cpp
