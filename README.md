@@ -27,6 +27,10 @@ python3 examples/simulation.py
 
 ## Gallery
 
-| Interactive Control Panel |
-| :---: |
-| ![Preview](docs/images/preview.png) |
+### Interactive Control Panel
+![Preview](docs/images/preview.png)
+
+---
+
+### Blender Simulation
+![Blender Importation](docs/videos/blender_cloth.gif)
