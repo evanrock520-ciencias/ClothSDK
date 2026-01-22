@@ -20,6 +20,7 @@
 #include "physics/Solver.hpp"
 #include "engine/ClothMesh.hpp"
 #include "io/OBJLoader.hpp"
+#include "io/OBJExporter.hpp"
 #include "io/ConfigLoader.hpp"
 #include "utils/Logger.hpp"
 #include "math/Types.hpp"
@@ -186,4 +187,12 @@ PYBIND11_MODULE(cloth_sdk, m) {
     .def("open", &ClothSDK::AlembicExporter::open, py::arg("path"), py::arg("positions"), py::arg("indices"))
     .def("write_frame", &ClothSDK::AlembicExporter::writeFrame, py::arg("positions"), py::arg("time"))
     .def("close", &ClothSDK::AlembicExporter::close);
+
+    py::class_<OBJExporter>(m, "OBJExporter")
+    .def(py::init<>())
+    .def_static("export_obj", &OBJExporter::exportOBJ, 
+        py::arg("filename"), 
+        py::arg("cloth"), 
+        py::arg("solver"), 
+        "Exports a specific cloth instance to an OBJ file"); 
 }

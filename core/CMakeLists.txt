@@ -18,6 +18,7 @@ set(CORE_SOURCES
     src/io/OBJLoader.cpp
     src/io/ConfigLoader.cpp
     src/io/AlembicExporter.cpp
+    src/io/OBJExporter.cpp
     src/utils/Logger.cpp
 )
 
