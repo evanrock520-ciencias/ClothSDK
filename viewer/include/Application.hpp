@@ -27,6 +27,7 @@ namespace ClothSDK {
 
 class Solver;
 class ClothMesh;
+class World;
 
 namespace Viewer {
 
@@ -43,6 +44,7 @@ public:
     void shutdown();
     void syncVisualTopology();
 
+    inline void setWorld(std::shared_ptr<World> world) { m_world = world; }
     inline void setSolver(std::shared_ptr<Solver> solver) { m_solver = solver; }
     inline void setMesh(std::shared_ptr<ClothMesh> mesh) { m_mesh = mesh; }
     inline void setCloth(std::shared_ptr<Cloth> cloth) { m_cloth = cloth; }
@@ -56,6 +58,7 @@ private:
     void resetSimulation();
 
     GLFWwindow* m_window;
+    std::shared_ptr<World> m_world;
     std::shared_ptr<Solver> m_solver;
     std::unique_ptr<Renderer> m_renderer;
     std::unique_ptr<Camera> m_camera;

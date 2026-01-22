@@ -1,26 +1,9 @@
-/*
- * Copyright 2026 Evan M.
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
-
 #pragma once
 
 #include "Particle.hpp"  
 #include "Constraint.hpp"
-#include "Collider.hpp"
 #include "SpatialHash.hpp"
-#include "physics/Force.hpp"
+#include "engine/World.hpp" 
 #include <unordered_set>
 #include <vector>
 #include <memory>
@@ -34,66 +17,43 @@ public:
 
     int addParticle(const Particle& p);
     void clear();
-    void clearForces();
-
     const std::vector<Particle>& getParticles() const;
+    void setParticleInverseMass(int id, double invMass);
+    void addMassToParticle(int id, double mass);
 
-    void setGravity(const Eigen::Vector3d& gravity);
     void setSubsteps(int count);
     void setIterations(int count); 
-    void setParticleInverseMass(int id, double invMass);
-    void setWind(const Eigen::Vector3d& wind) {m_wind = wind; }
-    void setAirDensity(double density) {m_airDensity = density; }
-    void setThickness(double thickness) { m_thickness = thickness; }
     void setCollisionCompliance(double c) { m_collisionCompliance = c; }
+    
+    inline int getSubsteps() const { return m_substeps; }
+    inline int getIterations() const { return m_iterations; }
+    inline double getCollisionCompliance() const { return m_collisionCompliance; }
+    inline int getParticleCount() const { return static_cast<int>(m_particles.size()); }
 
     void addDistanceConstraint(int idA, int idB, double compliance);
     void addBendingConstraint(int a, int b, int c, int d, double restAngle, double compliance);
     void addPin(int id, const Eigen::Vector3d& pos, double compliance = 0.0);
-    void addMassToParticle(int id, double mass);
-    void addPlaneCollider(const Eigen::Vector3d& origin, const Eigen::Vector3d& normal, double friction);
-    void addSphereCollider(const Eigen::Vector3d& center, double radius, double friction);
-    void addAeroFace(int idA, int idB, int idC);
-    void addForce(std::unique_ptr<Force> force);
 
-    void update(double deltaTime);
-
-    inline int getSubsteps() const { return m_substeps; }
-    inline int getIterations() const { return m_iterations; }
-    inline const Eigen::Vector3d& getGravity() const { return m_gravity; }
-    inline double getAirDensity() const { return m_airDensity; }
-    inline const Eigen::Vector3d& getWind() const { return m_wind; }
-    inline double getThickness() const { return m_thickness; }
-    inline double getCollisionCompliance() const { return m_collisionCompliance; }
+    void update(World& world, double deltaTime);
 
 private:
-    void step(double dt);
-    void applyForces(double dt);
+    void step(World& world, double dt);
+    void applyForces(World& world, double dt);
+    void solveSelfCollisions(double dt, double thickness); 
+
     void predictPositions(double dt);
     void solveConstraints(double dt); 
-    void applyAerodynamics(double dt);
-    void solveSelfCollisions(double dt);
     uint64_t getAdjacencyKey(int idA, int idB) const;
-
-    struct AeroFace {
-        int a, b, c;
-    };
 
     std::vector<Particle> m_particles; 
     std::vector<std::unique_ptr<Constraint>> m_constraints;
-    std::vector<std::unique_ptr<Collider>> m_colliders;
-    std::vector<int> m_neighborsBuffer;
-    std::vector<std::unique_ptr<Force>> m_forces;
     std::unordered_set<uint64_t> m_adjacencies;
+    
     SpatialHash m_spatialHash;
-    Eigen::Vector3d m_gravity;
+    std::vector<int> m_neighborsBuffer;
+
     int m_substeps;
     int m_iterations;
-    std::vector<AeroFace> m_aeroFaces;
-    Eigen::Vector3d m_wind;
-    double m_airDensity;
-    double m_time; 
-    double m_thickness;
     double m_collisionCompliance;
 };
 

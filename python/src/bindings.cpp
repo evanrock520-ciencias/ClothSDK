@@ -53,14 +53,13 @@ PYBIND11_MODULE(cloth_sdk, m) {
         .def_readwrite("b", &AeroFace::b)
         .def_readwrite("c", &AeroFace::c);
 
-    py::class_<ClothSDK::Force, std::unique_ptr<ClothSDK::Force>>(m, "Force");
+    py::class_<ClothSDK::Force, std::shared_ptr<ClothSDK::Force>>(m, "Force");
 
-    py::class_<ClothSDK::GravityForce, ClothSDK::Force, std::unique_ptr<ClothSDK::GravityForce>>(m, "GravityForce")
-        .def(py::init<const Eigen::Vector3d&>(), py::arg("gravity"));
+    py::class_<ClothSDK::GravityForce, ClothSDK::Force, std::shared_ptr<ClothSDK::GravityForce>>(m, "GravityForce")
+        .def(py::init<const Eigen::Vector3d&>());
 
-    py::class_<ClothSDK::AerodynamicForce, ClothSDK::Force, std::unique_ptr<ClothSDK::AerodynamicForce>>(m, "AerodynamicForce")
-        .def(py::init<const std::vector<AeroFace>&, const Eigen::Vector3d&, double>(), 
-                py::arg("faces"), py::arg("wind"), py::arg("air_density"));
+    py::class_<ClothSDK::AerodynamicForce, ClothSDK::Force, std::shared_ptr<ClothSDK::AerodynamicForce>>(m, "AerodynamicForce")
+        .def(py::init<const std::vector<AeroFace>&, const Eigen::Vector3d&, double>());
 
     py::class_<Particle>(m, "Particle")
         .def(py::init<const Eigen::Vector3d&>(), py::arg("initial_pos"))
@@ -96,9 +95,23 @@ PYBIND11_MODULE(cloth_sdk, m) {
     .def("query", &SpatialHash::query, 
         py::arg("particles"), py::arg("pos"), py::arg("radius"), py::arg("out_neighbors"));
 
+    py::class_<World>(m, "World")
+        .def(py::init<>())
+        .def("add_cloth", &World::addCloth)
+        .def("add_collider", &World::addCollider)
+        .def("add_force", &World::addForce)
+        .def("clear", &World::clear)
+        .def("add_plane_collider", &World::addPlaneCollider)
+        .def("add_sphere_collider", &World::addSphereCollider)
+        .def("set_gravity", &World::setGravity)
+        .def("set_wind", &World::setWind)
+        .def("set_air_density", &World::setAirDensity)
+        .def("set_thickness", &World::setThickness)
+        .def("get_thickness", &World::getThickness);
+
     py::class_<Solver, std::shared_ptr<ClothSDK::Solver>>(m, "Solver")
         .def(py::init<>())
-        .def("update", &Solver::update, py::arg("delta_time"))
+        .def("update", &Solver::update, py::arg("world"), py::arg("delta_time"))
         .def("clear", &Solver::clear)
         .def("add_particle", &Solver::addParticle)
         .def("get_particles", &Solver::getParticles, py::return_value_policy::reference_internal)
@@ -107,17 +120,7 @@ PYBIND11_MODULE(cloth_sdk, m) {
         .def("add_distance_constraint", &Solver::addDistanceConstraint)
         .def("add_bending_constraint", &Solver::addBendingConstraint)
         .def("add_pin", &Solver::addPin)
-        .def("add_plane_collider", &Solver::addPlaneCollider)
-        .def("add_sphere_collider", &Solver::addSphereCollider)
-        .def("set_thickness", &Solver::setThickness)
-        .def("set_collision_compliance", &Solver::setCollisionCompliance)
-        .def("set_particle_inverse_mass", &Solver::setParticleInverseMass)
-        .def("add_force", [](Solver &s, py::object force_obj) {
-            auto force_ptr = force_obj.cast<Force*>(); 
-            s.addForce(std::unique_ptr<Force>(force_obj.cast<Force*>()));
-            force_obj.inc_ref(); 
-        }, py::keep_alive<1, 2>())
-        .def("clear_forces", &Solver::clearForces);;
+        .def("set_collision_compliance", &Solver::setCollisionCompliance);
 
     py::class_<ClothMesh, std::shared_ptr<ClothSDK::ClothMesh>>(m, "ClothMesh")
         .def(py::init<>())

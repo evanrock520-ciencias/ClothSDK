@@ -14,6 +14,7 @@ set(CORE_SOURCES
     src/physics/SpatialHash.cpp
     src/engine/ClothMesh.cpp
     src/engine/Cloth.cpp
+    src/engine/World.cpp
     src/io/OBJLoader.cpp
     src/io/ConfigLoader.cpp
     src/io/AlembicExporter.cpp

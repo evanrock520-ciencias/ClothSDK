@@ -4,52 +4,54 @@
 #include <omp.h>
 
 #include "physics/Solver.hpp"
+#include "engine/World.hpp"
 #include "physics/DistanceConstraint.hpp"
 #include "physics/BendingConstraint.hpp"
+#include "physics/Collider.hpp"
+#include "physics/Force.hpp"
 #include "physics/PinConstraint.hpp"
-#include "physics/PlaneCollider.hpp"
-#include "physics/SphereCollider.hpp"
 #include <Eigen/Dense>
 #include <memory>
 
 namespace ClothSDK {
     Solver::Solver()
-    : m_gravity(0.0, -9.81, 0.0), m_substeps(15), m_iterations(2), m_wind(2.0, 0.0, 1.0),
-    m_airDensity(0.1), m_time(0.0), m_collisionCompliance(1e-9), m_thickness(0.08), m_spatialHash(10007, 0.08) {}
+    : m_substeps(15), m_iterations(2), m_collisionCompliance(1e-9), m_spatialHash(10007, 0.08) {}
 
-    void Solver::update(double deltaTime) {
-        m_spatialHash.setCellSize(m_thickness); 
+    void Solver::update(World& world, double deltaTime) {
+        if (m_particles.empty()) return;
+
+        m_spatialHash.setCellSize(world.getThickness()); 
         m_spatialHash.build(m_particles);
-        m_time += deltaTime;
-        double substepDt = deltaTime / m_substeps;
-        for (int i = 0; i < m_substeps; i++)
-            step(substepDt);
+
+        double substepDt = deltaTime / static_cast<double>(m_substeps);
+        
+        for (int i = 0; i < m_substeps; i++) {
+            step(world, substepDt);
+        }
     }
 
-    void Solver::step(double dt) {
-        applyForces(dt);
+    void Solver::step(World& world, double dt) {
+        applyForces(world, dt);
+
         predictPositions(dt);
 
-        for (auto& constraint : m_constraints) 
+        for (auto& constraint : m_constraints) {
             constraint->resetLambda();
+        }
 
         for (int i = 0; i < m_iterations; i++) {
-            for(auto& constraint : m_constraints)
+            for(auto& constraint : m_constraints) {
                 constraint->solve(m_particles, dt);
+            }
         }
 
-        for (auto& collider : m_colliders) {
-            collider->resolve(m_particles, dt, m_thickness);
+        const auto& colliders = world.getColliders();
+        for (auto& collider : colliders) {
+            collider->resolve(m_particles, dt, world.getThickness());
         }
 
-        solveSelfCollisions(dt);
+        solveSelfCollisions(dt, world.getThickness());
     }
-
-    void Solver::applyForces(double dt) {
-    for (auto& force : m_forces) {
-        force->apply(m_particles, dt);
-    }
-}
 
     void Solver::predictPositions(double dt) {
         #pragma omp parallel for
@@ -66,7 +68,6 @@ namespace ClothSDK {
     void Solver::clear() {
         m_particles.clear();
         m_constraints.clear();
-        m_colliders.clear();
         m_adjacencies.clear();
     }
 
@@ -94,14 +95,6 @@ namespace ClothSDK {
         m_constraints.push_back(std::make_unique<PinConstraint>(id, pos, compliance));
     }
 
-    void Solver::addPlaneCollider(const Eigen::Vector3d& origin, const Eigen::Vector3d& normal, double friction) {
-        m_colliders.push_back(std::make_unique<PlaneCollider>(origin, normal, friction));
-    }
-
-    void Solver::addSphereCollider(const Eigen::Vector3d& center, double radius, double friction) {
-        m_colliders.push_back(std::make_unique<SphereCollider>(center, radius, friction));
-    }
-
     void Solver::addMassToParticle(int id, double mass) {
         Particle& pA = m_particles[id];
         pA.addMass(mass);
@@ -112,59 +105,16 @@ namespace ClothSDK {
             constraint->solve(m_particles, dt);
     }
 
-    void Solver::applyAerodynamics(double dt) {
-        if (dt < 1e-6) return;
-
-        double gust = std::sin(m_time * 5.0) * 0.5 + 0.5;
-        Eigen::Vector3d currentWind = m_wind * (1.0 + gust);
-
-        #pragma omp parallel for
-        for (int i = 0; i < (int)m_aeroFaces.size(); i++) {
-            auto& face = m_aeroFaces[i];
-            
-            Particle& pA = m_particles[face.a];
-            Particle& pB = m_particles[face.b];
-            Particle& pC = m_particles[face.c];
-
-            Eigen::Vector3d vFace = (pA.getVelocity(dt) + pB.getVelocity(dt) + pC.getVelocity(dt)) / 3.0;
-            Eigen::Vector3d vRel = vFace - currentWind;
-            double vMag = vRel.norm();
-            
-            if (vMag < 1e-4) continue;
-
-            Eigen::Vector3d edge1 = pB.getPosition() - pA.getPosition();
-            Eigen::Vector3d edge2 = pC.getPosition() - pA.getPosition();
-            Eigen::Vector3d n = edge1.cross(edge2);
-            double area = 0.5 * n.norm();
-            
-            if (area < 1e-6) continue;
-            
-            Eigen::Vector3d normal = n.normalized();
-
-            double pressure = vRel.dot(normal) / vMag;
-            Eigen::Vector3d force = -0.5 * m_airDensity * (vMag * vMag) * area * pressure * normal;
-            Eigen::Vector3d forcePerVtx = force / 3.0;
-
-            #pragma omp critical
-            {
-                pA.addForce(forcePerVtx);
-                pB.addForce(forcePerVtx);
-                pC.addForce(forcePerVtx);
-            }
-        }
-    }
-
-
-    void Solver::solveSelfCollisions(double dt) {
+    void Solver::solveSelfCollisions(double dt, double thickness) {
         double alphaHat = m_collisionCompliance / (dt * dt);
-        double thicknessSq = m_thickness * m_thickness;
+        double thicknessSq = thickness * thickness;
 
         for (int i = 0; i < (int)m_particles.size(); ++i) {
             Particle& pA = m_particles[i];
             double wA = pA.getInverseMass();
             if (wA == 0.0) continue;
 
-            m_spatialHash.query(m_particles, pA.getPosition(), m_thickness, m_neighborsBuffer);
+            m_spatialHash.query(m_particles, pA.getPosition(), thickness, m_neighborsBuffer);
 
             for (int j : m_neighborsBuffer) {
                 if (i >= j) continue; 
@@ -184,7 +134,7 @@ namespace ClothSDK {
                     double dist = std::sqrt(distSq);
                     Eigen::Vector3d normal = dir / dist;
 
-                    double C = dist - m_thickness;
+                    double C = dist - thickness;
                     
                     double deltaLambda = -C / (wSum + alphaHat);
                     Eigen::Vector3d corr = normal * deltaLambda;
@@ -193,6 +143,13 @@ namespace ClothSDK {
                     pB.setPosition(pB.getPosition() - corr * wB);
                 }
             }
+        }
+    }
+
+    void Solver::applyForces(World& world, double dt) {
+        const auto& forces = world.getForces();
+        for (auto& force : forces) {
+            force->apply(m_particles, dt);
         }
     }
 
@@ -211,24 +168,7 @@ namespace ClothSDK {
         m_substeps = count;
     }
 
-    void Solver::setGravity(const Eigen::Vector3d& gravity) {
-        m_gravity = gravity;
-    }
-
     void Solver::setParticleInverseMass(int id, double invMass) {
         m_particles[id].setInverseMass(invMass);
     }
-
-    void Solver::addAeroFace(int idA, int idB, int idC) {
-        m_aeroFaces.push_back({idA, idB, idC});
-    }
-
-    void Solver::addForce(std::unique_ptr<Force> force) {
-        m_forces.push_back(std::move(force));
-    }
-
-    void Solver::clearForces() {
-        m_forces.clear();
-    }
-
 }

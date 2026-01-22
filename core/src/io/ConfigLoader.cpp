@@ -3,6 +3,7 @@
 
 #include "io/ConfigLoader.hpp"
 #include "engine/ClothMesh.hpp"
+#include "engine/World.hpp"     
 #include "physics/Solver.hpp"
 #include <fstream>
 #include <iostream>
@@ -10,8 +11,8 @@
 
 namespace ClothSDK {
 
-bool ConfigLoader::load(const std::string& filepath, Solver& solver, ClothMaterial& outMaterial) {
-    std::cout << "[Debug] Attempting to load: " << std::filesystem::absolute(filepath) << std::endl;
+bool ConfigLoader::load(const std::string& filepath, Solver& solver, World& world, ClothMaterial& outMaterial) {
+    std::cout << "[Debug] Attempting to load config: " << std::filesystem::absolute(filepath) << std::endl;
     std::ifstream file(filepath);
     if (!file.is_open()) return false;
 
@@ -29,7 +30,7 @@ bool ConfigLoader::load(const std::string& filepath, Solver& solver, ClothMateri
         solver.setIterations(sim.value("iterations", 5));
 
         if (sim.contains("gravity")) {
-            solver.setGravity(jsonToVector(sim["gravity"]));
+            world.setGravity(jsonToVector(sim["gravity"]));
         }
     }
 
@@ -47,23 +48,22 @@ bool ConfigLoader::load(const std::string& filepath, Solver& solver, ClothMateri
         auto aero = data["aerodynamics"];
 
         if (aero.contains("wind_velocity")) {
-            solver.setWind(jsonToVector(aero["wind_velocity"]));
+            world.setWind(jsonToVector(aero["wind_velocity"]));
         } else {
-            solver.setWind(Eigen::Vector3d(5.0, 0.0, 0.0));
+            world.setWind(Eigen::Vector3d(5.0, 0.0, 0.0));
         }
-        solver.setAirDensity(aero.value("air_density", 0.1));
+        world.setAirDensity(aero.value("air_density", 0.1));
     }
 
     if (data.contains("collisions")) {
         auto col = data["collisions"];
-
-        solver.setThickness(col.value("thickness", 0.08));
+        world.setThickness(col.value("thickness", 0.08));
     }
 
     return true;
 }
 
-bool ConfigLoader::save(const std::string& filepath, const Solver& solver, const ClothMaterial& material) {
+bool ConfigLoader::save(const std::string& filepath, const Solver& solver, const World& world, const ClothMaterial& material) {
     std::ofstream file(filepath);
     if (!file.is_open()) return false;
 
@@ -71,17 +71,17 @@ bool ConfigLoader::save(const std::string& filepath, const Solver& solver, const
 
     data["simulation"]["substeps"] = solver.getSubsteps();
     data["simulation"]["iterations"] = solver.getIterations();
-    data["simulation"]["gravity"] = vectorToJson(solver.getGravity());
+    
+    data["simulation"]["gravity"] = vectorToJson(world.getGravity());
+    data["aerodynamics"]["wind_velocity"] = vectorToJson(world.getWind());
+    data["aerodynamics"]["air_density"] = world.getAirDensity();
+    data["collisions"]["thickness"] = world.getThickness();
 
+    // Datos del Material
     data["material"]["density"] = material.density;
     data["material"]["compliance"]["structural"] = material.structuralCompliance;
     data["material"]["compliance"]["shear"] = material.shearCompliance;
     data["material"]["compliance"]["bending"] = material.bendingCompliance;
-
-    data["aerodynamics"]["wind_velocity"] = vectorToJson(solver.getWind());
-    data["aerodynamics"]["air_density"] = solver.getAirDensity();
-
-    data["collisions"]["thickness"] = solver.getThickness();
 
     file << data.dump(4);
     file.close();
@@ -92,14 +92,11 @@ Eigen::Vector3d ConfigLoader::jsonToVector(const nlohmann::json& json) {
     if (!json.is_array() || json.size() != 3)
         return Eigen::Vector3d::Zero();
 
-    Eigen::Vector3d pos(json[0].get<double>(), json[1].get<double>(), json[2].get<double>());
-    return pos;
+    return Eigen::Vector3d(json[0].get<double>(), json[1].get<double>(), json[2].get<double>());
 }
 
 nlohmann::json ConfigLoader::vectorToJson(const Eigen::Vector3d& vector) {
     return nlohmann::json{ vector.x(), vector.y(), vector.z() };
 }
 
-
-
-}
+} 

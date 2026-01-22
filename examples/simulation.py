@@ -13,13 +13,16 @@ except ImportError as e:
 
 def falling():
     solver = sdk.Solver()
+    world = sdk.World()
+    
+    world.set_gravity([0.0, -9.81, 0.0])
+    world.set_thickness(0.05)
     
     gravity = sdk.GravityForce([0.0, -9.81, 0.0])
-    solver.add_force(gravity)
+    world.add_force(gravity)
     
     solver.set_substeps(10)
     solver.set_iterations(2)
-    solver.set_thickness(0.05)
 
     mat = sdk.ClothMaterial(0.2, 1e-10, 1e-8, 0.01)
     curtain = sdk.Cloth("Debug_Curtain", mat)
@@ -33,7 +36,7 @@ def falling():
 
     aero_faces = curtain.get_aerofaces()
     wind_force = sdk.AerodynamicForce(aero_faces, [2.0, 0.0, 8.0], 0.1)
-    solver.add_force(wind_force)
+    world.add_force(wind_force)
 
     particles = solver.get_particles()
     top_row = rows - 1
@@ -58,7 +61,7 @@ def falling():
     sdk.Logger.info(f"Simulating {frames} frames to {output_path}...")
 
     for f in range(frames):
-        solver.update(dt)
+        solver.update(world, dt)
 
         current_pos = [p.get_position() for p in solver.get_particles()]
         exporter.write_frame(current_pos, f * dt)

@@ -17,6 +17,7 @@
 
 #pragma once
 
+#include "engine/World.hpp"
 #include "math/Types.hpp"
 #include <string>
 #include <nlohmann/json.hpp>
@@ -31,8 +32,8 @@ class ClothMesh;
 class ConfigLoader {
 public:
 
-    static bool load(const std::string& filepath, Solver& solver, ClothMaterial& outMaterial);
-    static bool save(const std::string& filepath, const Solver& solver, const ClothMaterial& material);
+    static bool load(const std::string& filepath, Solver& solver, World& world, ClothMaterial& outMaterial);
+    static bool save(const std::string& filepath, const Solver& solver, const World& world, const ClothMaterial& material);
 
 private:
 

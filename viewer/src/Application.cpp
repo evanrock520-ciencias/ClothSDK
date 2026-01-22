@@ -36,6 +36,12 @@ Application::Application()
     m_lastFrame(0.0),
     m_isPaused(false)
 {
+    m_world = std::make_shared<World>();  
+    m_solver = std::make_shared<Solver>();
+    m_isGridScene = true;
+    m_initRows = 40;
+    m_initCols = 40;
+    m_initSpacing = 0.1;
     auto defaultMat = std::make_shared<ClothMaterial>();
     m_cloth = std::make_shared<Cloth>("MainCloth", defaultMat);
 }
@@ -140,6 +146,7 @@ bool Application::init(int width, int height, const std::string& title, const st
         }
     });
 
+    m_world = std::make_shared<World>();
     if (!m_solver) m_solver = std::make_shared<Solver>();
     if (!m_mesh)   m_mesh   = std::make_shared<ClothMesh>();
 
@@ -217,7 +224,7 @@ void Application::processInput() {
 
 void Application::update() {
     if (!m_isPaused)
-        m_solver->update(m_deltaTime);
+        m_solver->update(*m_world, m_deltaTime);
 }
 
 void Application::render() {
@@ -245,7 +252,7 @@ void Application::drawUI() {
         ImGui::InputText("Config Path", m_configPathBuffer, sizeof(m_configPathBuffer));
 
         if (ImGui::Button("Load JSON Config")) {
-            if (ConfigLoader::load(m_configPathBuffer, *m_solver, *(m_cloth->getMaterial()))) {
+            if (ConfigLoader::load(m_configPathBuffer, *m_solver, *m_world, *(m_cloth->getMaterial()))) {
                 Logger::info("Configuration loaded successfully from: " + std::string(m_configPathBuffer));
             } else {
                 Logger::error("Failed to load config: " + std::string(m_configPathBuffer));
@@ -255,7 +262,7 @@ void Application::drawUI() {
         ImGui::SameLine();
 
         if (ImGui::Button("Save Current Settings")) {
-            if (ConfigLoader::save("exported_config.json", *m_solver, *(m_cloth->getMaterial()))) {
+            if (ConfigLoader::save("exported_config.json", *m_solver, *m_world, *(m_cloth->getMaterial()))) {
                 Logger::info("Settings saved to exported_config.json");
             }
         }
@@ -278,7 +285,7 @@ void Application::drawUI() {
     if (ImGui::CollapsingHeader("Global Physics")) {
         static float gY = -9.81f;
         if (ImGui::SliderFloat("Gravity Y", &gY, -20.0f, 2.0f)) {
-            m_solver->setGravity(Eigen::Vector3d(0, gY, 0));
+            m_world->setGravity(Eigen::Vector3d(0, gY, 0));
         }
 
         static int subs = m_solver->getSubsteps();
@@ -305,9 +312,9 @@ void Application::drawUI() {
             }
 
             if (windEnabled) {
-                m_solver->setWind(dir * windStrength);
+                m_world->setWind(dir * windStrength);
             } else {
-                m_solver->setWind(Eigen::Vector3d::Zero());
+                m_world->setWind(Eigen::Vector3d::Zero());
             }
         }
     }
