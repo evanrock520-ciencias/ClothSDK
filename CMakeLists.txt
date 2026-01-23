@@ -79,11 +79,11 @@ find_package(OpenMP REQUIRED)
 add_subdirectory(core)
 add_subdirectory(viewer)
 
-pybind11_add_module(cloth_sdk python/src/bindings.cpp)
-target_link_libraries(cloth_sdk PRIVATE ClothCore ViewerCore)
+pybind11_add_module(_cloth_sdk_core python/src/bindings.cpp)
+target_link_libraries(_cloth_sdk_core PRIVATE ClothCore ViewerCore)
 
 set(STUB_OUTPUT
-    ${CMAKE_CURRENT_BINARY_DIR}/cloth_sdk.pyi
+    ${CMAKE_CURRENT_BINARY_DIR}/_cloth_sdk_core.pyi
 )
 
 find_program(STUBGEN_EXECUTABLE stubgen REQUIRED)
@@ -92,16 +92,16 @@ add_custom_command(
     OUTPUT ${STUB_OUTPUT}
     COMMAND ${CMAKE_COMMAND} -E rm -f ${STUB_OUTPUT}
     COMMAND ${CMAKE_COMMAND} -E env
-            "PYTHONPATH=$<TARGET_FILE_DIR:cloth_sdk>"
+            "PYTHONPATH=$<TARGET_FILE_DIR:_cloth_sdk_core>"
             ${STUBGEN_EXECUTABLE}
-            -m cloth_sdk
+            -m _cloth_sdk_core
             --output ${CMAKE_CURRENT_BINARY_DIR}
-    DEPENDS cloth_sdk
-    WORKING_DIRECTORY $<TARGET_FILE_DIR:cloth_sdk>
-    COMMENT "Generating Python stubs for cloth_sdk"
+    DEPENDS _cloth_sdk_core
+    WORKING_DIRECTORY $<TARGET_FILE_DIR:_cloth_sdk_core>
+    COMMENT "Generating Python stubs for _cloth_sdk_core"
 )
 
-add_custom_target(cloth_sdk_stubs ALL
+add_custom_target(_cloth_sdk_core_stubs ALL
     DEPENDS ${STUB_OUTPUT}
 )
 

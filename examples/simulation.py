@@ -1,76 +1,52 @@
+from python.cloth_sdk import Simulation, Fabric
 import os
-import sys
-import time
-from load_path import load
-
-load()
-
-try:
-    import cloth_sdk as sdk
-except ImportError as e:
-    print(f"Error: {e}")
-    sys.exit(1)
 
 def falling():
-    solver = sdk.Solver()
-    world = sdk.World()
-    
-    world.set_gravity([0.0, -9.81, 0.0])
-    world.set_thickness(0.05)
-    
-    gravity = sdk.GravityForce([0.0, -9.81, 0.0])
-    world.add_force(gravity)
-    
-    solver.set_substeps(10)
-    solver.set_iterations(2)
+    sim = Simulation(
+        substeps=10,
+        iterations=2,
+        gravity=-9.81,
+        thickness=0.05
+    )
 
-    mat = sdk.ClothMaterial(0.2, 1e-10, 1e-8, 0.01)
-    curtain = sdk.Cloth("Debug_Curtain", mat)
-    factory = sdk.ClothMesh()
+    sim.wind = [2.0, 0.0, 8.0]
+    sim.air_density = 0.1
 
-    rows, cols = 120, 80
-    spacing = 0.1
-    sdk.Logger.info(f"Weaving {rows}x{cols} mesh...")
-    
-    factory.init_grid(rows, cols, spacing, curtain, solver)
+    sim.add_floor(height=0.0, friction=0.5)
 
-    aero_faces = curtain.get_aerofaces()
-    wind_force = sdk.AerodynamicForce(aero_faces, [2.0, 0.0, 8.0], 0.1)
-    world.add_force(wind_force)
+    material = {
+        "stretch": 0.2,
+        "stretch_compliance": 1e-10,
+        "bend_compliance": 1e-8,
+        "thickness": 0.01
+    }
 
-    particles = solver.get_particles()
-    top_row = rows - 1
+    curtain = Fabric.grid(
+        name="Debug_Curtain",
+        rows=120,
+        cols=80,
+        spacing=0.1,
+        material=material,
+        solver=sim.solver
+    )
 
-    p_id = curtain.get_particle_id(top_row, 0)
-    target = particles[p_id].get_position()
-    solver.add_pin(p_id, target, 0.001) 
+    sim.add_fabric(curtain)
 
-    exporter = sdk.AlembicExporter()
+    curtain.pin_by_height(
+        solver=sim.solver,
+        threshold=0.01,
+        compliance=0.001
+    )
+
     output_path = "data/animations/falling.abc"
 
-    initial_pos = [p.get_position() for p in particles]
-    indices = curtain.get_triangles()
+    sim.bake_alembic(
+        filepath=output_path,
+        start_frame=0,
+        end_frame=600,
+        fps=60
+    )
 
-    if not exporter.open(output_path, initial_pos, indices):
-        sdk.Logger.error("Failed to create Alembic file!")
-        return
-
-    frames = 600
-    dt = 0.016
-
-    sdk.Logger.info(f"Simulating {frames} frames to {output_path}...")
-
-    for f in range(frames):
-        solver.update(world, dt)
-
-        current_pos = [p.get_position() for p in solver.get_particles()]
-        exporter.write_frame(current_pos, f * dt)
-
-        if f % 20 == 0:
-            print(f"      Writing frame {f}...")
-
-    exporter.close()
-    sdk.Logger.info("Done! Physics export finished.")
     print(f"Check the result in Blender: {os.path.abspath(output_path)}")
 
 if __name__ == "__main__":

@@ -32,7 +32,7 @@
 namespace py = pybind11;
 using namespace ClothSDK;
 
-PYBIND11_MODULE(cloth_sdk, m) {
+PYBIND11_MODULE(_cloth_sdk_core, m) {
     m.doc() = "ClothSDK: Professional XPBD Simulation Engine";
 
     py::class_<Triangle>(m, "Triangle")
