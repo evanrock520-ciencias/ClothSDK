@@ -16,9 +16,9 @@ set(CORE_SOURCES
     src/engine/Cloth.cpp
     src/engine/World.cpp
     src/io/OBJLoader.cpp
+    src/io/OBJExporter.cpp
     src/io/ConfigLoader.cpp
     src/io/AlembicExporter.cpp
-    src/io/OBJExporter.cpp
     src/utils/Logger.cpp
 )
 

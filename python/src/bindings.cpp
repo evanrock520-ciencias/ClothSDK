@@ -7,6 +7,7 @@
 #include <tuple>
 
 #include "engine/Cloth.hpp"
+#include "engine/World.hpp"
 #include "physics/Particle.hpp"
 #include "physics/Constraint.hpp"
 #include "physics/DistanceConstraint.hpp"
@@ -108,7 +109,10 @@ PYBIND11_MODULE(cloth_sdk, m) {
         .def("set_wind", &World::setWind)
         .def("set_air_density", &World::setAirDensity)
         .def("set_thickness", &World::setThickness)
-        .def("get_thickness", &World::getThickness);
+        .def("get_thickness", &World::getThickness)
+        .def("get_gravity", &World::getGravity)
+        .def("get_wind", &World::getWind)
+        .def("get_air_density", &World::getAirDensity);
 
     py::class_<Solver, std::shared_ptr<ClothSDK::Solver>>(m, "Solver")
         .def(py::init<>())
@@ -118,6 +122,8 @@ PYBIND11_MODULE(cloth_sdk, m) {
         .def("get_particles", &Solver::getParticles, py::return_value_policy::reference_internal)
         .def("set_substeps", &Solver::setSubsteps)
         .def("set_iterations", &Solver::setIterations)
+        .def("get_iterations", &Solver::getIterations)
+        .def("get_substeps", &Solver::getSubsteps)
         .def("add_distance_constraint", &Solver::addDistanceConstraint)
         .def("add_bending_constraint", &Solver::addBendingConstraint)
         .def("add_pin", &Solver::addPin)
