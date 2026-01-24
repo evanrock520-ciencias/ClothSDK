@@ -6,6 +6,7 @@
 #include "math/Types.hpp"
 #include "physics/Solver.hpp"
 #include "physics/Particle.hpp"
+#include "utils/Logger.hpp"
 #include <cmath>
 #include <fstream>
 #include <map>
@@ -23,6 +24,20 @@ void ClothMesh::initGrid(int rows, int cols, double spacing, Cloth& outCloth, So
     double beComp = mat->bendingCompliance;
     double dens = mat->density;
     outCloth.clear();
+
+    Logger::info("--- Initializing Grid ---");
+    std::stringstream sc;
+    std::stringstream scc;
+    std::stringstream bc;
+
+    sc << std::scientific << mat->structuralCompliance;
+    scc << std::scientific << mat->shearCompliance;
+    bc << std::scientific << mat->bendingCompliance;
+    Logger::info("Density: " + std::to_string(mat->density));
+    Logger::info("Structural Compliance: " + sc.str());
+    Logger::info("Shear Compliance: " + scc.str());
+    Logger::info("Bending Compliance: " + bc.str());
+
 
     auto getLocalID = [&](int r, int c) {
         return gridIndices[r * cols + c];

@@ -15,10 +15,10 @@ def falling():
     sim.add_floor(height=0.0, friction=0.5)
 
     material = {
-        "stretch": 0.2,
-        "stretch_compliance": 1e-10,
-        "bend_compliance": 1e-8,
-        "thickness": 0.01
+        "density": 0.1,
+        "structural_compliance": 1e-9,
+        "shear_compliance": 1e-8,
+        "bending_compliance": 0.1,
     }
 
     curtain = Fabric.grid(
@@ -38,16 +38,7 @@ def falling():
         compliance=0.001
     )
 
-    output_path = "data/animations/falling.abc"
-
-    sim.bake_alembic(
-        filepath=output_path,
-        start_frame=0,
-        end_frame=600,
-        fps=60
-    )
-
-    print(f"Check the result in Blender: {os.path.abspath(output_path)}")
+    sim.view()
 
 if __name__ == "__main__":
     falling()

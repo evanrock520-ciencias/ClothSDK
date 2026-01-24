@@ -10,6 +10,7 @@
 #include <Eigen/Dense>
 
 #include "Application.hpp"
+#include "engine/Cloth.hpp"
 #include "engine/ClothMesh.hpp"
 #include "utils/Logger.hpp"
 #include "physics/Solver.hpp"
@@ -146,7 +147,7 @@ bool Application::init(int width, int height, const std::string& title, const st
         }
     });
 
-    m_world = std::make_shared<World>();
+    if (!m_world) m_world = std::make_shared<World>(); 
     if (!m_solver) m_solver = std::make_shared<Solver>();
     if (!m_mesh)   m_mesh   = std::make_shared<ClothMesh>();
 
@@ -208,7 +209,7 @@ void Application::processInput() {
     if (glfwGetKey(m_window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
         glfwSetWindowShouldClose(m_window, true);
 
-    static bool spaceWasPressed = false; 
+    static bool spaceWasPressed = false;
     bool spaceIsPressed = (glfwGetKey(m_window, GLFW_KEY_SPACE) == GLFW_PRESS);
 
     if (spaceIsPressed && !spaceWasPressed) {
@@ -217,9 +218,13 @@ void Application::processInput() {
     }
     spaceWasPressed = spaceIsPressed;
 
-    if (glfwGetKey(m_window, GLFW_KEY_R) == GLFW_PRESS) {
+    static bool rWasPressed = false;
+    bool rIsPressed = (glfwGetKey(m_window, GLFW_KEY_R) == GLFW_PRESS);
+
+    if (rIsPressed && !rWasPressed) {
         resetSimulation();
     }
+    rWasPressed = rIsPressed;
 }
 
 void Application::update() {
@@ -324,16 +329,17 @@ void Application::drawUI() {
 
 void Application::resetSimulation() {
     m_solver->clear();
-    
-    int rows = (m_initRows > 0) ? m_initRows : 20;
-    int cols = (m_initCols > 0) ? m_initCols : 20;
-    float spacing = (m_initSpacing > 0.0f) ? m_initSpacing : 0.1f;
 
-    m_mesh->initGrid(rows, cols, spacing, *m_cloth, *m_solver);
+    float spacing = (m_initSpacing > 0.0f) ? m_initSpacing : 0.1f;
+    auto currentMat = m_cloth->getMaterial(); 
+
+    m_cloth->clear(); 
+
+    m_mesh->initGrid(m_initRows, m_initCols, m_initSpacing, *m_cloth, *m_solver);
     
     syncVisualTopology();
     
-    Logger::info("Simulation Reset (Grid: " + std::to_string(rows) + "x" + std::to_string(cols) + ")");
+    Logger::info("Simulation Reset (Grid: " + std::to_string(m_initRows) + "x" + std::to_string(m_initCols) + ")");
 }
 
 void Application::syncVisualTopology() {

@@ -17,6 +17,7 @@
 #pragma once
 
 #include "engine/Cloth.hpp"
+#include "math/Types.hpp"
 #include <memory>
 #include <string>
 #include <vector>
@@ -47,7 +48,12 @@ public:
     inline void setWorld(std::shared_ptr<World> world) { m_world = world; }
     inline void setSolver(std::shared_ptr<Solver> solver) { m_solver = solver; }
     inline void setMesh(std::shared_ptr<ClothMesh> mesh) { m_mesh = mesh; }
-    inline void setCloth(std::shared_ptr<Cloth> cloth) { m_cloth = cloth; }
+    inline void setCloth(std::shared_ptr<Cloth> cloth) { 
+        m_cloth = cloth;
+        m_initRows = cloth->getRows();
+        m_initCols = cloth->getCols();
+        cloth_material = cloth->getMaterial();
+    }
     inline Renderer& getRenderer() { return *m_renderer; }
 
 private:
@@ -64,6 +70,7 @@ private:
     std::unique_ptr<Camera> m_camera;
     std::shared_ptr<ClothMesh> m_mesh; 
     std::shared_ptr<Cloth> m_cloth;
+    std::shared_ptr<ClothMaterial> cloth_material;
     double m_deltaTime;
     double m_lastFrame;
 

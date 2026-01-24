@@ -1,5 +1,7 @@
 import _cloth_sdk_core as sdk
 import numpy as np
+import os
+
 
 class Simulation:
     def __init__(self, substeps=10, iterations=2, gravity=-9.81, thickness=0.02):
@@ -19,6 +21,8 @@ class Simulation:
         self.thickness = thickness
         self.wind = [0.0, 0.0, 0.0]
         self.air_density = 0.1
+        
+        self.app = sdk.Application()
 
     @property
     def substeps(self):
@@ -157,6 +161,35 @@ class Simulation:
         exporter.close()
         sdk.Logger.info(f"Bake completed successfully: {filepath}")
         return True
+    
+    def view(self, width=1280, height=720, title="ClothSDK | Live Simulation"):
+        if not self.cloth_objects:
+            sdk.Logger.warn("No cloth objects to visualize.")
+            
+        current_dir = os.path.dirname(os.path.abspath(__file__))
+        project_root = os.path.dirname(os.path.dirname(current_dir))
+        shader_path = os.path.join(project_root, "viewer", "shaders", "")
+        
+        self.app.set_solver(self.solver)
+        
+        if self.cloth_objects:
+            first_cloth_name = list(self.cloth_objects.keys())[0]
+            fabric = self.cloth_objects[first_cloth_name]
+            self.app.set_cloth(fabric.instance)
+            
+        sdk.Logger.info(f"Initializing OpenGL Viewer")
+        sdk.Logger.info(f"Shader Path : {shader_path}")
+        
+        if not self.app.init(width, height, title, shader_path):
+            sdk.Logger.error("Failed to initialize the viewer.")
+            return
+        
+        self.app.sync_visual_topology()
+        sdk.Logger.info("Starting simulation loop.")
+        self.app.run()
+
+        self.app.shutdown()
+        sdk.Logger.info("Viewer closed.")
         
 class Fabric:
     def __init__(self, name, material):
@@ -164,12 +197,13 @@ class Fabric:
         self.material = material 
         
         self._material_instance = sdk.ClothMaterial(
-            float(material["stretch"]),
-            float(material["stretch_compliance"]),
-            float(material["bend_compliance"]),
-            float(material["thickness"]),
+            float(material["density"]),
+            float(material["structural_compliance"]),
+            float(material["shear_compliance"]),
+            float(material["bending_compliance"]),
+        
         )
-
+        
         self.instance = sdk.Cloth(name, self._material_instance)
         self._rows = 0
         self._cols = 0

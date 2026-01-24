@@ -21,6 +21,8 @@ public:
     inline const std::vector<int>& getParticleIndices() const { return m_particleIndices; }
     inline const std::vector<Triangle>& getTriangles() const { return m_triangles; }
     inline const std::vector<unsigned int>& getVisualEdges() const { return m_visualEdges; }
+    inline const int getRows() const { return m_gridRows; }
+    inline const int getCols() const { return m_gridCols; }
     inline void addAeroFace(int a, int b, int c) { m_faces.push_back({a, b, c}); }
     inline const std::vector<AeroFace>& getAeroFaces() const { return m_faces; }
     inline int getParticleID(int r, int c) const { 
