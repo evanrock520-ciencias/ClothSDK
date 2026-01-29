@@ -16,4 +16,4 @@ except ImportError as e:
     print(f"[ClothSDK] Error: C++ backend not found in {build_dir}")
     raise e
 
-from .engine import Simulation, Fabric
+from .engine import Simulation, Fabric, Material

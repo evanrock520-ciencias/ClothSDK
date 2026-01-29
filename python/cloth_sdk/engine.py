@@ -2,7 +2,6 @@ import _cloth_sdk_core as sdk
 import numpy as np
 import os
 
-
 class Simulation:
     def __init__(self, substeps=10, iterations=2, gravity=-9.81, thickness=0.02):
         self.world = sdk.World()
@@ -257,11 +256,11 @@ class Fabric:
         factory.build_from_mesh(pos, indices, fabric.instance, solver)
         return fabric
     
-    def update_material(self, density=None, strutural=None, shear=None, bending=None):
+    def update_material(self, density=None, structural=None, shear=None, bending=None):
         current_mat = self.instance.get_material()
         
         if density is not None: current_mat.density = float(density)
-        if strutural is not None: current_mat.structural_compliance = float(strutural)
+        if structural is not None: current_mat.structural_compliance = float(structural)
         if shear is not None: current_mat.shear_compliance = float(shear)
         if bending is not None: current_mat.bending_compliance = float(bending)
     
@@ -321,10 +320,58 @@ class Fabric:
             
         sdk.Logger.info(f"Fabric '{self.name}': Pinned top corners (IDs: {list(corners_to_pin)})")
         
-        
-
     def get_particle_id(self, row, col):
         return self.instance.get_particle_id(row, col)
     
     def get_triangles(self):
         return self.instance.get_triangles()
+    
+class Material:
+    PRESETS = {
+        "silk": {
+            "density": 0.1, 
+            "structural_compliance": 1e-9, 
+            "shear_compliance": 1e-8, 
+            "bending_compliance": 0.1
+        },
+        "cotton": {
+            "density": 0.2, 
+            "structural_compliance": 1e-9, 
+            "shear_compliance": 1e-8, 
+            "bending_compliance": 0.01
+        },
+        "denim": {
+            "density": 0.45, 
+            "structural_compliance": 1e-10, 
+            "shear_compliance": 1e-9, 
+            "bending_compliance": 0.0005
+        },
+        "leather": {
+            "density": 0.7, 
+            "structural_compliance": 0.0, 
+            "shear_compliance": 1e-10, 
+            "bending_compliance": 1e-6
+        },
+        "spandex": {
+            "density": 0.15, 
+            "structural_compliance": 0.005, 
+            "shear_compliance": 0.005, 
+            "bending_compliance": 0.1
+        }
+    }
+
+    @staticmethod
+    def apply_preset(fabric_obj, preset_name):
+        if preset_name not in Material.PRESETS:
+            sdk.Logger.warn(f"Material preset '{preset_name}' not found.")
+            return
+
+        mat_data = Material.PRESETS[preset_name]
+        
+        fabric_obj.update_material(
+            density=mat_data["density"],
+            structural=mat_data["structural_compliance"],
+            shear=mat_data["shear_compliance"],
+            bending=mat_data["bending_compliance"]
+        )
+        sdk.Logger.info(f"Applied '{preset_name}' material to {fabric_obj.name}")

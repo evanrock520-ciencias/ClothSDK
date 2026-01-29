@@ -1,0 +1,22 @@
+{
+    "simulation": {
+        "substeps": 10,
+        "iterations": 2,
+        "gravity": [0.0, -9.81, 0.0]
+    },
+    "material": {
+        "density": 0.15,
+        "compliance": {
+            "structural": 0.005,
+            "shear": 0.005,
+            "bending": 0.1
+        }
+    },
+    "aerodynamics": {
+        "wind_velocity": [0.0, 0.0, 0.0],
+        "air_density": 1.2
+    },
+    "collisions": {
+        "thickness": 0.015
+    }
+}

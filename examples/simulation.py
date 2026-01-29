@@ -1,4 +1,4 @@
-from python.cloth_sdk import Simulation, Fabric
+from python.cloth_sdk import Simulation, Fabric, Material
 import os
 
 def falling():
@@ -31,8 +31,7 @@ def falling():
     )
 
     sim.add_fabric(curtain)
-    sim.load_config("data/configs/silk.json", "Curtain")
-    curtain.pin_top_corners(sim.solver)
+    Material.apply_preset(curtain, "silk")
 
     sim.bake_alembic(
         filepath="data/animations/curtain.abc",
