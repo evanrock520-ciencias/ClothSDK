@@ -3,13 +3,13 @@ import os
 
 def falling():
     sim = Simulation(
-        substeps=10,
+        substeps=15,
         iterations=2,
         gravity=-9.81,
         thickness=0.05
     )
 
-    sim.wind = [2.0, 0.0, 8.0]
+    sim.wind = [0.0, 0.0, 0.0]
     sim.air_density = 0.1
 
     sim.add_floor(height=0.0, friction=0.5)
@@ -18,27 +18,28 @@ def falling():
         "density": 0.1,
         "structural_compliance": 1e-9,
         "shear_compliance": 1e-8,
-        "bending_compliance": 0.1,
+        "bending_compliance": 0.1
     }
 
     curtain = Fabric.grid(
-        name="Debug_Curtain",
-        rows=120,
-        cols=80,
-        spacing=0.1,
+        name="Curtain",
+        rows=100,
+        cols=100,
+        spacing=0.05,
         material=material,
         solver=sim.solver
     )
 
     sim.add_fabric(curtain)
+    sim.load_config("data/configs/silk.json", "Curtain")
+    curtain.pin_top_corners(sim.solver)
 
-    curtain.pin_by_height(
-        solver=sim.solver,
-        threshold=0.01,
-        compliance=0.001
+    sim.bake_alembic(
+        filepath="data/animations/curtain.abc",
+        start_frame=0,
+        end_frame=96,
+        fps=24
     )
-
-    sim.view()
 
 if __name__ == "__main__":
     falling()

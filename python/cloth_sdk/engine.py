@@ -84,7 +84,10 @@ class Simulation:
         val = max(0.001, float(value))
         self.world.set_thickness(val)
         
-
+    @property
+    def collision_compliance(self):
+        return self._collision_compliance
+    
     def add_fabric(self, fabric):
         if fabric.name in self.cloth_objects:
             sdk.Logger.warn(f"Fabric '{fabric.name}' already exists. Overwriting.")
@@ -162,6 +165,17 @@ class Simulation:
         sdk.Logger.info(f"Bake completed successfully: {filepath}")
         return True
     
+    def save_snapshot(self, filename, fabric_name):
+        if fabric_name not in self.cloth_objects:
+            sdk.Logger.error(f"Fabric '{fabric_name}' not found.")
+            return False
+            
+        fabric = self.cloth_objects[fabric_name]
+        
+        sdk.OBJExporter.export_obj(filename, fabric.instance, self.solver)
+        sdk.Logger.info(f"Snapshot saved: {filename}")
+        return True
+    
     def view(self, width=1280, height=720, title="ClothSDK | Live Simulation"):
         if not self.cloth_objects:
             sdk.Logger.warn("No cloth objects to visualize.")
@@ -190,6 +204,20 @@ class Simulation:
 
         self.app.shutdown()
         sdk.Logger.info("Viewer closed.")
+        
+    def load_config(self, filepath, cloth):
+        fabric_wrapper = self.cloth_objects[cloth]
+        native_material = fabric_wrapper.instance.get_material() 
+        success = sdk.ConfigLoader.load(filepath, self.solver, self.world, native_material)
+        
+        if success:
+            sdk.Logger.info(f"Config loaded from {filepath}")
+        else:
+            sdk.Logger.error("Failed to load config")
+            
+    def save_config(self, filepath):
+        sdk.ConfigLoader.save(filepath)
+        sdk.Logger.info(f"Config saved: {filepath}")
         
 class Fabric:
     def __init__(self, name, material):
@@ -228,6 +256,17 @@ class Fabric:
         factory = sdk.ClothMesh()
         factory.build_from_mesh(pos, indices, fabric.instance, solver)
         return fabric
+    
+    def update_material(self, density=None, strutural=None, shear=None, bending=None):
+        current_mat = self.instance.get_material()
+        
+        if density is not None: current_mat.density = float(density)
+        if strutural is not None: current_mat.structural_compliance = float(strutural)
+        if shear is not None: current_mat.shear_compliance = float(shear)
+        if bending is not None: current_mat.bending_compliance = float(bending)
+    
+        self.instance.set_material(current_mat)
+        sdk.Logger.info(f"Updated material for '{self.name}'")
 
     def get_positions(self, solver):
         all_particles = solver.get_particles()
@@ -251,6 +290,38 @@ class Fabric:
             solver.add_pin(global_id, target_pos, compliance)
             
         sdk.Logger.info(f"Fabric '{self.name}': Pinned {len(indices_to_pin)} vertices by height.")
+        
+    def pin_top_corners(self, solver, threshold=0.01, compliance=0.0):
+        pos = self.get_positions(solver)
+        my_ids = self.instance.get_particle_indices()
+        
+        max_y = np.max(pos[:, 1])
+        top_mask = pos[:, 1] >= (max_y - threshold)
+        
+        top_indices = np.where(top_mask)[0]
+        
+        if len(top_indices) == 0:
+            sdk.Logger.warn(f"Fabric '{self.name}': No particles found at top to pin.")
+            return
+
+        top_x_coords = pos[top_indices, 0]
+        
+        local_min_idx = np.argmin(top_x_coords) 
+        local_max_idx = np.argmax(top_x_coords)
+        
+        idx_left = top_indices[local_min_idx]
+        idx_right = top_indices[local_max_idx]
+        
+        corners_to_pin = {idx_left, idx_right}
+        
+        for idx in corners_to_pin:
+            global_id = my_ids[idx]
+            target_pos = pos[idx]
+            solver.add_pin(global_id, target_pos, compliance)
+            
+        sdk.Logger.info(f"Fabric '{self.name}': Pinned top corners (IDs: {list(corners_to_pin)})")
+        
+        
 
     def get_particle_id(self, row, col):
         return self.instance.get_particle_id(row, col)

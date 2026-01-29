@@ -6,7 +6,6 @@
 #include "math/Types.hpp"
 #include "physics/Solver.hpp"
 #include "physics/Particle.hpp"
-#include "utils/Logger.hpp"
 #include <cmath>
 #include <fstream>
 #include <map>
@@ -15,7 +14,6 @@
 namespace ClothSDK {
 
 void ClothMesh::initGrid(int rows, int cols, double spacing, Cloth& outCloth, Solver& solver) {
-    outCloth.setGridDimensions(rows, cols);
     std::vector<int> gridIndices;
     gridIndices.reserve(rows * cols);   
     auto mat = outCloth.getMaterial();
@@ -25,19 +23,8 @@ void ClothMesh::initGrid(int rows, int cols, double spacing, Cloth& outCloth, So
     double dens = mat->density;
     outCloth.clear();
 
-    Logger::info("--- Initializing Grid ---");
-    std::stringstream sc;
-    std::stringstream scc;
-    std::stringstream bc;
-
-    sc << std::scientific << mat->structuralCompliance;
-    scc << std::scientific << mat->shearCompliance;
-    bc << std::scientific << mat->bendingCompliance;
-    Logger::info("Density: " + std::to_string(mat->density));
-    Logger::info("Structural Compliance: " + sc.str());
-    Logger::info("Shear Compliance: " + scc.str());
-    Logger::info("Bending Compliance: " + bc.str());
-
+    outCloth.setTopology(ClothTopology::Grid);
+    outCloth.setGridDimensions(rows, cols);
 
     auto getLocalID = [&](int r, int c) {
         return gridIndices[r * cols + c];
@@ -95,6 +82,8 @@ void ClothMesh::buildFromMesh(const std::vector<Eigen::Vector3d>& positions, con
     std::vector<int> localToGlobal; 
     localToGlobal.reserve(positions.size());
     outCloth.clear();
+    outCloth.setTopology(ClothTopology::Mesh);
+    outCloth.setGridDimensions(0, 0);
     auto mat = outCloth.getMaterial();
     double stComp = mat->structuralCompliance;
     double shComp = mat->shearCompliance;
@@ -193,6 +182,7 @@ void ClothMesh::computePhysicalAttributes(Cloth& cloth, Solver& solver) const {
 
         double area = 0.5 * v1.cross(v2).norm();
         double massPerVertex = (area * density) / 3.0;
+        if (massPerVertex < 0.001) massPerVertex = 0.001; 
 
         solver.addMassToParticle(triangle.a, massPerVertex);
         solver.addMassToParticle(triangle.b, massPerVertex);

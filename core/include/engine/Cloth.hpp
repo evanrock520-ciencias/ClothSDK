@@ -8,6 +8,11 @@
 
 namespace ClothSDK {
 
+enum class ClothTopology {
+    Grid,
+    Mesh
+};
+
 class Cloth {
 public:
     Cloth(const std::string& name, std::shared_ptr<ClothMaterial> material);
@@ -15,8 +20,10 @@ public:
     void setName(const std::string& name);
     void setMaterial(std::shared_ptr<ClothMaterial> material);
     void setGridDimensions(int rows, int cols);
+    void setTopology(ClothTopology topology);
 
     inline const std::string& getName() const { return m_name; }
+    inline const ClothTopology getTopology() const { return m_topology; }
     inline std::shared_ptr<ClothMaterial> getMaterial() const { return m_material; }
     inline const std::vector<int>& getParticleIndices() const { return m_particleIndices; }
     inline const std::vector<Triangle>& getTriangles() const { return m_triangles; }
@@ -30,6 +37,8 @@ public:
         return m_particleIndices[localIndex];
     }
 
+    bool isGrid() const { return m_topology == ClothTopology::Grid; }
+
     void addParticleId(int id);
     void addTriangle(const Triangle& tri);
     void addVisualEdge(unsigned int idA, unsigned int idB);
@@ -38,6 +47,7 @@ public:
 
 private:
     std::string m_name;
+    ClothTopology m_topology;
     std::shared_ptr<ClothMaterial> m_material;
     std::vector<int> m_particleIndices;
     std::vector<Triangle> m_triangles;

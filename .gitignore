@@ -12,6 +12,7 @@ data/exports/
 *.dylib
 *.abc
 *.usd
+*.diff
 
 __pycache__/
 *.py[cod]

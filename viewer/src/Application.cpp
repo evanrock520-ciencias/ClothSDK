@@ -334,6 +334,7 @@ void Application::resetSimulation() {
     auto currentMat = m_cloth->getMaterial(); 
 
     m_cloth->clear(); 
+    m_cloth->setGridDimensions(m_initRows, m_initCols);
 
     m_mesh->initGrid(m_initRows, m_initCols, m_initSpacing, *m_cloth, *m_solver);
     
