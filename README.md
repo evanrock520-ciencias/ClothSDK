@@ -15,7 +15,16 @@ By combining a high-performance **C++ core** with flexible **Python bindings**, 
 
 ## 🛠️ Build and Installation
 
-### 1. Compile the SDK
+### 1. Clone Repositorie
+
+Clone the repositorie is as simple as
+
+```bash
+git clone https://github.com/evanrock520-ciencias/ClothSDK.git
+cd ClothSDK 
+```
+
+### 2. Compile the SDK
 
 Build the shared library and the standalone viewer using CMake.
 
@@ -26,7 +35,7 @@ cmake .. -DCMAKE_BUILD_TYPE=Release
 make -j4 
 ```
 
-### 2. Python Environment Setup
+### 3. Python Environment Setup
 
 To import the library in your scripts, you must add the project path and the build artifact path to your `PYTHONPATH`.
 
