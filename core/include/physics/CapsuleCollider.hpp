@@ -14,21 +14,26 @@
  * limitations under the License.
  */
 
-#include "physics/Force.hpp"
-#include "physics/Particle.hpp"
-
 #pragma once
+
+#include "physics/Collider.hpp"
 
 namespace ClothSDK {
 
-class GravityForce : public Force {
+class CapsuleCollider : public Collider {
 public:
-    explicit GravityForce(const Eigen::Vector3d& gravity)
-        : m_gravity(gravity) {}
-    
-    void apply(std::vector<Particle>& particles, double dt) override;
+    CapsuleCollider(double radius, const Eigen::Vector3d& start, const Eigen::Vector3d& end, double friction);
+
+    void resolve(std::vector<Particle>& particles, double dt, double thickness) override;
+
+    inline double getRadius() const { return m_radius; }
+    inline const Eigen::Vector3d& getStart() const { return m_start; }
+    inline const Eigen::Vector3d& getEnd() const { return m_end; }
+
 private:
-    Eigen::Vector3d m_gravity;
+    double m_radius;
+    Eigen::Vector3d m_start;
+    Eigen::Vector3d m_end;
 };
 
 }

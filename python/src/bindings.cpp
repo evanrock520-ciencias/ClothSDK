@@ -1,6 +1,7 @@
 // Copyright 2026 Evan M.
 // SPDX-License-Identifier: Apache-2.0
 
+#include <pybind11/cast.h>
 #include <pybind11/pybind11.h>
 #include <pybind11/eigen.h>
 #include <pybind11/stl.h>
@@ -15,6 +16,7 @@
 #include "physics/Collider.hpp"
 #include "physics/PlaneCollider.hpp"
 #include "physics/SphereCollider.hpp"
+#include "physics/CapsuleCollider.hpp"
 #include "physics/Force.hpp"
 #include "physics/AerodynamicForce.hpp"
 #include "physics/GravityForce.hpp"
@@ -90,6 +92,9 @@ PYBIND11_MODULE(_cloth_sdk_core, m) {
 
     py::class_<SphereCollider, Collider, std::unique_ptr<SphereCollider>>(m, "SphereCollider")
         .def(py::init<const Eigen::Vector3d&, double, double>(), py::arg("center"), py::arg("radius"), py::arg("friction"));
+
+    py::class_<CapsuleCollider, Collider, std::unique_ptr<CapsuleCollider>>(m, "CapsuleCollider")
+        .def(py::init<double, const Eigen::Vector3d&, const Eigen::Vector3d&, double>(), py::arg("radius"), py::arg("start"), py::arg("end"), py::arg("friction"));
 
     py::class_<SpatialHash>(m, "SpatialHash")
     .def(py::init<int, double>(), py::arg("table_size"), py::arg("cell_size"))
