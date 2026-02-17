@@ -22,7 +22,6 @@ namespace ClothSDK {
 
 class Logger {
 public:
-
     static void info(const std::string&);
     static void warn(const std::string&);
     static void error(const std::string&);

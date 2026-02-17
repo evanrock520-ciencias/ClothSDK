@@ -1,3 +1,6 @@
+// Copyright 2026 Evan M.
+// SPDX-License-Identifier: Apache-2.0
+
 #include "io/OBJExporter.hpp"
 #include "engine/Cloth.hpp"    
 #include "physics/Solver.hpp"

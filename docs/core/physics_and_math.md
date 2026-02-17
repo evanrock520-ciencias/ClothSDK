@@ -23,7 +23,8 @@ Which gives acceleration: $$a = \frac{F}{m}$$
 
 ## Verlet Integration
 
-Verlet Integration is a numerical method used to integrate Newton's equations of motion.
+Verlet Integration is a numerical method used to integrate Newton's equations of motion. We consider the previous and the actual position to approximate the particle's velocity. 
+
 
 ## XPBD 
 
@@ -32,4 +33,5 @@ Verlet Integration is a numerical method used to integrate Newton's equations of
 ### Dihedral Bending Constraint
 
 ## Colliders
+
 
