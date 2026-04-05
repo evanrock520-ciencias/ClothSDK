@@ -34,6 +34,7 @@ namespace Tissu {
             void render(const Tissu::Solver& solver, const Camera& camera);
             void cleanup();
             void updateTopology();
+            void updateColor(float* color);
 
             inline void setIndices(const std::vector<unsigned int>& indices) { m_indices = indices; }
             inline void setShaderPath(const std::string& path) { m_shaderPath = path; }

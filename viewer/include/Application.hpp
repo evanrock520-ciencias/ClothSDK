@@ -98,6 +98,8 @@ private:
     bool m_isGrabbing = false;
     bool m_leftMouseWasPressed = false;
     double m_grabDistance = 0.0;
+
+    float m_color[4] = { 0.0f, 0.0f, 0.0f, 1.0f };
 };
 
 }

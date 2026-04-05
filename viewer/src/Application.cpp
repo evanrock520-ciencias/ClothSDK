@@ -337,6 +337,14 @@ void Application::drawUI() {
 
     ImGui::Separator();
 
+    if (ImGui::CollapsingHeader("Color", ImGuiTreeNodeFlags_DefaultOpen)) {
+        if (ImGui::ColorPicker4("Color", m_color)) {
+            m_renderer->updateColor(m_color);
+        }
+    }
+
+    ImGui::Separator();
+
     if (ImGui::CollapsingHeader("Statistics", ImGuiTreeNodeFlags_DefaultOpen)) {
         ImGui::Text("Application FPS: %.1f", ImGui::GetIO().Framerate);
         ImGui::Text("Particles: %d", (int)m_solver->getParticles().size());

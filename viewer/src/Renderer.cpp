@@ -9,6 +9,7 @@
 #include "utils/Logger.hpp"
 #include <fstream>
 #include <sstream>
+#include <string>
 
 namespace Tissu {
 namespace Viewer {
@@ -190,6 +191,12 @@ std::string Renderer::loadFile(const std::string& path) {
     std::stringstream ss;
     ss << file.rdbuf();
     return ss.str();
+}
+
+void Renderer::updateColor(float* color) {
+    glUseProgram(m_shaderProgram);
+    GLint uniformColor = glGetUniformLocation(m_shaderProgram, "COLOR_FRONT");
+    glUniform3f(uniformColor, color[0], color[1], color[2]);
 }
 
 } 

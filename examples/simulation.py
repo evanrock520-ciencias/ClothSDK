@@ -1,7 +1,7 @@
 from python.tissu import Simulation
 
 def curtain():
-    sim = Simulation(substeps=15, iterations=2, gravity=-9.81, thickness=0.05)
+    sim = Simulation(substeps=15, iterations=3, gravity=-9.81, thickness=0.05)
     sim.wind = [0.0, 0.0, 0.0]
     
     sim.add_floor(friction=0.5)
