@@ -9,7 +9,7 @@ uniform vec3 uLightDir;
 out vec4 FragColor;
 
 uniform vec3 COLOR_FRONT   = vec3(0.82, 0.76, 0.62);
-uniform vec3 ClothColor    = vec3(0.45, 0.40, 0.35);
+uniform vec3 COLOR_BACK    = vec3(0.45, 0.40, 0.35);
 
 const float AMBIENT      = 0.22;
 const float DIFFUSE      = 0.75;
@@ -21,7 +21,7 @@ void main() {
     if (dot(normal, normalize(uViewPos - fragPos)) < 0.0)
         normal = -normal;
 
-    vec3 baseColor = gl_FrontFacing ? COLOR_FRONT : ClothColor;
+    vec3 baseColor = gl_FrontFacing ? COLOR_FRONT : COLOR_BACK;
 
     vec3 ambient = AMBIENT * baseColor;
 
