@@ -374,9 +374,9 @@ void Application::drawUI() {
         }
 
         if (ImGui::CollapsingHeader("Wind", ImGuiTreeNodeFlags_DefaultOpen)) {
-            static bool windEnabled = true;
-            static float windStrength = 5.0f;
-            static float windDir[3] = {1.0f, 0.0f, 0.0f};
+            static bool windEnabled = false;
+            static float windStrength = 1.0f;
+            static float windDir[3] = {float(m_world->getWind()[0]), float(m_world->getWind()[1]), float(m_world->getWind()[2])};
 
             ImGui::Checkbox("Enable Wind", &windEnabled);
 
