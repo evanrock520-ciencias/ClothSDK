@@ -32,7 +32,7 @@ jobs:
         uses: actions/cache@v4
         id: cache-alembic
         with:
-          path: /usr/local
+          path: ${{ github.workspace }}/alembic-install
           key: alembic-1.8.6-${{ runner.os }}
 
       - name: Install Alembic from source
@@ -44,27 +44,46 @@ jobs:
           mkdir build && cd build
           cmake .. \
             -DCMAKE_BUILD_TYPE=Release \
+            -DCMAKE_INSTALL_PREFIX=${{ github.workspace }}/alembic-install \
             -DUSE_TESTS=OFF
           make -j$(nproc)
-          sudo make install
-          sudo ldconfig
+          make install
 
       - name: Install Python tools
         run: pip install mypy
+
+      - name: Cache FetchContent dependencies
+        uses: actions/cache@v4
+        with:
+          path: build/_deps
+          key: fetchcontent-${{ runner.os }}-${{ hashFiles('CMakeLists.txt') }}
+          restore-keys: |
+            fetchcontent-${{ runner.os }}-
 
       - name: Configure
         run: |
           mkdir build && cd build
           cmake .. \
             -DCMAKE_BUILD_TYPE=Release \
-            -DTISSU_BUILD_VIEWER=OFF
+            -DTISSU_BUILD_VIEWER=OFF \
+            -DCMAKE_PREFIX_PATH=${{ github.workspace }}/alembic-install
 
       - name: Build
         run: |
           cd build
           make -j$(nproc)
 
+      - name: Build benchmarks
+        run: |
+          cd build
+          make tissu_benchmarks -j$(nproc)
+
       - name: Test
         run: |
           cd build
           ./tests/unit_tests
+
+      - name: Smoke benchmarks
+        run: |
+          cd build
+          ./benchmarks/tissu_benchmarks --benchmark_min_time=0.001s
