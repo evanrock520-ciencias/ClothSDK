@@ -12,6 +12,7 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 include(FetchContent)
 
 FetchContent_Declare(googletest GIT_REPOSITORY https://github.com/google/googletest.git GIT_TAG v1.15.2)
+FetchContent_Declare(googlebenchmark GIT_REPOSITORY https://github.com/google/benchmark.git GIT_TAG v1.9.1)
 FetchContent_Declare(eigen GIT_REPOSITORY https://gitlab.com/libeigen/eigen.git GIT_TAG 3.4.0)
 FetchContent_Declare(tinyobjloader GIT_REPOSITORY https://github.com/tinyobjloader/tinyobjloader.git GIT_TAG release)
 FetchContent_Declare(json GIT_REPOSITORY https://github.com/nlohmann/json.git GIT_TAG v3.11.3)
@@ -22,10 +23,12 @@ set(EIGEN_BUILD_PKGCONFIG OFF CACHE BOOL "" FORCE)
 set(JSON_BuildTests OFF CACHE BOOL "" FORCE)
 set(INSTALL_GTEST OFF CACHE BOOL "" FORCE)
 set(gtest_force_shared_crt ON CACHE BOOL "" FORCE)
+set(BENCHMARK_ENABLE_TESTING OFF CACHE BOOL "" FORCE)
+set(BENCHMARK_ENABLE_GTEST_TESTS OFF CACHE BOOL "" FORCE)
 set(PYBIND11_INSTALL OFF CACHE BOOL "" FORCE)
 set(PYBIND11_TEST OFF CACHE BOOL "" FORCE)
 
-FetchContent_MakeAvailable(googletest eigen tinyobjloader json pybind11)
+FetchContent_MakeAvailable(googletest eigen tinyobjloader json pybind11 googlebenchmark)
 
 find_package(OpenMP REQUIRED)
 
@@ -78,3 +81,5 @@ add_custom_target(_cloth_sdk_core_stubs ALL DEPENDS ${STUB_OUTPUT})
 
 enable_testing()
 add_subdirectory(tests)
+
+add_subdirectory(benchmarks)
