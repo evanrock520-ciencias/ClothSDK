@@ -61,29 +61,22 @@ jobs:
             fetchcontent-${{ runner.os }}-
 
       - name: Configure
+        working-directory: ${{ github.workspace }}
         run: |
-          mkdir build && cd build
-          cmake .. \
+          mkdir -p build
+          cmake -S . -B build \
             -DCMAKE_BUILD_TYPE=Release \
             -DTISSU_BUILD_VIEWER=OFF \
             -DCMAKE_PREFIX_PATH=${{ github.workspace }}/alembic-install
 
       - name: Build
-        run: |
-          cd build
-          make -j$(nproc)
-
-      - name: Build benchmarks
-        run: |
-          cd build
-          make tissu_benchmarks -j$(nproc)
+        run: cmake --build build -j$(nproc)
 
       - name: Test
-        run: |
-          cd build
-          ./tests/unit_tests
+        run: ./build/tests/unit_tests
+
+      - name: Build benchmarks
+        run: cmake --build build --target tissu_benchmarks -j$(nproc)
 
       - name: Smoke benchmarks
-        run: |
-          cd build
-          ./benchmarks/tissu_benchmarks --benchmark_min_time=0.001s
+        run: ./build/benchmarks/tissu_benchmarks --benchmark_min_time=0.001s
