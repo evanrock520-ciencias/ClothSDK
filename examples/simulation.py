@@ -2,7 +2,7 @@ from python.tissu import Simulation
 
 def curtain():
     sim = Simulation(substeps=15, iterations=3, gravity=-9.81, thickness=0.05)
-    sim.wind = [0.0, 0.0, 0.0]
+    sim.wind = [0.0, 7.0, 0.0]
     
     sim.add_floor(friction=0.5)
     curtain = sim.create_grid(
@@ -14,6 +14,7 @@ def curtain():
     )
     
     curtain.pin_top_corners()
+    sim.load_physics("data/configs/physics/realtime.json")
     sim.view()
     
     
@@ -39,7 +40,14 @@ def pillow():
     
     sim.view()
     
+def curtain_from_scene():
+    sim = Simulation.load_scene("data/configs/scenes/curtain.json")
+    sim.view()
+    
 if __name__ == "__main__":
-    match 0:
+    match 2:
         case 0 : curtain()
         case 1 : pillow()
+        case 2 : curtain_from_scene()
+        
+        

@@ -89,6 +89,40 @@ class Simulation:
     def collision_compliance(self):
         return self._collision_compliance
     
+    @classmethod
+    def load_scene(cls, filepath: str) -> Simulation:
+        sim = cls.__new__(cls)
+        sim.world = sdk.World()
+        sim.solver = sdk.Solver()
+        sim.cloth_objects = {}
+        sim._aero_forces = {}
+        sim.app = sdk.Application()
+
+        sim._gravity_vector = np.array([0.0, -9.81, 0.0], dtype=np.float64)
+        sim._gravity_force = sdk.GravityForce(sim._gravity_vector)
+        sim.world.add_force(sim._gravity_force)
+
+        sdk.SceneLoader.load_scene(filepath, sim.solver, sim.world)
+
+        for cloth in sim.world.get_cloths():
+            fabric = Fabric.__new__(Fabric)
+            fabric.name = cloth.get_name()
+            fabric.instance = cloth
+            fabric._solver = sim.solver
+            fabric.material = Material()
+
+            aero = sdk.AerodynamicForce(
+                cloth.get_aerofaces(),
+                sim.world.get_wind(),
+                sim.world.get_air_density()
+            )
+            sim._aero_forces[fabric.name] = aero
+            sim.world.add_force(aero)
+            sim.cloth_objects[fabric.name] = fabric
+
+        sdk.Logger.info(f"Scene loaded: {filepath}")
+        return sim
+    
     def add_fabric(self, fabric: Fabric) -> None:
         """
         Adds a fabric to the simulation world.

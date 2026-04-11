@@ -20,6 +20,7 @@ set(CORE_SOURCES
     src/io/OBJLoader.cpp
     src/io/OBJExporter.cpp
     src/io/ConfigLoader.cpp
+    src/io/SceneLoader.cpp
     src/io/AlembicExporter.cpp
     src/utils/Logger.cpp
 )

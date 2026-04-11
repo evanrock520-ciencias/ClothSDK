@@ -133,8 +133,6 @@ void Renderer::updateTopology() {
                  m_indices.data(),
                  GL_STATIC_DRAW);
     glBindVertexArray(0);
-
-    Logger::info("GPU Topology updated: " + std::to_string(m_indices.size() / 3) + " triangles.");
 }
 
 unsigned int Renderer::compileShaders(const std::string& vPath, const std::string& fPath) {

@@ -254,8 +254,6 @@ void Application::processInput() {
             Eigen::Vector3d rayDir = ray.getDirection();
             
             m_grabDistance = (particlePos - rayOrigin).dot(rayDir);
-            
-            Logger::info("Grabbed particle: " + std::to_string(m_grabbedParticleIndex));
         }
     }
     

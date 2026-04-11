@@ -9,6 +9,7 @@
 
 #include "engine/Cloth.hpp"
 #include "engine/World.hpp"
+#include "io/SceneLoader.hpp"
 #include "physics/Particle.hpp"
 #include "physics/Constraint.hpp"
 #include "physics/DistanceConstraint.hpp"
@@ -190,6 +191,9 @@ PYBIND11_MODULE(_cloth_sdk_core, m) {
         .def_static("load_physics", &ConfigLoader::loadPhysics)
         .def_static("save_material", &ConfigLoader::saveMaterial)
         .def_static("save_physics", &ConfigLoader::savePhysics);
+
+    py::class_<SceneLoader>(m, "SceneLoader")
+        .def_static("load_scene", &SceneLoader::loadScene);
 
     py::class_<Logger>(m, "Logger")
     .def_static("info", &Logger::info, py::arg("message"))

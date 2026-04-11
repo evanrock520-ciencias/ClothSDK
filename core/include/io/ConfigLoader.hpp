@@ -75,14 +75,14 @@ public:
      */
     static void savePhysics(const std::string& filepath, const Solver& solver, const World& world, const std::string& name);
 
-private:
     /**
      * @brief Converts a JSON object into an Eigen vector.
      * @param json JSON object containing coordinates 
      * @return Eigen::Vector3d Resulting vector representation.
      */
     static Eigen::Vector3d jsonToVector(const nlohmann::json& json);    
-    
+
+private:
     /**
      * @brief Converts an Eigen vector into a JSON object.
      * 

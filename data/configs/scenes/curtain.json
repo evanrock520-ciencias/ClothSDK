@@ -1,0 +1,30 @@
+{
+    "version": 2.0,
+    "type": "scene",
+    "name": "curtain_falling",
+
+    "physics": "data/configs/physics/realtime.json",
+
+    "fabrics": [
+        {
+            "name": "curtain",
+            "type": "grid",
+            "rows": 80,
+            "cols": 80,
+            "spacing": 0.05,
+            "material": "data/configs/materials/silk.json",
+            "pins": {
+                "mode": "top_corners"
+            }
+        }
+    ],
+
+    "colliders": [
+        {
+            "type": "plane",
+            "origin": [0.0, 0.0, 0.0],
+            "normal": [0.0, 1.0, 0.0],
+            "friction": 0.5
+        }
+    ]
+}
