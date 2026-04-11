@@ -26,6 +26,7 @@ void ClothMesh::initGrid(int rows, int cols, double spacing, Cloth& outCloth, So
 
     outCloth.setTopology(ClothTopology::Grid);
     outCloth.setGridDimensions(rows, cols);
+    outCloth.setSpacing(spacing);
 
     auto getLocalID = [&](int r, int c) {
         return gridIndices[r * cols + c];

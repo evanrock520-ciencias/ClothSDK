@@ -52,6 +52,9 @@ public:
      */
     void resolve(std::vector<Particle>& particles, double dt, double thickness);
 
+    inline const Eigen::Vector3d& getOrigin() const { return m_origin; }
+    inline const Eigen::Vector3d& getNormal() const { return m_normal; }
+
 private:
     Eigen::Vector3d m_origin;   ///< World-space coordinate of a point in the plane.  
     Eigen::Vector3d m_normal;   ///< Normalized vector defining the surface orientation.

@@ -10,6 +10,7 @@
 
 #include "engine/Cloth.hpp"
 #include "engine/World.hpp"
+#include "io/SceneExporter.hpp"
 #include "io/SceneLoader.hpp"
 #include "physics/Particle.hpp"
 #include "physics/Constraint.hpp"
@@ -204,7 +205,10 @@ PYBIND11_MODULE(_cloth_sdk_core, m) {
 
     py::class_<SceneLoader>(m, "SceneLoader")
         .def_static("load_scene", &SceneLoader::loadScene);
-
+    
+    py::class_<SceneExporter>(m, "SceneExporter")
+        .def_static("save_scene", &SceneExporter::saveScene);
+    
     py::class_<Logger>(m, "Logger")
     .def_static("info", &Logger::info, py::arg("message"))
     .def_static("warn", &Logger::warn, py::arg("message"))

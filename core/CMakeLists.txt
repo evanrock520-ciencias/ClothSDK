@@ -21,6 +21,7 @@ set(CORE_SOURCES
     src/io/OBJExporter.cpp
     src/io/ConfigLoader.cpp
     src/io/SceneLoader.cpp
+    src/io/SceneExporter.cpp
     src/io/AlembicExporter.cpp
     src/utils/Logger.cpp
 )

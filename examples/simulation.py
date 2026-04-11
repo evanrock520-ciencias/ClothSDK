@@ -44,10 +44,26 @@ def curtain_from_scene():
     sim = Simulation.load_scene("data/configs/scenes/curtain.json")
     sim.view()
     
+def save_scene():
+    #DEBUG OPTION
+    sim = Simulation(substeps=10, iterations=2, gravity=-9.81, thickness=0.05);
+    
+    sim.add_floor(friction=0.5)
+    
+    curtain = sim.create_grid(
+        name="curtain",
+        rows=80,
+        cols=80,
+        spacing=0.05,
+        material="silk"
+    )
+        
+    sim.save_scene("data/configs/scenes/save_test.json", "test")
+    
 if __name__ == "__main__":
-    match 2:
+    match 3:
         case 0 : curtain()
         case 1 : pillow()
         case 2 : curtain_from_scene()
-        
+        case 3: save_scene()
         

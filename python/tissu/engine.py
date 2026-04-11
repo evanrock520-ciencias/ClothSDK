@@ -284,6 +284,9 @@ class Simulation:
         sdk.Logger.info(f"Snapshot saved: {filename}")
         return True
     
+    def save_scene(self, path: str = "data/configs/scenes/default.json", name: str = "default"):
+        sdk.SceneExporter.save_scene(path, name, self.solver, self.world)
+    
     def view(self, width: int = 1280, height: int = 720, title: str = "Tissu | Live Simulation"):
         if not self.cloth_objects:
             sdk.Logger.warn("No cloth objects to visualize.")

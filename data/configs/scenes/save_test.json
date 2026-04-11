@@ -1,0 +1,32 @@
+{
+    "version": "2.0",
+    "type": "scene",
+    "name": "test",
+    "physics": "",
+    "fabrics": [
+        {
+            "name": "curtain",
+            "type": "grid",
+            "rows": 80,
+            "cols": 80,
+            "spacing": 0.05,
+            "material": ""
+        }
+    ],
+    "colliders": [
+        {
+            "type": "plane",
+            "origin": [
+                0.0,
+                0.0,
+                0.0
+            ],
+            "normal": [
+                0.0,
+                1.0,
+                0.0
+            ],
+            "friction": 0.5
+        }
+    ]
+}

@@ -55,6 +55,9 @@ public:
      */
     void resolve(std::vector<Particle>& particles, double dt, double thickness);
 
+    inline const Eigen::Vector3d getCenter() const { return m_center; }
+    inline double getRadius() const { return m_radius; }
+
 private:
     Eigen::Vector3d m_center;   ///< The center point of the sphere in 3D space.
     double m_radius;            ///< Radius of the collision volume. 
