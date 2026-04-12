@@ -110,7 +110,18 @@ class Simulation:
             fabric.instance = cloth
             fabric._solver = sim.solver
             fabric.material = Material()
-
+            
+            threshold = fabric.instance.get_pin().get_threshold() 
+            compliance = fabric.instance.get_pin().get_compliance()
+            
+            match fabric.instance.get_pin().get_pin_mode():
+                case sdk.PinMode.TOP_CORNERS:
+                    fabric.pin_top_corners(threshold, compliance)
+                case sdk.PinMode.BY_HEIGHT:
+                    fabric.pin_by_height(threshold, compliance)
+                case sdk.PinMode.NONE:
+                    pass
+            
             aero = sdk.AerodynamicForce(
                 cloth.get_aerofaces(),
                 sim.world.get_wind(),
@@ -465,6 +476,9 @@ class Fabric:
             global_id = my_ids[idx]
             target_pos = pos[idx]
             self._solver.add_pin(global_id, target_pos, compliance)
+        
+            
+        self.instance.set_pin(sdk.Pin(sdk.PinMode.BY_HEIGHT, compliance, threshold));
             
         sdk.Logger.info(f"Fabric '{self.name}': Pinned {len(indices_to_pin)} vertices by height.")
         
@@ -498,6 +512,8 @@ class Fabric:
             global_id = my_ids[idx]
             target_pos = pos[idx]
             self._solver.add_pin(global_id, target_pos, compliance)
+            
+        self.instance.set_pin(sdk.Pin(sdk.PinMode.TOP_CORNERS, compliance, threshold));
             
         sdk.Logger.info(f"Fabric '{self.name}': Pinned top corners (IDs: {list(corners_to_pin)})")
         

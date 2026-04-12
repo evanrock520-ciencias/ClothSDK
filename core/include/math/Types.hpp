@@ -89,4 +89,28 @@ private:
     double bendingCompliance;    ///< Resistance to folding between adjacent triangles. Higher = softer drape. Typical range: [1e-4, 0.1].
 };
 
+enum PinMode {
+    NONE,
+    TOP_CORNERS, 
+    BY_HEIGHT
+};
+
+struct Pin {
+public:
+    Pin() : m_compliance(0.0), m_threshold(0.1), m_mode(NONE) {}
+    Pin(const PinMode& mode, double compliance, double threshold) : m_compliance(compliance), m_mode(mode), m_threshold(threshold) {}
+    inline const PinMode& getPinMode() const { return m_mode; }
+    inline const double getCompliance() const { return m_compliance; }
+    inline const double getThreshold() const { return m_threshold; }
+
+    inline void setPinMode(const PinMode& mode) { m_mode = mode; }
+    inline void setCompliance(double compliance) { m_compliance = compliance; }
+    inline void setThreshold(double threshold) { m_threshold = threshold; }
+
+private:
+    PinMode m_mode = NONE;
+    double m_compliance = 0.0;
+    double m_threshold = 0.1;
+};
+
 }

@@ -78,10 +78,16 @@ void SceneLoader::loadFabric(const nlohmann::json& fabric, Cloth& outCloth, Solv
     }
 
     if (fabric.contains("pins")) {
-        // TODO: Pin locally or move to Python API?
         auto pins = fabric.at("pins");
-        auto mode = pins.value("mode", "by_height");
-        Logger::info("Pin mode: " + mode);
+        auto mode = pins.value("mode", "none");
+        auto compliance = pins.value("compliance", 0.0);
+        auto threshold = pins.value("threshold", 0.1);
+
+        Logger::info("Mode: " + mode);
+        if (mode == "top_corners")
+            outCloth.setPin(Pin(TOP_CORNERS, compliance, threshold));
+        else if (mode == "by_height")
+            outCloth.setPin(Pin(BY_HEIGHT, compliance, threshold));
     }
 }
 

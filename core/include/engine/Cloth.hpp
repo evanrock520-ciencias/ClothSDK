@@ -80,6 +80,7 @@ public:
     void setTopology(ClothTopology topology);
     inline void setRestVolume(double restVolume) { m_restVolume = restVolume; }
     inline void setSpacing(double spacing) { m_spacing = spacing; }
+    inline void setPin(const Pin& pin) { m_pin = pin; }
 
     inline const std::string& getName() const { return m_name; }
     inline const ClothTopology getTopology() const { return m_topology; }
@@ -92,6 +93,7 @@ public:
     inline const int getCols() const { return m_gridCols; }
     inline const double getRestVolume() const { return m_restVolume; }
     inline const double getSpacing() const { return m_spacing; }
+    inline const Pin& getPin() const { return m_pin; }
 
     bool isGrid() const { return m_topology == ClothTopology::Grid; }
     bool isClosed() const;
@@ -109,6 +111,7 @@ private:
     int m_gridCols;
     double m_restVolume = INFINITY;
     double m_spacing;
+    Pin m_pin;
 };
 
 }

@@ -57,11 +57,13 @@ def save_scene():
         spacing=0.05,
         material="silk"
     )
+    
+    curtain.pin_top_corners()
         
     sim.save_scene("data/configs/scenes/save_test.json", "test")
     
 if __name__ == "__main__":
-    match 0:
+    match 2:
         case 0 : curtain()
         case 1 : pillow()
         case 2 : curtain_from_scene()

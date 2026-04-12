@@ -47,6 +47,21 @@ PYBIND11_MODULE(_cloth_sdk_core, m) {
         .def_readwrite("b", &Triangle::b)
         .def_readwrite("c", &Triangle::c);
 
+    py::enum_<PinMode>(m, "PinMode")
+        .value("TOP_CORNERS", PinMode::TOP_CORNERS)
+        .value("BY_HEIGHT", PinMode::BY_HEIGHT)
+        .value("NONE", PinMode::NONE);
+
+    py::class_<Pin>(m, "Pin")
+        .def(py::init<const PinMode&, double, double>(),
+            py::arg("pin_mode"), py::arg("compliance"), py::arg("threshold"))
+        .def("get_pin_mode", &Pin::getPinMode)
+        .def("get_compliance", &Pin::getCompliance)
+        .def("get_threshold", &Pin::getThreshold)
+        .def("set_mode", &Pin::setPinMode)
+        .def("set_compliance", &Pin::setCompliance)
+        .def("set_threshold", &Pin::setThreshold);
+
     py::class_<Tissu::ClothMaterial, std::shared_ptr<Tissu::ClothMaterial>>(m, "ClothMaterial")
     .def(py::init<double, double, double, double>(),
         py::arg("density"), py::arg("structural"), py::arg("shear"), py::arg("bending"))
@@ -173,6 +188,8 @@ PYBIND11_MODULE(_cloth_sdk_core, m) {
         .def("get_material", &Cloth::getMaterial)
         .def("is_closed", &Cloth::isClosed)
         .def("get_rest_volume", &Cloth::getRestVolume)
+        .def("get_pin", &Cloth::getPin)
+        .def("set_pin", &Cloth::setPin)
         .def("set_rest_volume", &Cloth::setRestVolume)
         .def("set_material", &Cloth::setMaterial)
         .def("get_particle_indices", &Cloth::getParticleIndices)
