@@ -82,14 +82,13 @@ public:
      */
     static Eigen::Vector3d jsonToVector(const nlohmann::json& json);    
 
-private:
     /**
      * @brief Converts an Eigen vector into a JSON object.
      * 
      * @param vector The Eigen::Vector3d to be converted.
      * @return nlohmann::json A JSON object representing the vector's coordinates.
      */
-    static nlohmann::json vectorToJson(const Eigen::Vector3d& vector);      
+    static nlohmann::json vectorToJson(const Eigen::Vector3d& vector);   
     
 };
 

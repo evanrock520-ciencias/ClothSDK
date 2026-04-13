@@ -3,6 +3,8 @@
 
 #include "io/SceneExporter.hpp"
 #include "engine/Cloth.hpp"
+#include "io/ConfigLoader.hpp"
+#include "math/Types.hpp"
 #include "physics/CapsuleCollider.hpp"
 #include "physics/PlaneCollider.hpp"
 #include "physics/SphereCollider.hpp"
@@ -24,7 +26,13 @@ void SceneExporter::saveScene(const std::string& filepath, const std::string& na
     data["name"] = name;
 
     //TODO: Export physics into his own file?
-    data["physics"] = "";
+    data["physics"] = nlohmann::ordered_json::object();
+    data["physics"]["substeps"] = solver.getSubsteps();
+    data["physics"]["iterations"] = solver.getIterations();
+    data["physics"]["gravity"] = ConfigLoader::vectorToJson(world.getGravity());
+    data["physics"]["collision"]["thickness"] = world.getThickness();
+    data["physics"]["environment"]["wind"] = ConfigLoader::vectorToJson(world.getWind());
+    data["physics"]["environment"]["air_density"] = world.getAirDensity();
 
     const auto& fabrics = world.getCloths();
     saveFabrics(data, fabrics);
@@ -49,7 +57,12 @@ void SceneExporter::saveFabrics(nlohmann::ordered_json& data, const std::vector<
             fabric["cols"] = cloth->getCols();
             fabric["spacing"] = cloth->getSpacing();
             //TODO: Export material into his own file?
-            fabric["material"] = "";
+            std::shared_ptr<ClothMaterial> material = cloth->getMaterial();
+            fabric["material"]["density"] = material->getDensity();
+            fabric["material"]["compliance"]["structural"] = material->getStructuralCompliance();
+            fabric["material"]["compliance"]["shear"] = material->getShearCompliance();
+            fabric["material"]["compliance"]["bending"] = material->getBendingCompliance();
+            
         }
 
         data["fabrics"].push_back(fabric);
