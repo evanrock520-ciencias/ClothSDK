@@ -5,6 +5,7 @@ COMPILE=true
 BUILD=true
 TEST=true
 RUN=true
+BENCH=false
 
 for arg in "$@"; do
     case $arg in
@@ -12,6 +13,7 @@ for arg in "$@"; do
         --no-test)  TEST=false ;;
         --no-run)   RUN=false ;;
         --no-compile) COMPILE=false;;
+	    --bench) BENCH=true;;
     esac
 done
 
@@ -35,6 +37,13 @@ if $TEST; then
     echo "Testing..."
     echo ""
     ./build/tests/unit_tests
+    echo ""
+fi
+
+if $BENCH; then
+    echo "Running Benchmarks..."
+    echo ""
+    ./benchmarks/run_benchmarks.sh
     echo ""
 fi
 
