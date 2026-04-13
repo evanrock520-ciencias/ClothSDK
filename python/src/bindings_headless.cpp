@@ -10,6 +10,7 @@
 #include "engine/Cloth.hpp"
 #include "engine/World.hpp"
 #include "io/SceneLoader.hpp"
+#include "io/SceneExporter.hpp"
 #include "physics/Particle.hpp"
 #include "physics/Constraint.hpp"
 #include "physics/DistanceConstraint.hpp"
@@ -176,8 +177,8 @@ PYBIND11_MODULE(_cloth_sdk_core, m) {
         .def("set_material", &Cloth::setMaterial)
         .def("is_closed", &Cloth::isClosed)
         .def("get_rest_volume", &Cloth::getRestVolume)
-        .def("get_pin_mode", &Cloth::getPin)
-        .def("set_pin_mode", &Cloth::setPin)
+        .def("get_pin", &Cloth::getPin)
+        .def("set_pin", &Cloth::setPin)
         .def("set_rest_volume", &Cloth::setRestVolume)
         .def("get_particle_indices", &Cloth::getParticleIndices)
         .def("get_aerofaces", &Cloth::getAeroFaces)
@@ -209,6 +210,9 @@ PYBIND11_MODULE(_cloth_sdk_core, m) {
 
     py::class_<SceneLoader>(m, "SceneLoader")
         .def_static("load_scene", &SceneLoader::loadScene);
+    
+    py::class_<SceneExporter>(m, "SceneExporter")
+        .def_static("save_scene", &SceneExporter::saveScene);
 
     py::class_<Logger>(m, "Logger")
     .def_static("info", &Logger::info, py::arg("message"))
