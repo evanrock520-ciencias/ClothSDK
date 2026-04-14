@@ -23,6 +23,7 @@ add_library(ViewerCore STATIC
     src/Application.cpp
     src/Renderer.cpp
     src/Camera.cpp
+    src/Shader.cpp
 )
 
 target_link_libraries(ViewerCore 
