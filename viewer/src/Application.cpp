@@ -335,7 +335,7 @@ void Application::drawUI() {
 
     ImGui::Separator();
 
-    if (ImGui::CollapsingHeader("Color", ImGuiTreeNodeFlags_DefaultOpen)) {
+    if (ImGui::CollapsingHeader("Shader", ImGuiTreeNodeFlags_DefaultOpen)) {
         if (ImGui::ColorPicker4("Color", m_color)) {
             m_renderer->updateColor(m_color);
         }

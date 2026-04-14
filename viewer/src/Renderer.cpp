@@ -3,23 +3,24 @@
 
 #include <glad/glad.h>
 #include "Renderer.hpp"
+#include "Shader.hpp"
 #include "physics/Solver.hpp"
-#include "physics/Particle.hpp"
 #include "Camera.hpp"
-#include "utils/Logger.hpp"
-#include <fstream>
-#include <sstream>
-#include <string>
 
 namespace Tissu {
 namespace Viewer {
 
-Renderer::Renderer() {}
+Renderer::Renderer() : m_shader("", "") {}
 Renderer::~Renderer() { cleanup(); }
 
 bool Renderer::init() {
-    m_shaderProgram = compileShaders(m_shaderPath + "cloth.vert", m_shaderPath + "cloth.frag");
-    if (m_shaderProgram == 0) return false;
+    std::string vertPath = m_shaderPath + "cloth.vert";
+    std::string fragPath = m_shaderPath + "cloth.frag";
+    
+    m_shader = Shader(vertPath, fragPath);
+    if (!m_shader.init()) {
+        return false;
+    }
 
     glGenVertexArrays(1, &m_vao);
     glGenBuffers(1, &m_vbo);
@@ -95,18 +96,18 @@ void Renderer::render(const Tissu::Solver& solver, const Camera& camera) {
                  m_vertexBuffer.data(),
                  GL_DYNAMIC_DRAW);
 
-    glUseProgram(m_shaderProgram);
+    m_shader.bind();
 
     Eigen::Matrix4f view = camera.getViewMatrix();
     Eigen::Matrix4f proj = camera.getProjectionMatrix();
     Eigen::Vector3f camPos = camera.getPosition();
 
-    glUniformMatrix4fv(glGetUniformLocation(m_shaderProgram, "uView"),       1, GL_FALSE, view.data());
-    glUniformMatrix4fv(glGetUniformLocation(m_shaderProgram, "uProjection"), 1, GL_FALSE, proj.data());
-    glUniform3fv      (glGetUniformLocation(m_shaderProgram, "uViewPos"),    1, camPos.data());
+    m_shader.setMat4("uView", view);
+    m_shader.setMat4("uProjection", proj);
+    m_shader.setVec3("uViewPos", camPos);
 
     static const Eigen::Vector3f lightDir = Eigen::Vector3f(1.0f, 2.0f, 1.5f).normalized();
-    glUniform3fv(glGetUniformLocation(m_shaderProgram, "uLightDir"), 1, lightDir.data());
+    m_shader.setVec3("uLightDir", lightDir);
 
     glBindVertexArray(m_vao);
     glEnable(GL_DEPTH_TEST);
@@ -120,7 +121,6 @@ void Renderer::cleanup() {
     if (m_vao) glDeleteVertexArrays(1, &m_vao);
     if (m_vbo) glDeleteBuffers(1, &m_vbo);
     if (m_ebo) glDeleteBuffers(1, &m_ebo);
-    if (m_shaderProgram) glDeleteProgram(m_shaderProgram);
 }
 
 void Renderer::updateTopology() {
@@ -135,66 +135,9 @@ void Renderer::updateTopology() {
     glBindVertexArray(0);
 }
 
-unsigned int Renderer::compileShaders(const std::string& vPath, const std::string& fPath) {
-    std::string vCode = loadFile(vPath);
-    std::string fCode = loadFile(fPath);
-    if (vCode.empty() || fCode.empty()) return 0;
-
-    const char* vShaderCode = vCode.c_str();
-    const char* fShaderCode = fCode.c_str();
-
-    int success;
-    char infoLog[512];
-
-    unsigned int vertex = glCreateShader(GL_VERTEX_SHADER);
-    glShaderSource(vertex, 1, &vShaderCode, NULL);
-    glCompileShader(vertex);
-    glGetShaderiv(vertex, GL_COMPILE_STATUS, &success);
-    if (!success) {
-        glGetShaderInfoLog(vertex, 512, NULL, infoLog);
-        Logger::error("Vertex Shader Compilation Failed: " + std::string(infoLog));
-    }
-
-    unsigned int fragment = glCreateShader(GL_FRAGMENT_SHADER);
-    glShaderSource(fragment, 1, &fShaderCode, NULL);
-    glCompileShader(fragment);
-    glGetShaderiv(fragment, GL_COMPILE_STATUS, &success);
-    if (!success) {
-        glGetShaderInfoLog(fragment, 512, NULL, infoLog);
-        Logger::error("Fragment Shader Compilation Failed: " + std::string(infoLog));
-    }
-
-    unsigned int program = glCreateProgram();
-    glAttachShader(program, vertex);
-    glAttachShader(program, fragment);
-    glLinkProgram(program);
-    glGetProgramiv(program, GL_LINK_STATUS, &success);
-    if (!success) {
-        glGetProgramInfoLog(program, 512, NULL, infoLog);
-        Logger::error("Shader Linking Failed: " + std::string(infoLog));
-    }
-
-    glDeleteShader(vertex);
-    glDeleteShader(fragment);
-
-    return program;
-}
-
-std::string Renderer::loadFile(const std::string& path) {
-    std::ifstream file(path);
-    if (!file.is_open()) {
-        Logger::error("Could not open shader file: " + path);
-        return "";
-    }
-    std::stringstream ss;
-    ss << file.rdbuf();
-    return ss.str();
-}
-
 void Renderer::updateColor(float* color) {
-    glUseProgram(m_shaderProgram);
-    GLint uniformColor = glGetUniformLocation(m_shaderProgram, "COLOR_FRONT");
-    glUniform3f(uniformColor, color[0], color[1], color[2]);
+    m_shader.bind();
+    m_shader.setVec3("COLOR_FRONT", Eigen::Vector3f(color[0], color[1], color[2]));
 }
 
 } 

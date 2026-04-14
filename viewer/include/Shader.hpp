@@ -9,10 +9,12 @@ namespace Viewer {
 
 class Shader {
 public:
-    Shader(std::string& vertPath, std::string& fragmentPath);
+    Shader(const std::string& vertPath = "", const std::string& fragmentPath = "");
 
-    void bind();
-    void unbind();
+    bool init();
+    
+    void bind() const;
+    void unbind() const;
     void reload();
 
     void setFloat(const std::string& name, int value) const;
@@ -20,6 +22,7 @@ public:
     void setMat4(const std::string& name, const Eigen::Matrix4f& value) const;
 
     inline bool isValid() const { return m_program != 0; }
+    inline unsigned int getProgram() const { return m_program; }
 
 private:
     unsigned int compile(const std::string& vertPath, const std::string& fragPath);

@@ -15,6 +15,7 @@
  */
 
 #pragma once
+#include "Shader.hpp"
 #include <Eigen/Dense>
 #include <vector>
 #include <string>
@@ -40,10 +41,7 @@ namespace Tissu {
             inline void setShaderPath(const std::string& path) { m_shaderPath = path; }
 
         private:
-            unsigned int compileShaders(const std::string& vertexPath, const std::string& fragmentPath);
-            std::string loadFile(const std::string& path);
-
-            unsigned int m_shaderProgram = 0;
+            Shader m_shader;
             unsigned int m_vao = 0;
             unsigned int m_vbo = 0;
             unsigned int m_ebo = 0;
@@ -52,6 +50,7 @@ namespace Tissu {
             std::vector<unsigned int> m_indices;
             std::vector<Eigen::Vector3f> m_normals;
             std::string m_shaderPath = "../viewer/shaders/";
+
         };
     }
 }
