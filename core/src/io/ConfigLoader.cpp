@@ -4,6 +4,7 @@
 #include "io/ConfigLoader.hpp"
 #include "engine/ClothMesh.hpp"
 #include "engine/World.hpp"     
+#include "nlohmann/json_fwd.hpp"
 #include "physics/Solver.hpp"
 #include <fstream>
 #include <iostream>
@@ -70,7 +71,7 @@ void ConfigLoader::saveMaterial(const std::string& filepath, const ClothMaterial
     std::ofstream file(filepath);
     if (!file.is_open()) throw std::runtime_error("Could not open file: " + filepath);
 
-    nlohmann::json data;
+    nlohmann::ordered_json data;
 
     data["version"] = "2.0";
     data["type"] = "material";
@@ -88,7 +89,7 @@ void ConfigLoader::savePhysics(const std::string &filepath, const Solver &solver
     std::ofstream file(filepath);
     if (!file.is_open()) throw std::runtime_error("Could not open file: " + filepath);
 
-    nlohmann::json data;
+    nlohmann::ordered_json data;
 
     data["version"] = "2.0";
     data["type"] = "physics";
