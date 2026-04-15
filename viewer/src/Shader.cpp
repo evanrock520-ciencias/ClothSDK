@@ -94,8 +94,8 @@ int Shader::getUniformLocation(const std::string& name) const {
     return glGetUniformLocation(m_program, name.c_str());
 }
 
-void Shader::setFloat(const std::string& name, int value) const {
-    glUniform1i(getUniformLocation(name), value);
+void Shader::setFloat(const std::string& name, float value) const {
+    glUniform1f(getUniformLocation(name), value);
 }
 
 void Shader::setVec3(const std::string& name, const Eigen::Vector3f& value) const {

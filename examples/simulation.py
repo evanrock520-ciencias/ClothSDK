@@ -63,7 +63,7 @@ def save_scene():
     sim.save_scene("data/configs/scenes/save_test.json", "test")
     
 if __name__ == "__main__":
-    match 3:
+    match 2:
         case 0 : curtain()
         case 1 : pillow()
         case 2 : curtain_from_scene()

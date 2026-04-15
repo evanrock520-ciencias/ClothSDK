@@ -11,12 +11,12 @@ out vec4 FragColor;
 uniform vec3 COLOR_FRONT   = vec3(0.82, 0.76, 0.62);
 uniform vec3 COLOR_BACK    = vec3(0.45, 0.40, 0.35);
 
-const float AMBIENT = 0.4;
-const float DIFFUSE = 0.8;
-const float SHEEN_AMOUNT = 0.2;
-const float SHEEN_WIDTH = 0.4;
-const float ANISOTROPY = 0.8; 
-const float ANISOTROPY_WIDTH = 0.2; 
+uniform float AMBIENT = 0.4;
+uniform float DIFFUSE = 0.8;
+uniform float SHEEN_AMOUNT = 0.2;
+uniform float SHEEN_WIDTH = 0.4;
+uniform float ANISOTROPY = 0.8; 
+uniform float ANISOTROPY_WIDTH = 0.2; 
 
 // Generates a pseudo-random tangent direction from position
 vec3 generateTangent(vec3 pos, vec3 normal) {

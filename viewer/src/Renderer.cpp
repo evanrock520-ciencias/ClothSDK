@@ -140,5 +140,35 @@ void Renderer::updateColor(float* color) {
     m_shader.setVec3("COLOR_FRONT", Eigen::Vector3f(color[0], color[1], color[2]));
 }
 
+void Renderer::updateAmbient(float ambient) {
+    m_shader.bind();
+    m_shader.setFloat("AMBIENT", ambient);
+}
+
+void Renderer::updateDifusse(float difusse) {
+    m_shader.bind();
+    m_shader.setFloat("DIFFUSE", difusse);
+}
+
+void Renderer::updateSheenAmount(float sheenAmount) {
+    m_shader.bind();
+    m_shader.setFloat("SHEEN_AMOUNT", sheenAmount);
+}
+
+void Renderer::updateSheenWidth(float sheenWidth) {
+    m_shader.bind();
+    m_shader.setFloat("SHEEN_WIDTH", sheenWidth);
+}
+
+void Renderer::updateAnisotropy(float anisotropy) {
+    m_shader.bind();
+    m_shader.setFloat("ANISOTROPY", anisotropy);
+}
+
+void Renderer::updateAnisotropyWidth(float anisotropyWidth) {
+    m_shader.bind();
+    m_shader.setFloat("ANISOTROPY_WIDTH", anisotropyWidth);
+}
+
 } 
 } 

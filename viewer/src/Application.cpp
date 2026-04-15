@@ -339,6 +339,31 @@ void Application::drawUI() {
         if (ImGui::ColorPicker4("Color", m_color)) {
             m_renderer->updateColor(m_color);
         }
+
+        static float ambient = 0.4f;
+        if (ImGui::SliderFloat("Ambient", &ambient, 0.0, 1.0)) 
+            m_renderer->updateAmbient(ambient);
+        
+
+        static float diffuse = 0.8f;
+        if (ImGui::SliderFloat("Difusse", &diffuse, 0.0, 1.0)) 
+            m_renderer->updateDifusse(diffuse);
+
+        static float sheenAmount = 0.2f;
+        if (ImGui::SliderFloat("Sheen Amount", &sheenAmount, 0.0, 1.0)) 
+            m_renderer->updateSheenAmount(sheenAmount);
+
+        static float sheenWidth = 0.4f;
+        if (ImGui::SliderFloat("Sheen Width", &sheenWidth, 0.0, 1.0)) 
+            m_renderer->updateSheenWidth(sheenWidth);
+
+        static float anisotropy = 0.8f;
+        if (ImGui::SliderFloat("Anisotrophy", &anisotropy, 0.0, 1.0)) 
+            m_renderer->updateAnisotropy(anisotropy);
+
+        static float anisotropyWidth = 0.2f;
+        if (ImGui::SliderFloat("Anisotrophy Width", &anisotropyWidth, 0.0, 1.0)) 
+            m_renderer->updateAnisotropyWidth(anisotropyWidth);
     }
 
     ImGui::Separator();
