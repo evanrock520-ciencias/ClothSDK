@@ -1,6 +1,7 @@
 import _cloth_sdk_core as sdk
 import numpy as np
 import os
+from tqdm import tqdm
 
 class Simulation:
     def __init__(self, substeps: int = 10, iterations: int = 2, gravity: float = -9.81, thickness: float = 0.02):
@@ -269,16 +270,13 @@ class Simulation:
 
         total_frames = end_frame - start_frame
         
-        for frame_idx in range(total_frames):
+        for frame_idx in tqdm(range(total_frames), desc="Baking Alembic", unit="frames"):
             self.step(dt)
             
             current_pos = [p.get_position() for p in self.solver.get_particles()]
             
             current_time = frame_idx * dt
             exporter.write_frame(current_pos, current_time)
-            
-            if frame_idx % (max(1, total_frames // 10)) == 0:
-                sdk.Logger.info(f"   Bake progress: {int((frame_idx/total_frames)*100)}%")
 
         exporter.close()
         sdk.Logger.info(f"Bake completed successfully: {filepath}")
