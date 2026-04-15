@@ -310,27 +310,50 @@ void Application::drawUI() {
     ImGui::Begin("Tissu Control Panel", nullptr, ImGuiWindowFlags_AlwaysAutoResize);
 
     if (ImGui::CollapsingHeader("Configuration IO", ImGuiTreeNodeFlags_DefaultOpen)) {
-        ImGui::InputText("Config Path", m_configPathBuffer, sizeof(m_configPathBuffer));
+        ImGui::InputText("Material Path", m_configMaterialPath, sizeof(m_configMaterialPath));
 
-        if (ImGui::Button("Load JSON Config")) {
+        if (ImGui::Button("Load material")) {
             try {
-                ConfigLoader::loadMaterial(m_configPathBuffer, *(m_cloth->getMaterial()));
-                Logger::info("Material loaded from: " + std::string(m_configPathBuffer));
+                ConfigLoader::loadMaterial(m_configMaterialPath, *(m_cloth->getMaterial()));
+                Logger::info("Material loaded from: " + std::string(m_configMaterialPath));
             } catch (const std::exception& e) {
                 Logger::error("Failed to load config: " + std::string(e.what()));
             }
         }
-        
+
         ImGui::SameLine();
 
-        if (ImGui::Button("Save Current Settings")) {
+        if (ImGui::Button("Save Material Settings")) {
             try {
-                ConfigLoader::saveMaterial("exported_config.json", *(m_cloth->getMaterial()), "exported");
-                Logger::info("Material saved to exported_config.json");
+                ConfigLoader::saveMaterial("exported_material.json", *(m_cloth->getMaterial()), "exported");
+                Logger::info("Material saved to exported_material.json");
             } catch (const std::exception& e) {
                 Logger::error("Failed to save config: " + std::string(e.what()));
             }
         }
+
+        ImGui::InputText("Physics Path", m_configPhysicsPath, sizeof(m_configPhysicsPath));
+
+        if (ImGui::Button("Load physics")) {
+            try {
+                ConfigLoader::loadPhysics(m_configPhysicsPath, *m_solver, *m_world);
+                Logger::info("Physics loaded from: " + std::string(m_configMaterialPath));
+            } catch (const std::exception& e) {
+                Logger::error("Failed to load config: " + std::string(e.what()));
+            }
+        }
+
+        ImGui::SameLine();
+
+        if (ImGui::Button("Save Physics Settings")) {
+            try {
+                ConfigLoader::savePhysics("exported_physics.json", *m_solver, *m_world, "exported");
+                Logger::info("Material saved to exported_physics.json");
+            } catch (const std::exception& e) {
+                Logger::error("Failed to save config: " + std::string(e.what()));
+            }
+        }
+        
     }
 
     ImGui::Separator();
@@ -364,6 +387,19 @@ void Application::drawUI() {
         static float anisotropyWidth = 0.2f;
         if (ImGui::SliderFloat("Anisotrophy Width", &anisotropyWidth, 0.0, 1.0)) 
             m_renderer->updateAnisotropyWidth(anisotropyWidth);
+    }
+
+    ImGui::Separator();
+
+    if (ImGui::CollapsingHeader("Debug", ImGuiTreeNodeFlags_DefaultOpen)) { 
+        static bool wireframe = false;
+        
+        if (ImGui::Checkbox("Wireframe mode", &wireframe)) {
+            if (wireframe)
+                glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+            else
+                glPolygonMode(GL_FRONT_AND_BACK, GL_POLYGON_MODE);
+        }
     }
 
     ImGui::Separator();
