@@ -65,6 +65,17 @@ void SceneExporter::saveFabrics(nlohmann::ordered_json& data, const std::vector<
             
         }
 
+        const Pin& pin = cloth->getPin();
+        if (pin.getPinMode() != NONE) {
+            fabric["pins"]["compliance"] = pin.getCompliance();
+            fabric["pins"]["threshold"] = pin.getThreshold();
+            
+            if (pin.getPinMode() == TOP_CORNERS)
+                fabric["pins"]["mode"] = "top_corners";
+            else if (pin.getPinMode() == BY_HEIGHT)
+                fabric["pins"]["mode"] = "by_height";
+        }
+
         data["fabrics"].push_back(fabric);
     }
 }

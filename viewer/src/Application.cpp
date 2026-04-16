@@ -14,6 +14,7 @@
 #include "Application.hpp"
 #include "engine/Cloth.hpp"
 #include "engine/ClothMesh.hpp"
+#include "io/SceneExporter.hpp"
 #include "math/Types.hpp"
 #include "physics/GravityForce.hpp"
 #include "utils/Logger.hpp"
@@ -348,7 +349,16 @@ void Application::drawUI() {
         if (ImGui::Button("Save Physics Settings")) {
             try {
                 ConfigLoader::savePhysics("exported_physics.json", *m_solver, *m_world, "exported");
-                Logger::info("Material saved to exported_physics.json");
+                Logger::info("Physics saved to exported_physics.json");
+            } catch (const std::exception& e) {
+                Logger::error("Failed to save config: " + std::string(e.what()));
+            }
+        }
+
+        if (ImGui::Button("Save Scene")) {
+            try {
+                SceneExporter::saveScene("exported_scene.json", "exported", *m_solver, *m_world);
+                Logger::info("Scene saved to exported_scene.json");
             } catch (const std::exception& e) {
                 Logger::error("Failed to save config: " + std::string(e.what()));
             }

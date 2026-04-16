@@ -29,7 +29,14 @@ void SceneLoader::loadScene(const std::string& filepath, Solver& solver, World& 
     if (data["type"] != "scene") 
         throw std::invalid_argument("The given JSON is not a valid scene.");
 
-    ConfigLoader::loadPhysics(data.value("physics", ""), solver, world);
+    if (data.contains("physics")) {
+        const auto& physicsData = data.at("physics");
+        if (physicsData.is_string()) 
+            ConfigLoader::loadPhysics(physicsData.get<std::string>(), solver, world);
+        else if (physicsData.is_object()) 
+            ConfigLoader::loadPhysicsFromJson(physicsData, solver, world);
+    
+    }
 
     for (const auto& fabricData : data.at("fabrics")) {
         std::string name = fabricData.value("name", "cloth");
@@ -51,9 +58,18 @@ void SceneLoader::loadScene(const std::string& filepath, Solver& solver, World& 
 void SceneLoader::loadFabric(const nlohmann::json& fabric, Cloth& outCloth, Solver& solver) {
     std::string type = fabric.value("type", "grid");
     std::string name = fabric.value("name", "default");
-    std::string materialPath = fabric.value("material", "data/configs/materials/silk.json");
 
-    ConfigLoader::loadMaterial(materialPath, *outCloth.getMaterial());
+    if (fabric.contains("material")) {
+        const auto& materialData = fabric.at("material");
+        if (materialData.is_string()) 
+            ConfigLoader::loadMaterial(materialData.get<std::string>(), *outCloth.getMaterial());
+        else if (materialData.is_object()) 
+            ConfigLoader::loadMaterialFromJson(materialData, *outCloth.getMaterial());
+    } 
+    else 
+        ConfigLoader::loadMaterial("data/configs/materials/silk.json", *outCloth.getMaterial());
+    
+
     outCloth.setName(name);
 
     ClothMesh mesh;

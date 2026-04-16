@@ -50,6 +50,14 @@ public:
     static void loadMaterial(const std::string& filepath, ClothMaterial& outMaterial);
 
     /**
+     * @brief Loads a material preset from a JSON object.
+     * 
+     * @param data JSON object containing material configuration.
+     * @param outMaterial The material object that will be updated with loaded data.
+     */
+    static void loadMaterialFromJson(const nlohmann::json& data, ClothMaterial& outMaterial);
+
+    /**
      * @brief Loads a physics preset from a JSON file.
      * 
      * @param filepath Path to the configuration file.
@@ -57,6 +65,15 @@ public:
      * @param outMaterial The material object that will be updated with loaded data.
      */
     static void loadPhysics(const std::string& filepath, Solver& solver, World& world);
+
+    /**
+     * @brief Loads a physics preset from a JSON object.
+     * 
+     * @param data JSON object containing physics configuration.
+     * @param solver The solver instance to configure.
+     * @param world The physics world to configure.
+     */
+    static void loadPhysicsFromJson(const nlohmann::json& data, Solver& solver, World& world);
 
     /**
      * @brief Saves the current material configuration to a JSON file.

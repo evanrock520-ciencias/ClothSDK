@@ -25,7 +25,12 @@ void ConfigLoader::loadMaterial(const std::string& filepath, ClothMaterial& outM
         throw std::runtime_error("Invalid JSON in " + filepath + ": " + e.what());
     }
 
-    if (data["type"] != "material") throw std::invalid_argument("The given JSON is not a material preset.");
+    loadMaterialFromJson(data, outMaterial);
+}
+
+void ConfigLoader::loadMaterialFromJson(const nlohmann::json& data, ClothMaterial& outMaterial) {
+    if (data.contains("type") && data["type"] != "material") 
+        throw std::invalid_argument("The given JSON is not a material preset.");
 
     auto comp = data.at("compliance");
 
@@ -46,7 +51,11 @@ void ConfigLoader::loadPhysics(const std::string& filepath, Solver& solver, Worl
         throw std::runtime_error("Invalid JSON in " + filepath + ": " + e.what());
     }
 
-    if (data["type"] != "physics") 
+    loadPhysicsFromJson(data, solver, world);
+}
+
+void ConfigLoader::loadPhysicsFromJson(const nlohmann::json& data, Solver& solver, World& world) {
+    if (data.contains("type") && data["type"] != "physics") 
         throw std::invalid_argument("The given JSON is not a physics preset.");
 
     solver.setSubsteps(data.value("substeps", 10));
