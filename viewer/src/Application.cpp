@@ -398,7 +398,7 @@ void Application::drawUI() {
             if (wireframe)
                 glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
             else
-                glPolygonMode(GL_FRONT_AND_BACK, GL_POLYGON_MODE);
+                glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
         }
     }
 
