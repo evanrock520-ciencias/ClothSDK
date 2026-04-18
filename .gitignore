@@ -30,3 +30,4 @@ data/cache/*
 *.ninja
 
 main.cpp
+pyrightconfig.json
