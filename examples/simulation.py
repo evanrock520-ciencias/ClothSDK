@@ -1,4 +1,4 @@
-from python.tissu import Simulation
+from tissu import Simulation
 
 def curtain():
     sim = Simulation(substeps=15, iterations=3, gravity=-9.81, thickness=0.05)
@@ -15,8 +15,7 @@ def curtain():
     
     curtain.pin_top_corners()
     sim.load_physics("data/configs/physics/realtime.json")
-    sim.view()
-    
+    sim.view() 
     
 def pillow():
     sim = Simulation(substeps=40, iterations=2, gravity=-9.81, thickness=0.002)
