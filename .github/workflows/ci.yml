@@ -53,6 +53,7 @@ jobs:
         run: |
           pip install mypy
           pip install tqdm
+          pip install pytest
 
       - name: Cache FetchContent dependencies
         uses: actions/cache@v4
@@ -76,6 +77,10 @@ jobs:
 
       - name: Test
         run: ./build/tests/unit_tests
+
+      - name: API Test
+        run: |
+            pytest tests/python -v
 
       - name: Build benchmarks
         run: cmake --build build --target tissu_benchmarks -j$(nproc)
