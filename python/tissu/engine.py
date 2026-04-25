@@ -1,3 +1,4 @@
+from __future__ import annotations
 import _cloth_sdk_core as sdk
 import numpy as np
 import os
@@ -91,7 +92,7 @@ class Simulation:
         return self._collision_compliance
     
     @classmethod
-    def load_scene(cls, filepath: str) -> "Simulation":
+    def load_scene(cls, filepath: str) -> Simulation:
         sim = cls.__new__(cls)
         sim.world = sdk.World()
         sim.solver = sdk.Solver()
