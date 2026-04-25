@@ -181,7 +181,8 @@ class Simulation:
         
         return fabric
     
-    def _resolve_material(self, material) -> Material:
+    @staticmethod
+    def _resolve_material(material) -> Material:
         if material is None:
             return Material.from_preset("cotton")
         elif isinstance(material, str):
@@ -249,8 +250,7 @@ class Simulation:
         """
         
         if not self.cloth_objects:
-            sdk.Logger.error("No cloth objects found in simulation to bake.")
-            return False
+            raise RuntimeError("No cloth objects found in simulation to bake.")
 
         exporter = sdk.AlembicExporter()
         dt = 1.0 / fps
@@ -284,8 +284,7 @@ class Simulation:
     
     def save_snapshot(self, filename: str, fabric_name: str):
         if fabric_name not in self.cloth_objects:
-            sdk.Logger.error(f"Fabric '{fabric_name}' not found.")
-            return False
+            raise RuntimeError(f"Fabric '{fabric_name}' not found.")
             
         fabric = self.cloth_objects[fabric_name]
         
