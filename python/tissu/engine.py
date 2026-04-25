@@ -23,7 +23,7 @@ class Simulation:
         self.wind = [0.0, 0.0, 0.0]
         self.air_density = 0.1
         
-        self.app = sdk.Application()
+        self.app = None
 
     @property
     def substeps(self):
@@ -98,7 +98,7 @@ class Simulation:
         sim.solver = sdk.Solver()
         sim.cloth_objects = {}
         sim._aero_forces = {}
-        sim.app = sdk.Application()
+        sim.app = None
 
         sim._gravity_vector = np.array([0.0, -9.81, 0.0], dtype=np.float64)
         sim._gravity_force = sdk.GravityForce(sim._gravity_vector)
@@ -299,6 +299,9 @@ class Simulation:
     def view(self, width: int = 1280, height: int = 720, title: str = "Tissu | Live Simulation"):
         if not self.cloth_objects:
             sdk.Logger.warn("No cloth objects to visualize.")
+            
+        if self.app is None:
+            self.app = sdk.Application()
             
         current_dir = os.path.dirname(os.path.abspath(__file__))
         project_root = os.path.dirname(os.path.dirname(current_dir))
