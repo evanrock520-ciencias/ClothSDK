@@ -62,62 +62,33 @@ Using the Python API, we can create a simulation scene, pin vertices, apply mate
 Create a file named `simulation.py` on `examples` directorie:
 
 ```python
-import cloth_sdk
-from cloth_sdk import Simulation, Fabric, Material
+from tissu import Simulation
 
 def run_falling_curtain():
-    # 1. Initialize Simulation Environment
-    sim = Simulation(
-        substeps=10,
-        iterations=2,
-        gravity=-9.81,
-        thickness=0.1
-    )
+# 1. Initialize Simulation Environment
+	sim = Simulation(substeps=15, iterations=3, gravity=-9.81, thickness=0.05)
 
-    # 2. Add Forces
-    sim.wind = [4.0, 0.0, 0.0]
-    sim.air_density = 0.1
-    sim.add_floor()
+	# 2. Add Forces 
+	sim.wind[5.0, 0.0, 0.0]
 
-    # 3. Define Fabric
-    # You can define custom properties or use presets
-    base_material = {
-        "density": 0.1,
-        "structural_compliance": 1e-9,
-        "shear_compliance": 1e-8,
-        "bending_compliance": 0.1
-    }
+	# 3. Add colliders
+	sim.add_floor(friction=0.5)
 
-    # Create a procedural grid mesh
-    curtain = Fabric.grid(
-        name="curtain",
-        rows=200,
-        cols=180,
-        spacing=0.1,
-        material=base_material,
-        solver=sim.solver
-    )
+	# 4. Add fabric
+	curtain = sim.create_grid(
+		name="curtain",
+		rows=80,
+		cols=80,
+		spacing=0.05,
+		material="silk"
+	)
 
-    # 4. Setup Scene
-    sim.add_fabric(curtain)
+	curtain.pin_top_corners()
+	# 5. Export simulation
+	sim.bake_alembic(
+		filepath="sim.abc"
+	)
     
-    # Apply a preset (overrides previous material settings)
-    Material.apply_preset(curtain, "silk")
-    
-    # Pin the top corners to hold the curtain
-    curtain.pin_top_corners(sim.solver)
-
-    out = "data/animations/falling.abc"
-
-    # 5. Run and Bake
-    sim.bake_alembic(
-        filepath=out,
-        start_frame=0,
-        end_frame=96,
-        fps=24
-    )
-    print(f"Done! Saved to {out}")
-
 if __name__ == "__main__":
     run_falling_curtain()
 ```
