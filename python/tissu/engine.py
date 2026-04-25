@@ -91,7 +91,7 @@ class Simulation:
         return self._collision_compliance
     
     @classmethod
-    def load_scene(cls, filepath: str) -> Simulation:
+    def load_scene(cls, filepath: str) -> "Simulation":
         sim = cls.__new__(cls)
         sim.world = sdk.World()
         sim.solver = sdk.Solver()

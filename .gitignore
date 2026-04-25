@@ -31,3 +31,5 @@ data/cache/*
 
 main.cpp
 pyrightconfig.json
+
+.pytest_cache/
