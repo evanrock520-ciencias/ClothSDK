@@ -53,6 +53,7 @@ jobs:
         run: |
           pip install mypy
           pip install tqdm
+          pip install numpy
           pip install pytest
 
       - name: Cache FetchContent dependencies
