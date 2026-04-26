@@ -35,23 +35,15 @@ cmake .. -DCMAKE_BUILD_TYPE=Release
 make -j4 
 ```
 
-### 3. Python Environment Setup
+### 3. Install Tissu
 
-To import the library in your scripts, you must add the project path and the build artifact path to your `PYTHONPATH`.
-
-**Linux / macOS:**
+To import the library in your scripts, install the tissu package with pip:
 
 ```bash
-export PYTHONPATH=$PYTHONPATH:$(pwd)/python:$(pwd)/build
+pip install .
 ```
 
-**Windows (PowerShell):**
-
-```powershell
-$env:PYTHONPATH = "$env:PYTHONPATH;$(Get-Location)\python;$(Get-Location)\build\Release"
-```
-
-> **Note:** Run this from the root of the repo
+> **Note:** Run this from the root of the repo after building with CMake
 
 ---
 
