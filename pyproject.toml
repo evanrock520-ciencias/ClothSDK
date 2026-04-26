@@ -1,0 +1,20 @@
+[build-system]
+requires = ["setuptools>=61.0", "wheel"]
+build_backend = "setuptools.backends.legacy:build"
+
+[project]
+name = "tissu"
+version = "1.0.0"
+requires-python = ">=3.8"
+dependencies = [
+	"mypy",
+	"tqdm",
+	"numpy",
+	"pytest"
+]
+
+[tool.setuptools.packages.find]
+where = ["python"]
+
+[tool.setuptools.package-data]
+tissu = ["*.so", "*.pyd"]
