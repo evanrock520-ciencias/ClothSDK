@@ -79,6 +79,14 @@ add_custom_command(
 
 add_custom_target(_cloth_sdk_core_stubs ALL DEPENDS ${STUB_OUTPUT})
 
+add_custom_command(
+    TARGET _cloth_sdk_core POST_BUILD
+    COMMAND ${CMAKE_COMMAND} -E copy
+        $<TARGET_FILE:_cloth_sdk_core>
+        ${CMAKE_SOURCE_DIR}/python/tissu/$<TARGET_FILE_NAME:_cloth_sdk_core>
+    COMMENT "Copying _cloth_sdk_core to python/tissu/"
+)
+
 enable_testing()
 add_subdirectory(tests)
 

@@ -7,4 +7,5 @@ setup(
     package_dir={"": "python"},
     install_requires=[],
     python_requires=">=3.8",
+    package_data={"tissu": ["*.so", "*.pyd"]},
 )
