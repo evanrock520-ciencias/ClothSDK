@@ -17,4 +17,4 @@ dependencies = [
 where = ["python"]
 
 [tool.setuptools.package-data]
-tissu = ["*.so", "*.pyd"]
+tissu = ["*.so", "*.pyd", "*.pyi"]
