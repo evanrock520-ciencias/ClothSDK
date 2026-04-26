@@ -14,7 +14,7 @@
             "spacing": 0.05,
             "material": "data/configs/materials/silk.json",
             "pins": {
-                "mode": "by_height",
+                "mode": "top_corners",
                 "compliance": 0.0
             }
         }
