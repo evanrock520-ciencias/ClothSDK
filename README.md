@@ -61,7 +61,7 @@ def run_falling_curtain():
 	sim = Simulation(substeps=15, iterations=3, gravity=-9.81, thickness=0.05)
 
 	# 2. Add Forces 
-	sim.wind[5.0, 0.0, 0.0]
+	sim.wind = [5.0, 0.0, 0.0]
 
 	# 3. Add colliders
 	sim.add_floor(friction=0.5)
@@ -77,8 +77,9 @@ def run_falling_curtain():
 
 	curtain.pin_top_corners()
 	# 5. Export simulation
+	out = "data/animations/falling.abc"
 	sim.bake_alembic(
-		filepath="sim.abc"
+		filepath=out
 	)
     
 if __name__ == "__main__":
