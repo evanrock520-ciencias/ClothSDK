@@ -1,43 +1,64 @@
 # Physics And Math
 
-This section describes the physical and mathematical foundations used in Tissu.
-The goal is not to be overly theoretical, but to explain the models and numerical methods clearly enough to understand the implementation and its limitations.
+This section describes the physical and mathematical foundations of Tissu.
 
-## Particle-Based Representation
+## The Particle
 
-This simulation is based on a particle system. Each particle represents a point mass with the following properties:
+A particle in Tissu is the simplest possible representation of matter: a point of mass in 3D space.
+It represents just a position and a mass. Every piece of cloth is a collection of these points, connected by constraints that define how can move relative to each other.
 
-- Position
-- Velocity
-- Accumulated forces
-- Mass
+![Particle](../videos/ParticleScene.gif)
 
-Particles interact through constraints, which together approximate the behavior of a continuous cloth surface.
+## Motion
 
-## Newton's Second Law
+Computers work with discrete data, but physical phenomena are often
+modeled with continuous mathematics. We cannot solve equations of motion
+exactly, so we must approximate them numerically. Even though the
+solutions are not exact, they are accurate enough to produce a
+believable result.
 
-The motion of each particle is governed by Newton's second law: $$F = ma$$
+There are 3 popular approaches to estimate a particle's position.
 
-Which gives acceleration: $$a = \frac{F}{m}$$
+- Euler
+- Verlet
+- Ruggen-Kutta
 
+### Euler
 
-## Verlet Integration
+The Euler's method is given by the next equations.
 
-Verlet Integration is a numerical method used to integrate Newton's equations of motion. We consider the previous and the actual position to approximate the particle's velocity. 
-By using the next one equation we update the particle's position each frame.  
+$$x_{n+1} = x_n + v_n ⋅ Δt$$
+$$v_{n+1} = v_n + a_n ⋅ Δt$$
 
-$$x_{n+1} = 2x_n - x_{n-1} + a_n\Delta t²$$
+Where:
 
-Verlet integration is widely used in computer graphics due to its excellent cost-to-benefit ratio. While Euler integration is prone to instability and Runge-Kutta (RK4) is computationally expensive, Verlet offers a stable and efficient middle ground. It is particularly effective for simulating physics with constraints, such as cloth or ragdolls.
+- $x_n$ is the current position.
+- $v_n$ is the current velocity.
+- $a_n$ is the current acceleration.
+- $Δt$ is the timestep.
 
-## XPBD 
+This is likely the most naïve approach to solve the problem.
 
-### Distance Constraint
-‚
-### Dihedral Bending Constraint
+Euler's method is an example of a stepwise method — $x_{n+1}$ and
+$v_{n+1}$ at $t + \Delta t$ depend only on values at $t$. The local
+truncation error grows as $O(\Delta t^2)$, which means the method is
+stable when $\Delta t$ is small enough. However, as $\Delta t$ increases
+the error accumulates and the simulation tends to overshoot, adding
+energy to the system each step instead of conserving it.
 
-## Colliders
+In cloth simulation this is critical. A solver runs hundreds of substeps
+per second, and an unstable integrator would cause particles to explode
+almost immediately. This is why we need a more stable approach.
 
-## Forces
+### Verlet
 
+The Verlet's method is given by the next one equation.
 
+$$x_{n+1} = 2 ⋅ x_n - x_{n-1} + a_n ⋅ Δt²$$
+
+Where:
+
+- $x_n$ is the current position.
+- $x_{n-1}$ is the previous position.
+- $a_n$ is the current acceleration.
+- $Δt$ is the timestep.
