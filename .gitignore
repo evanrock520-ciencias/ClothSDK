@@ -22,6 +22,8 @@ __pycache__/
 venv/
 .env/
 
+*.ini 
+
 data/cache/*
 !data/cache/.gitkeep
 
