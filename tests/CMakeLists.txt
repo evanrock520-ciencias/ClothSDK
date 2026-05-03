@@ -9,7 +9,18 @@ add_executable(unit_tests
     io/test_config_loader.cpp
 )
 
+add_executable(integration
+	integration/test_integration.cpp	
+)
+
 target_link_libraries(unit_tests 
+    PRIVATE 
+        ClothCore
+        GTest::gtest_main 
+        Eigen3::Eigen
+)
+
+target_link_libraries(integration
     PRIVATE 
         ClothCore
         GTest::gtest_main 
@@ -18,3 +29,4 @@ target_link_libraries(unit_tests
 
 include(GoogleTest)
 gtest_discover_tests(unit_tests)
+gtest_discover_tests(integration)
