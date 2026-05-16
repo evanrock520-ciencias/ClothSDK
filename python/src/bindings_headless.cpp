@@ -49,6 +49,8 @@ PYBIND11_MODULE(_cloth_sdk_core, m) {
         .value("NONE", PinMode::NONE);
 
     py::class_<Pin>(m, "Pin")
+        .def(py::init<PinMode, double, double>(),
+            py::arg("mode"), py::arg("compliance"), py::arg("threshold"))
         .def("get_pin_mode", &Pin::getPinMode)
         .def("get_compliance", &Pin::getCompliance)
         .def("get_threshold", &Pin::getThreshold)
@@ -142,7 +144,8 @@ PYBIND11_MODULE(_cloth_sdk_core, m) {
         .def("get_thickness", &World::getThickness)
         .def("get_gravity", &World::getGravity)
         .def("get_wind", &World::getWind)
-        .def("get_air_density", &World::getAirDensity);
+        .def("get_air_density", &World::getAirDensity)
+        .def("get_cloths", &World::getCloths);
 
     py::class_<Solver, std::shared_ptr<Tissu::Solver>>(m, "Solver")
         .def(py::init<>())

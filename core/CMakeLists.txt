@@ -29,7 +29,11 @@ set(CORE_SOURCES
 find_package(Alembic REQUIRED)
 find_package(Imath REQUIRED)
 
-add_library(ClothCore SHARED ${CORE_SOURCES})
+add_library(ClothCore STATIC ${CORE_SOURCES})
+
+if(MSVC)
+    target_compile_options(ClothCore PRIVATE /openmp)
+endif()
 
 target_link_libraries(ClothCore PUBLIC Eigen3::Eigen)
 target_link_libraries(ClothCore PUBLIC tinyobjloader)

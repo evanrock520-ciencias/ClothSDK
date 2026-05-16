@@ -89,7 +89,11 @@ bool Application::init(int width, int height, const std::string& title, const st
 
     float fontSize = 24.0f; 
     float scale = 2.0f; 
+    #ifdef _WIN32
+    io.Fonts->AddFontDefault();
+    #else
     io.Fonts->AddFontFromFileTTF("/usr/share/fonts/liberation-sans-fonts/LiberationSans-Regular.ttf", fontSize);
+    #endif
     ImGui::GetStyle().ScaleAllSizes(scale);
     io.FontGlobalScale = 1.0f; 
 
