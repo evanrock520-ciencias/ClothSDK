@@ -1,5 +1,5 @@
 from __future__ import annotations
-import _cloth_sdk_core as sdk
+from . import _cloth_sdk_core as sdk
 import numpy as np
 import os
 from tqdm import tqdm
