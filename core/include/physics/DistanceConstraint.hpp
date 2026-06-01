@@ -57,6 +57,10 @@ public:
      */
     void solve(std::vector<Particle>& particles, double dt) override;
 
+    std::vector<int> getParticleIds() const override {
+        return {m_idA, m_idB};
+    }
+
 private:
     int m_idA;              ///< Index of the first particle.
     int m_idB;              ///< Index of the second particle.

@@ -12,6 +12,10 @@ public:
     void solve(std::vector<Particle>& particles, double dt) override;
 
     inline double getRestVolume() { return m_restVolume; };
+
+    std::vector<int> getParticleIds() const override {
+        return {}; 
+    }
     
 protected:
     double computeVolume(const std::vector<Particle>& particles) const;

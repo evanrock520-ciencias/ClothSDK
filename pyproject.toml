@@ -5,6 +5,8 @@ build_backend = "setuptools.backends.legacy:build"
 [project]
 name = "tissu"
 version = "1.0.0"
+description = "A cloth simulation sdk for python"
+readme = "README.md"
 requires-python = ">=3.8"
 dependencies = [
 	"mypy",
@@ -12,6 +14,8 @@ dependencies = [
 	"numpy",
 	"pytest"
 ]
+authors = [{ name = "Evan Miranda"}]
+license = { text = "Apache-2.0"}
 
 [tool.setuptools.packages.find]
 where = ["python"]

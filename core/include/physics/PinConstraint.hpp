@@ -72,6 +72,10 @@ public:
     
     inline int getParticleId() const { return m_particleId; }
 
+    std::vector<int> getParticleIds() const override {
+        return { m_particleId };
+    }
+
 private:
     int m_particleId;           ///< Index of the constrained particle in the solver buffer.
     Eigen::Vector3d m_pinPos;   ///< Fixed world-space anchor position.
