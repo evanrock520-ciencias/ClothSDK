@@ -62,12 +62,9 @@ void AerodynamicForce::apply(std::vector<Particle>& particles, double dt) {
 
         Eigen::Vector3d f = force / 3.0;
 
-        #pragma omp critical
-        {
-            pA.addForce(f);
-            pB.addForce(f);
-            pC.addForce(f);
-        }
+        pA.addForce(f);
+        pB.addForce(f);
+        pC.addForce(f);
     }
 }
 
