@@ -18,9 +18,11 @@
 
 #include "Particle.hpp"  
 #include "Constraint.hpp"
+#include "PinConstraint.hpp"
 #include "SpatialHash.hpp"
 #include "engine/World.hpp" 
 #include "math/Types.hpp"
+#include "physics/ConstraintGraph.hpp"
 #include <unordered_set>
 #include <vector>
 #include <memory>
@@ -53,6 +55,9 @@ public:
     void addPin(int id, const Eigen::Vector3d& pos, double compliance = 0.0);
     void removePin(int id);
 
+    void buildGraph(unsigned int seed);
+    void invalidateGraph();
+
     void softReset();
 
     void update(World& world, double deltaTime);
@@ -77,6 +82,12 @@ private:
     int m_substeps;
     int m_iterations;
     double m_collisionCompliance;
+
+    ConstraintGraph m_graph;
+    std::vector<std::vector<int>> m_batches;
+    bool m_graphBuilt;
+    
+    std::vector<std::unique_ptr<PinConstraint>> m_transientPins;
 };
 
 } 
