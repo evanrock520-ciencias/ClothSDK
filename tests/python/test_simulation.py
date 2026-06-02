@@ -89,3 +89,28 @@ def test_resolve_material():
     with pytest.raises(TypeError):
         Simulation._resolve_material(123)
     
+def test_pin():
+    sim = Simulation(substeps=15, iterations=3, gravity=-9.81, thickness=0.05)
+    sim.wind = [0.0, 7.0, 0.0]
+    rows = 80
+    
+    sim.add_floor(friction=0.5)
+    curtain = sim.create_grid(
+        name="curtain",
+        rows=rows,
+        cols=40,
+        spacing=0.05,
+        material="silk"
+    )
+    
+    curtain.pin_top_corners()
+    pins = curtain.get_pins()
+    assert len(pins) == 2
+    
+    curtain.pin_by_height()
+    pins = curtain.get_pins() # The upper edge
+    assert len(pins) == rows 
+    
+    curtain.unpin()
+    pins = curtain.get_pins()
+    assert len(pins) == 0
