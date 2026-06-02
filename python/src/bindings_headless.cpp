@@ -162,6 +162,7 @@ PYBIND11_MODULE(_cloth_sdk_core, m) {
         .def("add_bending_constraint", &Solver::addBendingConstraint)
         .def("add_volume_constraint", &Solver::addVolumeConstraint)
         .def("add_pin", &Solver::addPin)
+        .def("unpin", &Solver::removePin)
         .def("soft_reset", &Solver::softReset)
         .def("set_collision_compliance", &Solver::setCollisionCompliance);
 

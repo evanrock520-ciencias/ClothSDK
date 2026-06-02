@@ -15,6 +15,7 @@ class Simulation:
         
         self.cloth_objects = {}  
         self._aero_forces = {}   
+        self._pins = {}
         
         self.substeps = substeps
         self.iterations = iterations
@@ -471,9 +472,9 @@ class Fabric:
         max_y = np.max(pos[:, 1])
         
         mask = pos[:, 1] >= (max_y - threshold)
-        indices_to_pin = np.where(mask)[0]
+        self._pins = np.where(mask)[0]
         
-        for idx in indices_to_pin:
+        for idx in self._pins:
             global_id = my_ids[idx]
             target_pos = pos[idx]
             self._solver.add_pin(global_id, target_pos, compliance)
@@ -481,7 +482,7 @@ class Fabric:
             
         self.instance.set_pin(sdk.Pin(sdk.PinMode.BY_HEIGHT, compliance, threshold));
             
-        sdk.Logger.info(f"Fabric '{self.name}': Pinned {len(indices_to_pin)} vertices by height.")
+        sdk.Logger.info(f"Fabric '{self.name}': Pinned {len(self._pins)} vertices by height.")
         
     def pin_top_corners(self, threshold: float = 0.01, compliance: float = 0.0):
         if self._solver is None:
@@ -507,22 +508,35 @@ class Fabric:
         idx_left = top_indices[local_min_idx]
         idx_right = top_indices[local_max_idx]
         
-        corners_to_pin = {idx_left, idx_right}
+        self._pins = np.array([idx_left, idx_right])
         
-        for idx in corners_to_pin:
+        for idx in self._pins:
             global_id = my_ids[idx]
             target_pos = pos[idx]
             self._solver.add_pin(global_id, target_pos, compliance)
             
         self.instance.set_pin(sdk.Pin(sdk.PinMode.TOP_CORNERS, compliance, threshold));
             
-        sdk.Logger.info(f"Fabric '{self.name}': Pinned top corners (IDs: {list(corners_to_pin)})")
+        sdk.Logger.info(f"Fabric '{self.name}': Pinned top corners (IDs: {list(self._pins)})")
+        
+    def unpin(self):
+        my_ids = self.instance.get_particle_indices()
+        
+        for idx in self._pins:
+            global_id = my_ids[idx]
+            self._solver.unpin(global_id)
+            
+        self._pins = np.empty(0)
+        sdk.Logger.info(f"Fabric '{self.name}': Unpinned ")
         
     def get_particle_id(self, row: int, col: int):
         return self.instance.get_particle_id(row, col)
     
     def get_triangles(self):
         return self.instance.get_triangles()
+    
+    def get_pins(self):
+        return self._pins
     
 class Material:
     _BUILTIN_PRESETS = {
