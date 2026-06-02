@@ -8,7 +8,16 @@ namespace Tissu {
 Particle::Particle(const Eigen::Vector3d& pos) : m_position(pos), m_oldPosition(pos), m_acceleration(Eigen::Vector3d::Zero()), inverseMass(1.0) {}
 
 void Particle::addForce(const Eigen::Vector3d& force) {
-    m_acceleration += force * inverseMass;
+    double fx = force.x() * inverseMass;
+    double fy = force.y() * inverseMass;
+    double fz = force.z() * inverseMass;
+
+    #pragma omp atomic
+    m_acceleration[0] += fx;
+    #pragma omp atomic
+    m_acceleration[1] += fy;
+    #pragma omp atomic
+    m_acceleration[2] += fz;
 }
 
 void Particle::clearForces() {

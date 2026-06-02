@@ -29,6 +29,10 @@ public:
 
     void solve(std::vector<Particle>& particles, double dt) override;
 
+    std::vector<int> getParticleIds() const override {
+        return {m_idA, m_idB, m_idC, m_idD};
+    }
+
 private:
     int m_idA, m_idB, m_idC, m_idD;
     double m_restAngle;

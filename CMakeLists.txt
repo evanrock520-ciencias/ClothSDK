@@ -7,7 +7,7 @@ endif()
 project(
 	Tissu 
 	VERSION 1.0.0 
-	LANGUAGES CXX
+	LANGUAGES CXX C
 )
 
 set(CMAKE_POSITION_INDEPENDENT_CODE ON)
@@ -86,8 +86,8 @@ if(TISSU_BUILD_VIEWER)
     FetchContent_Declare(
 		glad 
 		GIT_REPOSITORY https://github.com/Dav1dde/glad.git 
-		GIT_TAG 
-		v0.1.36
+		GIT_TAG        v2.0.8
+		SOURCE_SUBDIR  cmake
 	)
 
     FetchContent_Declare(
@@ -97,6 +97,7 @@ if(TISSU_BUILD_VIEWER)
 	)
 
     FetchContent_MakeAvailable(glfw glad imgui)
+	glad_add_library(glad_gl REPRODUCIBLE API gl:core=4.6)
 endif()
 
 add_subdirectory(core)

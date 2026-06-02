@@ -1,7 +1,7 @@
 // Copyright 2026 Evan M.
 // SPDX-License-Identifier: Apache-2.0
 
-#include <glad/glad.h>
+#include <glad/gl.h>
 #include <GLFW/glfw3.h>
 #include <imgui.h>
 #include <imgui_impl_glfw.h>
@@ -77,7 +77,7 @@ bool Application::init(int width, int height, const std::string& title, const st
     glfwSetWindowUserPointer(m_window, this); 
     glfwSwapInterval(1); 
 
-    if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress)) {
+    if (!gladLoadGL(glfwGetProcAddress)) {
         Logger::error("Failed to initialize GLAD");
         return false;
     }

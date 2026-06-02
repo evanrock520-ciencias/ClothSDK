@@ -17,10 +17,15 @@
 
 namespace Tissu {
     Solver::Solver()
-    : m_substeps(15), m_iterations(2), m_collisionCompliance(1e-9), m_spatialHash(10007, 0.08) {}
+    : m_substeps(15), m_iterations(2), m_collisionCompliance(1e-9), m_spatialHash(10007, 0.08), m_graphBuilt(false) {}
 
     void Solver::update(World& world, double deltaTime) {
         if (m_particles.empty()) return;
+
+        if (!m_graphBuilt && !m_constraints.empty()) {
+            buildGraph(42);
+            m_graphBuilt = true;
+        }
 
         m_spatialHash.setCellSize(world.getThickness()); 
         m_spatialHash.build(m_particles);
@@ -42,9 +47,7 @@ namespace Tissu {
         }
 
         for (int i = 0; i < m_iterations; i++) {
-            for(auto& constraint : m_constraints) {
-                constraint->solve(m_particles, dt);
-            }
+            solveConstraints(dt);
         }
 
         const auto& colliders = world.getColliders();
@@ -80,6 +83,9 @@ namespace Tissu {
         m_constraints.clear();
         m_adjacencies.clear();
         m_initialPositions.clear();
+        m_batches.clear();
+        m_transientPins.clear();
+        m_graphBuilt = false;
     }
 
     const std::vector<Particle>& Solver::getParticles() const {
@@ -92,6 +98,7 @@ namespace Tissu {
         double restLength = (pA.getPosition() - pB.getPosition()).norm();
         m_constraints.push_back(std::make_unique<DistanceConstraint>(idA, idB, restLength, compliance));
         m_adjacencies.insert(getAdjacencyKey(idA, idB));
+        m_graphBuilt = false;
     }
 
     void Solver::addBendingConstraint(int idA, int idB, int idC, int idD, double restAngle, double compliance) {
@@ -100,22 +107,20 @@ namespace Tissu {
         m_adjacencies.insert(getAdjacencyKey(idB, idC));
         m_adjacencies.insert(getAdjacencyKey(idA, idD));
         m_adjacencies.insert(getAdjacencyKey(idB, idD));
+        m_graphBuilt = false;
     }
 
     void Solver::addPin(int id, const Eigen::Vector3d& pos, double compliance) {
-        m_constraints.push_back(std::make_unique<PinConstraint>(id, pos, compliance));
+        m_transientPins.push_back(std::make_unique<PinConstraint>(id, pos, compliance));
     }
 
     void Solver::removePin(int id) {
-        // Eliminar todos los pin constraints de esta partícula
-        m_constraints.erase(
-            std::remove_if(m_constraints.begin(), m_constraints.end(),
-                [id](const std::unique_ptr<Constraint>& c) {
-                    // Verificar si es un PinConstraint de esta partícula
-                    auto* pin = dynamic_cast<PinConstraint*>(c.get());
-                    return pin != nullptr && pin->getParticleId() == id;
+        m_transientPins.erase(
+            std::remove_if(m_transientPins.begin(), m_transientPins.end(),
+                [id](const std::unique_ptr<PinConstraint>& pin) {
+                    return pin->getParticleId() == id;
                 }),
-            m_constraints.end()
+            m_transientPins.end()
         );
     }
     
@@ -123,6 +128,7 @@ namespace Tissu {
         auto constraint = std::make_unique<VolumeConstraint>(triangles, particles, compliance);
         double restVolume = constraint->getRestVolume();
         m_constraints.push_back(std::move(constraint));
+        m_graphBuilt = false;
         return restVolume;
     }
 
@@ -132,8 +138,22 @@ namespace Tissu {
     }
 
     void Solver::solveConstraints(double dt) {
-        for(auto& constraint : m_constraints)
-            constraint->solve(m_particles, dt);
+        if (m_batches.empty()) {
+            for(auto& constraint : m_constraints)
+                constraint->solve(m_particles, dt);
+        } else {
+            for (const auto& batch : m_batches) {
+                #pragma omp parallel for
+                for (int i = 0; i < (int)batch.size(); ++i) {
+                    int idx = batch[i];
+                    m_constraints[idx]->solve(m_particles, dt);
+                }
+            }
+        }
+        
+        for (auto& pin : m_transientPins) {
+            pin->solve(m_particles, dt);
+        }
     }
 
     void Solver::solveSelfCollisions(double dt, double thickness) {
@@ -204,5 +224,14 @@ namespace Tissu {
 
     void Solver::setParticleInverseMass(int id, double invMass) {
         m_particles[id].setInverseMass(invMass);
+    }
+
+    void Solver::buildGraph(unsigned int seed) {
+        m_graph.buildFrom(m_constraints, seed);
+        m_batches= m_graph.colorBatches();
+    }
+
+    void Solver::invalidateGraph() {
+        m_graphBuilt = false;
     }
 }

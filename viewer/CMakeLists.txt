@@ -30,12 +30,14 @@ target_link_libraries(ViewerCore
     PUBLIC 
         ClothCore 
         imgui_lib 
-        glad 
+        glad_gl
         glfw 
         OpenGL::GL 
         Threads::Threads
 )
-
-target_include_directories(ViewerCore PUBLIC include)
+target_include_directories(ViewerCore PUBLIC 
+    include
+    ${CMAKE_BINARY_DIR}/gladsources/glad_gl/include
+)
 
 set_target_properties(ViewerCore PROPERTIES POSITION_INDEPENDENT_CODE ON)

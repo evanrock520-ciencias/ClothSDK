@@ -60,6 +60,8 @@ public:
      */
     virtual void resetLambda() { m_lambda = 0.0; }
 
+    virtual std::vector<int> getParticleIds() const = 0;
+
 protected:
     /**
      * @brief Accumulated Lagrange multiplier for the current substep.
