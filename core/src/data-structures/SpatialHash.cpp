@@ -1,7 +1,7 @@
 // Copyright 2026 Evan M.
 // SPDX-License-Identifier: Apache-2.0
 
-#include "physics/SpatialHash.hpp"
+#include "data-structures/SpatialHash.hpp"
 #include "physics/Particle.hpp"
 #include <cmath>
 #include <cstddef>

@@ -19,7 +19,7 @@
 #include "Particle.hpp"  
 #include "Constraint.hpp"
 #include "PinConstraint.hpp"
-#include "SpatialHash.hpp"
+#include "data-structures/SpatialHash.hpp"
 #include "engine/World.hpp" 
 #include "math/Types.hpp"
 #include "physics/ConstraintGraph.hpp"

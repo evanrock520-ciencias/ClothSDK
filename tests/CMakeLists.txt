@@ -4,9 +4,9 @@ add_executable(unit_tests
     physics/test_pin_constraint.cpp
     physics/test_volume_constraint.cpp
     physics/test_constraint_graph.cpp
-    physics/test_spatial_hash.cpp
     physics/test_plane_collider.cpp
     physics/test_sphere_collider.cpp
+    data-structures/test_spatial_hash.cpp
     io/test_config_loader.cpp
 )
 

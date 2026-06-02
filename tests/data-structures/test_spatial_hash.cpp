@@ -1,7 +1,7 @@
 #include "gtest/gtest.h"
 #include <vector>
 #include "physics/Particle.hpp"
-#include "physics/SpatialHash.hpp"
+#include "data-structures/SpatialHash.hpp"
 
 using namespace Tissu;
 

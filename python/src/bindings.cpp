@@ -24,6 +24,7 @@
 #include "physics/AerodynamicForce.hpp"
 #include "physics/GravityForce.hpp"
 #include "physics/Solver.hpp"
+#include "data-structures/SpatialHash.hpp"
 #include "engine/ClothMesh.hpp"
 #include "io/OBJLoader.hpp"
 #include "io/OBJExporter.hpp"
