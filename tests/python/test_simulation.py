@@ -1,6 +1,7 @@
 import pytest
 
 from tissu import Simulation, Material
+import tempfile
 
 def test_initial_parameters():
     sim = Simulation()
@@ -114,3 +115,29 @@ def test_pin():
     curtain.unpin()
     pins = curtain.get_pins()
     assert len(pins) == 0
+    
+def test_on_frame():
+    sim = Simulation(substeps=15, iterations=3, gravity=-9.81, thickness=0.05)
+    sim.add_floor(friction=0.5)
+    curtain = sim.create_grid(
+        name="curtain",
+        rows=80,
+        cols=80,
+        spacing=0.05,
+        material="silk"
+    )
+    
+    curtain.pin_top_corners()
+    pins = curtain.get_pins()
+    assert len(pins) == 2
+    frames = 60
+    event_frame = 40
+    
+    @sim.on_frame(event_frame)
+    def unpin():
+        curtain.unpin()
+    
+    sim.simulate(41)
+    pins = curtain.get_pins()
+    assert len(pins) == 0
+    

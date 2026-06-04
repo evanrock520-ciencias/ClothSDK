@@ -15,7 +15,17 @@ def curtain():
     
     curtain.pin_top_corners()
     sim.load_physics("data/configs/physics/realtime.json")
-    sim.view() 
+    
+    @sim.on_frame(60)
+    def unpin():
+        curtain.unpin()
+        
+    sim.bake_alembic(
+        filepath="data/animations/test.abc",
+        start_frame=0,
+        end_frame=120,
+        fps=30
+    )
     
 def dress():
     sim = Simulation(substeps=40, iterations=2, gravity=-9.81, thickness=0.002)
@@ -76,7 +86,7 @@ def save_scene():
     sim.save_scene("data/configs/scenes/save_test.json", "test")
     
 if __name__ == "__main__":
-    match 4:
+    match 0:
         case 0 : curtain()
         case 1 : pillow()
         case 2 : curtain_from_scene()

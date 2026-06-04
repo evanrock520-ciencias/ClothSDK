@@ -1,4 +1,5 @@
 from __future__ import annotations
+from collections import defaultdict
 from . import _cloth_sdk_core as sdk
 import numpy as np
 import os
@@ -23,6 +24,8 @@ class Simulation:
         self.thickness = thickness
         self.wind = [0.0, 0.0, 0.0]
         self.air_density = 0.1
+        
+        self.actions = defaultdict(list)
         
         self.app = None
 
@@ -134,6 +137,20 @@ class Simulation:
 
         sdk.Logger.info(f"Scene loaded: {filepath}")
         return sim
+    
+    def on_frame(self, frame: int):
+        def decorator(func):
+            self.actions[frame].append(func)
+            sdk.Logger.info("Action added on " + str(frame) + " frame")
+            return func
+        return decorator
+    
+    def simulate(self, frames: int, dt: float = 1/60):
+        for frame in range(frames):
+            if frame in self.actions:
+                for action in self.actions[frame]:
+                    action()
+            self.step(dt)
     
     def add_fabric(self, fabric: Fabric) -> None:
         """
@@ -271,13 +288,16 @@ class Simulation:
         total_frames = end_frame - start_frame
         
         for frame_idx in tqdm(range(total_frames), desc="Baking Alembic", unit="frames"):
+            if frame_idx in self.actions:
+                for action in self.actions[frame_idx]:
+                    action()
+            
             self.step(dt)
-            
-            current_pos = [p.get_position() for p in self.solver.get_particles()]
-            
+            current_pos = [p.get_position() for p in self.solver.get_particles()] 
             current_time = frame_idx * dt
             exporter.write_frame(current_pos, current_time)
 
+        self.actions.clear()
         exporter.close()
         sdk.Logger.info(f"Bake completed successfully: {filepath}")
         return True
