@@ -7,6 +7,7 @@
 #include "physics/Solver.hpp"
 #include "physics/Particle.hpp"
 #include "math/Types.hpp"
+#include "utils/Logger.hpp"
 #include <cmath>
 #include <fstream>
 #include <map>
@@ -79,19 +80,21 @@ void ClothMesh::initGrid(int rows, int cols, double spacing, Cloth& outCloth, So
     computePhysicalAttributes(outCloth, solver);
 }
 
-void ClothMesh::buildFromMesh(const std::vector<Eigen::Vector3d>& positions, const std::vector<int>& indices, Cloth& outCloth, Solver& solver) {
+void ClothMesh::buildFromMesh(const std::vector<Eigen::Vector3d>& positions, const std::vector<int>& indices, Cloth& outCloth, Solver& solver, const std::string& meshPath) {
     std::map<Edge, std::vector<int>> edgeToTriangles;
     std::vector<int> localToGlobal; 
     localToGlobal.reserve(positions.size());
     outCloth.clear();
     outCloth.setTopology(ClothTopology::Mesh);
     outCloth.setGridDimensions(0, 0);
+    outCloth.setMeshPath(meshPath);
     auto mat = outCloth.getMaterial();
     double stComp = mat->getStructuralCompliance();
     double shComp = mat->getShearCompliance();
     double beComp = mat->getBendingCompliance();
     double dens = mat->getDensity();
 
+    Logger::info("Mesh Path: " + meshPath);
 
     for (auto& position : positions) {
         auto id = solver.addParticle(Particle(position));

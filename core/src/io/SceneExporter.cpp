@@ -56,14 +56,16 @@ void SceneExporter::saveFabrics(nlohmann::ordered_json& data, const std::vector<
             fabric["rows"] = cloth->getRows();
             fabric["cols"] = cloth->getCols();
             fabric["spacing"] = cloth->getSpacing();
-            //TODO: Export material into his own file?
-            std::shared_ptr<ClothMaterial> material = cloth->getMaterial();
-            fabric["material"]["density"] = material->getDensity();
-            fabric["material"]["compliance"]["structural"] = material->getStructuralCompliance();
-            fabric["material"]["compliance"]["shear"] = material->getShearCompliance();
-            fabric["material"]["compliance"]["bending"] = material->getBendingCompliance();
-            
         }
+
+        else if (cloth->isMesh()) 
+            fabric["path"] = cloth->getMeshPath();
+
+        std::shared_ptr<ClothMaterial> material = cloth->getMaterial();
+        fabric["material"]["density"] = material->getDensity();
+        fabric["material"]["compliance"]["structural"] = material->getStructuralCompliance();
+        fabric["material"]["compliance"]["shear"] = material->getShearCompliance();
+        fabric["material"]["compliance"]["bending"] = material->getBendingCompliance();
 
         const Pin& pin = cloth->getPin();
         if (pin.getPinMode() != NONE) {

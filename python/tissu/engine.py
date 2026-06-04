@@ -408,7 +408,7 @@ class Fabric:
             raise FileNotFoundError(f"Could not load OBJ: {path}")
             
         factory = sdk.ClothMesh()
-        factory.build_from_mesh(pos, indices, fabric.instance, solver)
+        factory.build_from_mesh(pos, indices, fabric.instance, solver, path)
         return fabric
     
     def update_material(self, density: float = None, structural: float = None, shear: float = None, bending: float = None):

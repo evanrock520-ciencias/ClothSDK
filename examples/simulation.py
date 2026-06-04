@@ -17,6 +17,20 @@ def curtain():
     sim.load_physics("data/configs/physics/realtime.json")
     sim.view() 
     
+def dress():
+    sim = Simulation(substeps=40, iterations=2, gravity=-9.81, thickness=0.002)
+    sim.wind = [0.0, 0.0, 0.0]
+    
+    sim.add_floor(height=-1.0, friction=1.0)
+
+    pillow = sim.create_from_obj(
+        name="dress",
+        material="silk",
+        path="data/models/dress.obj",
+    )
+
+    sim.save_scene("default.json", name="default")
+    
 def pillow():
     sim = Simulation(substeps=40, iterations=2, gravity=-9.81, thickness=0.002)
     sim.wind = [0.0, 0.0, 0.0]
@@ -40,12 +54,12 @@ def pillow():
     sim.view()
     
 def curtain_from_scene():
-    sim = Simulation.load_scene("data/configs/scenes/curtain.json")
+    sim = Simulation.load_scene("data/configs/scenes/.json")
     sim.view()
     
 def save_scene():
     #DEBUG OPTION
-    sim = Simulation(substeps=10, iterations=2, gravity=-9.81, thickness=0.05);
+    sim = Simulation(substeps=10, iterations=2, gravity=-9.81, thickness=0.1);
     
     sim.add_floor(friction=0.5)
     
@@ -53,7 +67,7 @@ def save_scene():
         name="curtain",
         rows=80,
         cols=80,
-        spacing=0.05,
+        spacing=0.1,
         material="silk"
     )
     
@@ -62,9 +76,10 @@ def save_scene():
     sim.save_scene("data/configs/scenes/save_test.json", "test")
     
 if __name__ == "__main__":
-    match 2:
+    match 4:
         case 0 : curtain()
         case 1 : pillow()
         case 2 : curtain_from_scene()
         case 3: save_scene()
+        case 4: dress()
         

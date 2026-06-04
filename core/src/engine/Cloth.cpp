@@ -28,9 +28,9 @@ namespace Tissu {
             edgeCount[{tri.b, tri.c}]++;
             edgeCount[{tri.c, tri.a}]++;
         }
-        for (const auto& [edge, count] : edgeCount) {
+        for (const auto& [edge, count] : edgeCount) 
             if (count != 2) return false;
-        }
+        
         return true;
     }
 

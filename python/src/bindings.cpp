@@ -180,7 +180,7 @@ PYBIND11_MODULE(_cloth_sdk_core, m) {
         .def("init_grid", &ClothMesh::initGrid, 
             py::arg("rows"), py::arg("cols"), py::arg("spacing"), py::arg("out_cloth"), py::arg("solver"))
         .def("build_from_mesh", &ClothMesh::buildFromMesh, 
-            py::arg("positions"), py::arg("indices"), py::arg("out_cloth"), py::arg("solver"));
+            py::arg("positions"), py::arg("indices"), py::arg("out_cloth"), py::arg("solver"), py::arg("mesh_path"));
 
     py::class_<Tissu::Cloth, std::shared_ptr<Tissu::Cloth>>(m, "Cloth")
         .def(py::init<const std::string&, std::shared_ptr<ClothMaterial>>(), 

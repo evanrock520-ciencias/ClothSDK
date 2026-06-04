@@ -36,7 +36,8 @@ public:
     void buildFromMesh(const std::vector<Eigen::Vector3d>& positions, 
                         const std::vector<int>& indices, 
                         Cloth& outCloth, 
-                        Solver& solver);
+                        Solver& solver,
+                        const std::string& meshPath);
 
 private:
     bool isClosed() const;

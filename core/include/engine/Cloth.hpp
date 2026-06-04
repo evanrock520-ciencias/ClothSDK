@@ -81,6 +81,7 @@ public:
     inline void setRestVolume(double restVolume) { m_restVolume = restVolume; }
     inline void setSpacing(double spacing) { m_spacing = spacing; }
     inline void setPin(const Pin& pin) { m_pin = pin; }
+    inline void setMeshPath(const std::string& meshPath) { m_meshPath = meshPath; }
 
     inline const std::string& getName() const { return m_name; }
     inline const ClothTopology getTopology() const { return m_topology; }
@@ -94,13 +95,16 @@ public:
     inline const double getRestVolume() const { return m_restVolume; }
     inline const double getSpacing() const { return m_spacing; }
     inline const Pin& getPin() const { return m_pin; }
+    inline const std::string& getMeshPath() const { return m_meshPath; }
 
     bool isGrid() const { return m_topology == ClothTopology::Grid; }
+    bool isMesh() const { return m_topology == ClothTopology::Mesh; }
     bool isClosed() const;
 
 private:
     std::string m_name;
     ClothTopology m_topology;
+    std::string m_meshPath;
     std::map<Edge, int> m_edgeFaceCount;
     std::shared_ptr<ClothMaterial> m_material;
     std::vector<int> m_particleIndices;

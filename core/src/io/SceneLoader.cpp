@@ -40,7 +40,6 @@ void SceneLoader::loadScene(const std::string& filepath, Solver& solver, World& 
 
     for (const auto& fabricData : data.at("fabrics")) {
         std::string name = fabricData.value("name", "cloth");
-
         auto material = std::make_shared<ClothMaterial>();
         auto cloth = std::make_shared<Cloth>(name, material);
 
@@ -90,7 +89,7 @@ void SceneLoader::loadFabric(const nlohmann::json& fabric, Cloth& outCloth, Solv
         if (!OBJLoader::load(path, positions, indices))
             throw std::runtime_error("SceneLoader: could not load OBJ: " + path);
 
-        mesh.buildFromMesh(positions, indices, outCloth, solver);
+        mesh.buildFromMesh(positions, indices, outCloth, solver, path);
     }
 
     if (fabric.contains("pins")) {
