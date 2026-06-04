@@ -101,11 +101,9 @@ class Simulation:
         sim._aero_forces = {}
         sim.app = None
 
-        sim._gravity_vector = np.array([0.0, -9.81, 0.0], dtype=np.float64)
-        sim._gravity_force = sdk.GravityForce(sim._gravity_vector)
-        sim.world.add_force(sim._gravity_force)
-
         sdk.SceneLoader.load_scene(filepath, sim.solver, sim.world)
+        sim._gravity_force = sdk.GravityForce(sim.world.get_gravity())
+        sim.world.add_force(sim._gravity_force)
 
         for cloth in sim.world.get_cloths():
             fabric = Fabric.__new__(Fabric)
