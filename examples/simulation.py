@@ -15,6 +15,7 @@ def curtain():
     
     curtain.pin_top_corners()
     sim.load_physics("data/configs/physics/realtime.json")
+    print(curtain)
     
     @sim.on_frame(60)
     def unpin():

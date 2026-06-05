@@ -556,6 +556,15 @@ class Fabric:
     def get_pins(self):
         return self._pins
     
+    def particle_count(self) -> int:
+        return len(self.get_positions())
+    
+    def is_pinned(self) -> bool:
+        return len(self._pins) != 0
+    
+    def __repr__(self):
+        return f"('{self.name}', {self.particle_count()} particles)"
+    
 class Material:
     _BUILTIN_PRESETS = {
         "silk":    (0.1,  1e-9,  1e-8,  0.1),
