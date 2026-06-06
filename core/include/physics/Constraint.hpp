@@ -62,6 +62,8 @@ public:
 
     virtual double getLambda() { return m_lambda; }
 
+    virtual void setLambda(double lambda) { m_lambda = lambda; }
+
     virtual std::vector<int> getParticleIds() const = 0;
 
 protected:

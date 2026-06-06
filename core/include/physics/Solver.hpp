@@ -37,6 +37,7 @@ public:
     int addParticle(const Particle& p);
     void clear();
     const std::vector<Particle>& getParticles() const;
+    std::vector<Particle>& getParticles() { return m_particles; }
     void setParticleInverseMass(int id, double invMass);
     void addMassToParticle(int id, double mass);
 
