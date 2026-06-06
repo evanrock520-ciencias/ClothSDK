@@ -24,6 +24,7 @@ set(CORE_SOURCES
     src/io/SceneLoader.cpp
     src/io/SceneExporter.cpp
     src/io/AlembicExporter.cpp
+    src/io/StateSerializer.cpp
     src/utils/Logger.cpp
 )
 
