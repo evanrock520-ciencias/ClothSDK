@@ -32,9 +32,11 @@ namespace Tissu {
 
         double substepDt = deltaTime / static_cast<double>(m_substeps);
         
-        for (int i = 0; i < m_substeps; i++) {
+        for (int i = 0; i < m_substeps; i++) 
             step(world, substepDt);
-        }
+        
+        m_currentFrame++;
+        m_currentTime += deltaTime;
     }
 
     void Solver::step(World& world, double dt) {
@@ -76,6 +78,9 @@ namespace Tissu {
             m_particles[i].setPosition(m_initialPositions[i]);
             m_particles[i].setOldPosition(m_initialPositions[i]);
         }
+
+        m_currentFrame = 0;
+        m_currentTime = 0.0;
     }
 
     void Solver::clear() {
@@ -86,6 +91,8 @@ namespace Tissu {
         m_batches.clear();
         m_transientPins.clear();
         m_graphBuilt = false;
+        m_currentFrame = 0;
+        m_currentTime = 0.0;
     }
 
     const std::vector<Particle>& Solver::getParticles() const {
