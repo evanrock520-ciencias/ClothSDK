@@ -8,6 +8,7 @@ add_executable(unit_tests
     physics/test_sphere_collider.cpp
     data-structures/test_spatial_hash.cpp
     io/test_config_loader.cpp
+    io/test_state_serializer.cpp
 )
 
 add_executable(integration
