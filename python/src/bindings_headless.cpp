@@ -11,6 +11,7 @@
 #include "engine/World.hpp"
 #include "io/SceneLoader.hpp"
 #include "io/SceneExporter.hpp"
+#include "io/StateSerializer.hpp"
 #include "physics/Particle.hpp"
 #include "physics/Constraint.hpp"
 #include "physics/DistanceConstraint.hpp"
@@ -218,6 +219,10 @@ PYBIND11_MODULE(_cloth_sdk_core, m) {
     
     py::class_<SceneExporter>(m, "SceneExporter")
         .def_static("save_scene", &SceneExporter::saveScene);
+
+    py::class_<StateSerializer>(m, "StateSerializer")
+        .def_static("load", &StateSerializer::load)
+        .def_static("save", &StateSerializer::save);
 
     py::class_<Logger>(m, "Logger")
     .def_static("info", &Logger::info, py::arg("message"))

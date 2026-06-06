@@ -29,6 +29,7 @@
 #include "io/OBJLoader.hpp"
 #include "io/OBJExporter.hpp"
 #include "io/ConfigLoader.hpp"
+#include "io/StateSerializer.hpp"
 #include "physics/VolumeConstraint.hpp"
 #include "utils/Logger.hpp"
 #include "math/Types.hpp"
@@ -228,6 +229,10 @@ PYBIND11_MODULE(_cloth_sdk_core, m) {
     py::class_<SceneExporter>(m, "SceneExporter")
         .def_static("save_scene", &SceneExporter::saveScene);
     
+    py::class_<StateSerializer>(m, "StateSerializer")
+        .def_static("load", &StateSerializer::load)
+        .def_static("save", &StateSerializer::save);
+
     py::class_<Logger>(m, "Logger")
     .def_static("info", &Logger::info, py::arg("message"))
     .def_static("warn", &Logger::warn, py::arg("message"))
