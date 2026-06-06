@@ -154,7 +154,7 @@ PYBIND11_MODULE(_cloth_sdk_core, m) {
         .def("update", &Solver::update, py::arg("world"), py::arg("delta_time"))
         .def("clear", &Solver::clear)
         .def("add_particle", &Solver::addParticle)
-        .def("get_particles", &Solver::getParticles, py::return_value_policy::reference_internal)
+        .def("get_particles", static_cast<const std::vector<Particle>& (Solver::*)() const>(&Solver::getParticles), py::return_value_policy::reference_internal)
         .def("set_substeps", &Solver::setSubsteps)
         .def("set_iterations", &Solver::setIterations)
         .def("get_iterations", &Solver::getIterations)
