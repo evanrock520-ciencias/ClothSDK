@@ -402,6 +402,9 @@ class Simulation:
     def save_state(self, filepath: str = "default.tissu"):
         sdk.StateSerializer.save(filepath, self.solver, self.world)
         
+    def load_state(self, filepath: str):
+        sdk.StateSerializer.load(filepath, self.solver, self.world)
+        
 class Fabric:
     def __init__(self, name: str, material: Material):
         self.name = name
