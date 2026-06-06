@@ -30,20 +30,19 @@ def curtain():
     
 def state():
     #DEBUG
-    sim = Simulation(substeps=40, iterations=2, gravity=-9.81, thickness=0.002)
-    sim.wind = [0.0, 0.0, 0.0]
-    
-    sim.add_floor(height=-1.0, friction=1.0)
-
+    sim = Simulation(substeps=10, iterations=2, gravity=-9.81, thickness=0.002)
     curtain = sim.create_grid(
         name="curtain",
-        rows=20,
-        cols=20,
+        rows=80,
+        cols=80,
         spacing=0.05,
         material="silk"
     )
-
-    sim.save_state("state.tissu")
+    
+    curtain.pin_top_corners()
+    
+    sim.load_state("data/states/frame121.tissu")
+    sim.view()
     
 def pillow():
     sim = Simulation(substeps=40, iterations=2, gravity=-9.81, thickness=0.002)
@@ -68,7 +67,7 @@ def pillow():
     sim.view()
     
 def curtain_from_scene():
-    sim = Simulation.load_scene("data/configs/scenes/.json")
+    sim = Simulation.load_scene("data/configs/scenes/curtain.json")
     sim.view()
     
 def save_scene():
