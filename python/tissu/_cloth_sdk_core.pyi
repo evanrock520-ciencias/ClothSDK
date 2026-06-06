@@ -192,6 +192,13 @@ class SpatialHash:
 class SphereCollider(Collider):
     def __init__(self, center: numpy.ndarray[numpy.float64[3, 1]], radius: float, friction: float) -> None: ...
 
+class StateSerializer:
+    def __init__(self, *args, **kwargs) -> None: ...
+    @staticmethod
+    def load(arg0: str, arg1: Solver, arg2: World) -> bool: ...
+    @staticmethod
+    def save(arg0: str, arg1: Solver, arg2: World) -> bool: ...
+
 class Triangle:
     a: int
     b: int

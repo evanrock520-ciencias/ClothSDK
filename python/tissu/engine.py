@@ -399,6 +399,9 @@ class Simulation:
         """
         sdk.ConfigLoader.save_physics(filepath, self.solver, self.world, name)
         
+    def save_state(self, filepath: str = "default.tissu"):
+        sdk.StateSerializer.save(filepath, self.solver, self.world)
+        
 class Fabric:
     def __init__(self, name: str, material: Material):
         self.name = name
