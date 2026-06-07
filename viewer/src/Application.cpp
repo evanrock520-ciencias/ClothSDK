@@ -231,20 +231,28 @@ void Application::processInput() {
     }
     spaceWasPressed = spaceIsPressed;
 
-    if (glfwGetKey(m_window, GLFW_KEY_S)) {
-        Logger::info("Taking snapshot...");
+    static bool sWasPressed = false;
+    bool sIsPressed = (glfwGetKey(m_window, GLFW_KEY_S) == GLFW_PRESS);
+
+    if (sIsPressed && !sWasPressed) {
         int frame = m_solver->getCurrentFrame();
         const std::string& cloth_name = m_cloth->getName();
         std::string name = "data/snapshots/" + cloth_name + "On" + std::to_string(frame) + ".obj";
         OBJExporter::exportOBJ(name, *m_cloth, *m_solver);
+        Logger::info("Taking snapshot: " + name);
     }
+    sWasPressed = sIsPressed;
 
-    if (glfwGetKey(m_window, GLFW_KEY_G)) {
-        Logger::info("Saving state...");
+    static bool gWasPressed = false;
+    bool gIsPressed = (glfwGetKey(m_window, GLFW_KEY_G) == GLFW_PRESS);
+    
+    if (gIsPressed && !gWasPressed) {
         int frame = m_solver->getCurrentFrame();
         std::string name = "data/states/frame" + std::to_string(frame) + ".tissu";
         StateSerializer::save(name, *m_solver, *m_world);
+        Logger::info("Saving state: " + name);
     }
+    gWasPressed = gIsPressed;
 
     static bool rWasPressed = false;
     bool rIsPressed = (glfwGetKey(m_window, GLFW_KEY_R) == GLFW_PRESS);
