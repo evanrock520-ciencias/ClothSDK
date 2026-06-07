@@ -194,7 +194,6 @@ bool StateSerializer::load(const std::string &path, Solver& solver, World& world
     // Colliders
     uint32_t collidersCount;
     if (!read(&collidersCount, sizeof(uint32_t))) return false;
-    Logger::info("There are " + std::to_string(collidersCount) + " colliders");
 
     for (size_t idx = 0; idx < collidersCount; idx++) {
         uint8_t type;
@@ -208,7 +207,6 @@ bool StateSerializer::load(const std::string &path, Solver& solver, World& world
             Eigen::Vector3d center;
             double radius;
 
-            Logger::info("The collider is a sphere.");
             if (!read(&center, 3 * sizeof(double))) return false;
             if (!read(&radius, sizeof(double))) return false;
 
@@ -221,8 +219,6 @@ bool StateSerializer::load(const std::string &path, Solver& solver, World& world
             if (!read(&origin, 3 * sizeof(double))) return false;
             if (!read(&normal, 3 * sizeof(double))) return false;
 
-            Logger::info("The collider is a plane.");
-
             world.addPlaneCollider(origin, normal, friction);
             break;
         }
@@ -233,8 +229,6 @@ bool StateSerializer::load(const std::string &path, Solver& solver, World& world
             if (!read(&start, 3 * sizeof(double))) return false;
             if (!read(&end, 3 * sizeof(double))) return false;
             if (!read(&radius, sizeof(double))) return false;
-
-            Logger::info("The collider is a capsulle.");
 
             world.addCapsuleCollider(start, end, radius, friction);
             break;
