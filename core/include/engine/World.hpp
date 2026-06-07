@@ -16,6 +16,7 @@
 
 #pragma once
 
+#include <cstddef>
 #include <cstdint>
 #include <memory>
 #include <vector>
@@ -55,7 +56,7 @@ public:
     inline const std::vector<std::shared_ptr<Collider>>& getColliders() const { return m_colliders; }
     inline const std::vector<std::shared_ptr<Force>>& getForces() const { return m_forces; }
 
-    inline uint32_t collidersCount() { return m_colliders.size(); }
+    inline size_t collidersCount() { return m_colliders.size(); }
 
 private:
     std::vector<std::shared_ptr<Cloth>> m_cloths;
