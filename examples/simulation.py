@@ -28,19 +28,21 @@ def curtain():
         fps=30
     )
     
-def dress():
-    sim = Simulation(substeps=40, iterations=2, gravity=-9.81, thickness=0.002)
-    sim.wind = [0.0, 0.0, 0.0]
-    
-    sim.add_floor(height=-1.0, friction=1.0)
-
-    pillow = sim.create_from_obj(
-        name="dress",
-        material="silk",
-        path="data/models/dress.obj",
+def state():
+    #DEBUG
+    sim = Simulation(substeps=10, iterations=2, gravity=-9.81, thickness=0.002)
+    curtain = sim.create_grid(
+        name="curtain",
+        rows=80,
+        cols=80,
+        spacing=0.05,
+        material="silk"
     )
-
-    sim.save_scene("default.json", name="default")
+    
+    curtain.pin_top_corners()
+    
+    sim.load_state("data/states/frame121.tissu")
+    sim.view()
     
 def pillow():
     sim = Simulation(substeps=40, iterations=2, gravity=-9.81, thickness=0.002)
@@ -65,7 +67,7 @@ def pillow():
     sim.view()
     
 def curtain_from_scene():
-    sim = Simulation.load_scene("data/configs/scenes/.json")
+    sim = Simulation.load_scene("data/configs/scenes/curtain.json")
     sim.view()
     
 def save_scene():
@@ -87,10 +89,10 @@ def save_scene():
     sim.save_scene("data/configs/scenes/save_test.json", "test")
     
 if __name__ == "__main__":
-    match 0:
+    match 4:
         case 0 : curtain()
         case 1 : pillow()
         case 2 : curtain_from_scene()
         case 3: save_scene()
-        case 4: dress()
+        case 4: state()
         

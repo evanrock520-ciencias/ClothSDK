@@ -14,7 +14,9 @@
 #include "Application.hpp"
 #include "engine/Cloth.hpp"
 #include "engine/ClothMesh.hpp"
+#include "io/OBJExporter.hpp"
 #include "io/SceneExporter.hpp"
+#include "io/StateSerializer.hpp"
 #include "math/Types.hpp"
 #include "physics/GravityForce.hpp"
 #include "utils/Logger.hpp"
@@ -228,6 +230,29 @@ void Application::processInput() {
         Logger::info(m_isPaused ? "Simulation Paused" : "Simulation Resumed");
     }
     spaceWasPressed = spaceIsPressed;
+
+    static bool sWasPressed = false;
+    bool sIsPressed = (glfwGetKey(m_window, GLFW_KEY_S) == GLFW_PRESS);
+
+    if (sIsPressed && !sWasPressed) {
+        int frame = m_solver->getCurrentFrame();
+        const std::string& cloth_name = m_cloth->getName();
+        std::string name = "data/snapshots/" + cloth_name + "On" + std::to_string(frame) + ".obj";
+        OBJExporter::exportOBJ(name, *m_cloth, *m_solver);
+        Logger::info("Taking snapshot: " + name);
+    }
+    sWasPressed = sIsPressed;
+
+    static bool gWasPressed = false;
+    bool gIsPressed = (glfwGetKey(m_window, GLFW_KEY_G) == GLFW_PRESS);
+    
+    if (gIsPressed && !gWasPressed) {
+        int frame = m_solver->getCurrentFrame();
+        std::string name = "data/states/frame" + std::to_string(frame) + ".tissu";
+        StateSerializer::save(name, *m_solver, *m_world);
+        Logger::info("Saving state: " + name);
+    }
+    gWasPressed = gIsPressed;
 
     static bool rWasPressed = false;
     bool rIsPressed = (glfwGetKey(m_window, GLFW_KEY_R) == GLFW_PRESS);

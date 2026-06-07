@@ -37,6 +37,7 @@ public:
     int addParticle(const Particle& p);
     void clear();
     const std::vector<Particle>& getParticles() const;
+    std::vector<Particle>& getParticles() { return m_particles; }
     void setParticleInverseMass(int id, double invMass);
     void addMassToParticle(int id, double mass);
 
@@ -48,6 +49,9 @@ public:
     inline int getIterations() const { return m_iterations; }
     inline double getCollisionCompliance() const { return m_collisionCompliance; }
     inline int getParticleCount() const { return static_cast<int>(m_particles.size()); }
+    inline int getCurrentFrame() const { return m_currentFrame; }
+    inline double getCurrentTime() const { return m_currentTime; }
+    inline const std::vector<std::unique_ptr<Constraint>>& getConstraints() const { return m_constraints; }
 
     void addDistanceConstraint(int idA, int idB, double compliance);
     void addBendingConstraint(int a, int b, int c, int d, double restAngle, double compliance);
@@ -87,6 +91,9 @@ private:
     std::vector<std::vector<int>> m_batches;
     bool m_graphBuilt;
     
+    int m_currentFrame = 0;
+    double m_currentTime = 0.0;
+
     std::vector<std::unique_ptr<PinConstraint>> m_transientPins;
 };
 
