@@ -2,8 +2,13 @@
 #include <filesystem>
 #include <fstream>
 #include <stdexcept>
+#include <vector>
+#include "engine/Cloth.hpp"
+#include "engine/ClothMesh.hpp"
 #include "engine/World.hpp"
 #include "io/StateSerializer.hpp"
+#include "math/Types.hpp"
+#include "physics/Constraint.hpp"
 #include "physics/Particle.hpp"
 #include "physics/Solver.hpp"
 
@@ -130,4 +135,63 @@ TEST_F(StateSerializerTest, RoundTripParticleState) {
     EXPECT_TRUE(loaded[0].getPosition().isApprox(original[0].getPosition()));
     EXPECT_TRUE(loaded[0].getOldPosition().isApprox(original[0].getOldPosition()));
     EXPECT_NEAR(loaded[0].getInverseMass(), original[0].getInverseMass(), 1e-9);
+}
+
+TEST_F(StateSerializerTest, RoundTripParticles) {
+    Solver solver;
+    World world;
+    auto material = std::make_shared<ClothMaterial>();
+    auto cloth = std::make_shared<Cloth>("test", material);
+
+    ClothMesh mesh;
+    mesh.initGrid(50, 50, 0.05, *cloth, solver);
+
+    for (size_t idx = 0; idx < 30; idx++)
+        solver.update(world, 1.0 / 60.0);
+
+    std::vector<Particle> initial = solver.getParticles();
+    StateSerializer::save(m_tempFile.string(), solver, world);
+
+    Solver loadedSolver;
+    World loadedWorld;
+    auto loadedMaterial = std::make_shared<ClothMaterial>();
+    auto loadedCloth = std::make_shared<Cloth>("test", material);
+    mesh.initGrid(50, 50, 50, *loadedCloth, loadedSolver);
+    StateSerializer::load(m_tempFile.string(), loadedSolver, loadedWorld);
+
+    std::vector<Particle> loaded = loadedSolver.getParticles();
+
+    for (size_t idx = 0; idx < solver.getParticleCount(); idx++) {
+        EXPECT_TRUE(initial[idx].getPosition().isApprox(loaded[idx].getPosition()));
+        EXPECT_TRUE(initial[idx].getOldPosition().isApprox(loaded[idx].getOldPosition()));
+        EXPECT_NEAR(initial[idx].getInverseMass(), loaded[idx].getInverseMass(), 1e-9);
+    }
+}
+
+TEST_F(StateSerializerTest, RoundTripConstraints) {
+Solver solver;
+    World world;
+    auto material = std::make_shared<ClothMaterial>();
+    auto cloth = std::make_shared<Cloth>("test", material);
+
+    ClothMesh mesh;
+    mesh.initGrid(50, 50, 0.05, *cloth, solver);
+
+    for (size_t idx = 0; idx < 30; idx++)
+        solver.update(world, 1.0 / 60.0);
+
+    const auto& initial = solver.getConstraints();
+    StateSerializer::save(m_tempFile.string(), solver, world);
+
+    Solver loadedSolver;
+    World loadedWorld;
+    auto loadedMaterial = std::make_shared<ClothMaterial>();
+    auto loadedCloth = std::make_shared<Cloth>("test", material);
+    mesh.initGrid(50, 50, 50, *loadedCloth, loadedSolver);
+    StateSerializer::load(m_tempFile.string(), loadedSolver, loadedWorld);
+
+    const auto& loaded = loadedSolver.getConstraints();
+
+    for (size_t idx = 0; idx < loaded.size(); idx++) 
+        EXPECT_NEAR(initial[idx]->getLambda(), loaded[idx]->getLambda(), 1e-9);
 }
