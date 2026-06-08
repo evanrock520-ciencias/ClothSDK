@@ -33,6 +33,8 @@ class CapsuleCollider : public Collider {
   inline const Eigen::Vector3d& getStart() const { return m_start; }
   inline const Eigen::Vector3d& getEnd() const { return m_end; }
 
+  void transform(const Eigen::Vector3d& position, const Eigen::Quaterniond& rotation) override;
+
  private:
   double m_radius;
   Eigen::Vector3d m_start;

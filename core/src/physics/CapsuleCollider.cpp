@@ -44,14 +44,30 @@ void CapsuleCollider::resolve(std::vector<Particle>& particles, double dt,
 
     if (distSq < collisionRadiusSq && distSq > 1e-9) {
       double dist = std::sqrt(distSq);
-
       Eigen::Vector3d normal = diff / dist;
 
       Eigen::Vector3d targetPos = closestPoint + (normal * collisionRadius);
-
       particle.setPosition(targetPos);
+
+      Eigen::Vector3d colliderVelocity = getVelocityAtPoint(targetPos, dt);
+      Eigen::Vector3d colliderDisplacement = colliderVelocity * dt;
+      Eigen::Vector3d particleDisplacement = particle.getPosition() - particle.getOldPosition();
+      Eigen::Vector3d relDisplacement = particleDisplacement - colliderDisplacement;
+
+      double normalVelMag = relDisplacement.dot(normal);
+      Eigen::Vector3d normalVel = normal * normalVelMag;
+      Eigen::Vector3d tangentVel = relDisplacement - normalVel;
+
+      Eigen::Vector3d newVelocity = normalVel + tangentVel * (1.0 - m_friction); 
+      particle.setOldPosition(particle.getPosition() - newVelocity);
     }
   }
+}
+
+void CapsuleCollider::transform(const Eigen::Vector3d& position, const Eigen::Quaterniond& rotation) {
+  m_start = position + rotation * (m_start - m_position);
+  m_end = position + rotation * (m_end - m_position);
+  Collider::transform(position, rotation);
 }
 
 }  // namespace Tissu

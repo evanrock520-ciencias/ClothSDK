@@ -17,6 +17,8 @@
 #pragma once
 
 #include <vector>
+#include "Eigen/Dense"
+#include "Eigen/src/Core/Matrix.h"
 
 namespace Tissu {
 
@@ -53,6 +55,20 @@ class Collider {
                        double thickness) = 0;
 
   /**
+   * @brief Transforms the collider's position and rotation.
+   *
+   * @param position New position of the collider.
+   * @param rotation New rotation of the collider.
+   */
+  virtual void transform(const Eigen::Vector3d& position, const Eigen::Quaterniond& rotation);
+
+  Eigen::Vector3d getLinearVelocity(double dt) const;
+
+  Eigen::Vector3d getAngularVelocity(double dt) const;
+
+  Eigen::Vector3d getVelocityAtPoint(const Eigen::Vector3d& point, double dt) const;
+
+  /**
    * @brief Configures the surface friction coefficient.
    *
    * @param friction Friction value in the range [0.0, 1.0]
@@ -68,6 +84,11 @@ class Collider {
    *
    */
   double m_friction = 0.5;
+
+  Eigen::Vector3d m_position = Eigen::Vector3d::Zero();
+  Eigen::Quaterniond m_rotation = Eigen::Quaterniond::Identity();
+  Eigen::Vector3d m_prevPosition = Eigen::Vector3d::Zero();
+  Eigen::Quaterniond m_prevRotation = Eigen::Quaterniond::Identity();
 };
 
 }  // namespace Tissu

@@ -25,18 +25,26 @@ void PlaneCollider::resolve(std::vector<Particle>& particles, double dt,
           particle.getPosition() + m_normal * penetration;
       particle.setPosition(newPosition);
 
-      Eigen::Vector3d velocity =
-          particle.getPosition() - particle.getOldPosition();
+      Eigen::Vector3d colliderVelocity = getVelocityAtPoint(newPosition, dt);
+      Eigen::Vector3d colliderDisplacement = colliderVelocity * dt;
+      Eigen::Vector3d particleDisplacement = particle.getPosition() - particle.getOldPosition();
+      Eigen::Vector3d relDisplacement = particleDisplacement - colliderDisplacement;
 
-      double normalVelMag = velocity.dot(m_normal);
+      double normalVelMag = relDisplacement.dot(m_normal);
       Eigen::Vector3d normalVel = m_normal * normalVelMag;
-      Eigen::Vector3d tangentVel = velocity - normalVel;
+      Eigen::Vector3d tangentVel = relDisplacement - normalVel;
 
       Eigen::Vector3d newVelocity = normalVel + tangentVel * (1.0 - m_friction);
 
       particle.setOldPosition(particle.getPosition() - newVelocity);
     }
   }
+}
+
+void PlaneCollider::transform(const Eigen::Vector3d& position, const Eigen::Quaterniond& rotation) {
+  m_origin = position;
+  m_normal = rotation * m_normal;
+  Collider::transform(position, rotation);
 }
 
 }  // namespace Tissu

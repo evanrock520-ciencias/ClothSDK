@@ -56,6 +56,8 @@ class PlaneCollider : public Collider {
    */
   void resolve(std::vector<Particle>& particles, double dt, double thickness);
 
+  void transform(const Eigen::Vector3d& position, const Eigen::Quaterniond& rotation) override;
+
   inline const Eigen::Vector3d& getOrigin() const { return m_origin; }
   inline const Eigen::Vector3d& getNormal() const { return m_normal; }
 

@@ -56,6 +56,8 @@ class SphereCollider : public Collider {
    */
   void resolve(std::vector<Particle>& particles, double dt, double thickness);
 
+  void transform(const Eigen::Vector3d& position, const Eigen::Quaterniond& rotation) override;
+
   inline const Eigen::Vector3d getCenter() const { return m_center; }
   inline double getRadius() const { return m_radius; }
 

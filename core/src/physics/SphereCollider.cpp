@@ -14,7 +14,7 @@ SphereCollider::SphereCollider(const Eigen::Vector3d& center, double radius,
 }
 
 void SphereCollider::resolve(std::vector<Particle>& particles, double dt,
-                             double thickness) {
+                             double thickness) {  
   double collisionRadius = m_radius + thickness;
 
   for (auto& particle : particles) {
@@ -32,18 +32,25 @@ void SphereCollider::resolve(std::vector<Particle>& particles, double dt,
       Eigen::Vector3d newPosition = m_center + normal * collisionRadius;
       particle.setPosition(newPosition);
 
-      Eigen::Vector3d velocity =
-          particle.getPosition() - particle.getOldPosition();
+      Eigen::Vector3d colliderVelocity = getVelocityAtPoint(newPosition, dt);
+      Eigen::Vector3d colliderDisplacement = colliderVelocity * dt;
+      Eigen::Vector3d particleDisplacement = particle.getPosition() - particle.getOldPosition();
+      Eigen::Vector3d relDisplacement = particleDisplacement - colliderDisplacement;
 
-      double normalVelMag = velocity.dot(normal);
+      double normalVelMag = relDisplacement.dot(normal);
       Eigen::Vector3d normalVel = normal * normalVelMag;
-      Eigen::Vector3d tangentVel = velocity - normalVel;
+      Eigen::Vector3d tangentVel = relDisplacement - normalVel;
 
       Eigen::Vector3d newVelocity = normalVel + tangentVel * (1.0 - m_friction);
 
       particle.setOldPosition(particle.getPosition() - newVelocity);
     }
   }
+}
+
+void SphereCollider::transform(const Eigen::Vector3d& position, const Eigen::Quaterniond& rotation) {
+  Collider::transform(position, rotation);
+  m_center = position;
 }
 
 }  // namespace Tissu
