@@ -95,6 +95,15 @@ class Simulation:
     def collision_compliance(self):
         return self._collision_compliance
     
+    @property
+    def fabrics(self):
+        return self.cloth_objects.values()
+    
+    def get_fabric(self, name: str) -> Fabric:
+        if name not in self.cloth_objects:
+            raise KeyError(f"Fabric '{name}' not found.")
+        return self.cloth_objects[name]
+    
     @classmethod
     def load_scene(cls, filepath: str) -> Simulation:
         sim = cls.__new__(cls)
@@ -145,8 +154,23 @@ class Simulation:
             return func
         return decorator
     
+    def on_every(self, n: int, start: int = 0, end: int = None):
+        def decorator(func):
+            stop = end if end is not None else 100_000
+            for frame in range(start, stop, n):
+                self.actions[frame].append(func)
+            return func
+        return decorator
+            
+    def on_range(self, start: int, end: int):
+        def decorator(func):
+            for frame in range(start, end):
+                self.actions[frame].append(func)
+            return func
+        return decorator
+    
     def simulate(self, frames: int, dt: float = 1/60):
-        for frame in range(frames):
+        for frame in tqdm(range(frames), desc="Simulating", unit="frame"):
             if frame in self.actions:
                 for action in self.actions[frame]:
                     action()
@@ -248,6 +272,11 @@ class Simulation:
         self.cloth_objects = {}
         self._aero_forces = {}
         sdk.Logger.info("Simulation world reset.")
+        
+    def soft_reset(self, fabric_name: str = None):
+        if fabric_name:
+            pass
+        self.solver.soft_reset()
         
     def bake_alembic(self, filepath: str, start_frame: int = 0, end_frame: int = 120, fps: float = 60.0) -> bool:
         """
@@ -404,6 +433,17 @@ class Simulation:
         
     def load_state(self, filepath: str):
         sdk.StateSerializer.load(filepath, self.solver, self.world)
+        
+    def __repr__(self):
+        fabric_list = ", ".join(repr(fabric) for fabric in self.cloth_objects.values())
+    
+        return (
+            f"Simulation(substeps={self.substeps}, "
+            f"iterations={self.iterations}, "
+            f"gravity={self.gravity}, "
+            f"wind={self.wind})\n"
+            f"Fabrics: {fabric_list if fabric_list else 'none'}\n"
+        )
         
 class Fabric:
     def __init__(self, name: str, material: Material):
