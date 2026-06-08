@@ -105,3 +105,43 @@ TEST(SphereCollider, ParticleOnSphereCenterProjectsUpward) {
   double distance = (particles[0].getPosition() - center).norm();
   EXPECT_NEAR(distance, radius + 0.1, 1e-6);
 }
+
+TEST(SphereCollider, TransformUpdatesCenter) {
+  Eigen::Vector3d center(0.0, 0.0, 0.0);
+  double radius = 5.0;
+  SphereCollider sphere(center, radius, 0.0);
+
+  Eigen::Vector3d newPosition(10.0, 0.0, 0.0);
+  sphere.transform(newPosition, Eigen::Quaterniond::Identity());
+
+  EXPECT_NEAR(sphere.getCenter().x(), newPosition.x(), 1e-6);
+  EXPECT_NEAR(sphere.getCenter().y(), newPosition.y(), 1e-6);
+  EXPECT_NEAR(sphere.getCenter().z(), newPosition.z(), 1e-6);
+}
+
+TEST(SphereCollider, TransformWithRotationDoesNotChangeCenter) {
+  Eigen::Vector3d center(0.0, 0.0, 0.0);
+  double radius = 5.0;
+  SphereCollider sphere(center, radius, 0.0);
+
+  Eigen::Quaterniond rotation(Eigen::AngleAxisd(M_PI / 4, Eigen::Vector3d::UnitY()));
+  sphere.transform(center, rotation);
+
+  EXPECT_NEAR(sphere.getCenter().x(), center.x(), 1e-6);
+  EXPECT_NEAR(sphere.getCenter().y(), center.y(), 1e-6);
+  EXPECT_NEAR(sphere.getCenter().z(), center.z(), 1e-6);
+}
+
+TEST(SphereCollider, TransformWithRotationAndTranslationUpdatesCenter) {
+  Eigen::Vector3d center(0.0, 0.0, 0.0);
+  double radius = 5.0;
+  SphereCollider sphere(center, radius, 0.0);
+
+  Eigen::Vector3d newPosition(10.0, 5.0, -3.0);
+  Eigen::Quaterniond rotation(Eigen::AngleAxisd(M_PI / 4, Eigen::Vector3d::UnitY()));
+  sphere.transform(newPosition, rotation);
+
+  EXPECT_NEAR(sphere.getCenter().x(), newPosition.x(), 1e-6);
+  EXPECT_NEAR(sphere.getCenter().y(), newPosition.y(), 1e-6);
+  EXPECT_NEAR(sphere.getCenter().z(), newPosition.z(), 1e-6);
+}

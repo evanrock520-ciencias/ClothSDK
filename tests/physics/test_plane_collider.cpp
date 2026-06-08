@@ -92,3 +92,17 @@ TEST(PlaneCollider, NoFrictionDoesNotChangeTangentialVelocity) {
 
   EXPECT_NEAR(velocityX, 1, 1e-9);
 }
+
+TEST(PlaneCollider, TransformChangesPositionAndNormal) {
+  Eigen::Vector3d origin(0.0, 0.0, 0.0);
+  Eigen::Vector3d normal(0.0, 1.0, 0.0);
+  PlaneCollider collider(origin, normal, 0.0);
+
+  Eigen::Vector3d newPosition(1.0, 2.0, 3.0);
+  Eigen::Quaterniond newRotation(Eigen::AngleAxisd(M_PI / 4, Eigen::Vector3d::UnitX()));
+
+  collider.transform(newPosition, newRotation);
+
+  EXPECT_EQ(collider.getOrigin(), newPosition);
+  EXPECT_TRUE(collider.getNormal().isApprox(newRotation * normal));
+}
