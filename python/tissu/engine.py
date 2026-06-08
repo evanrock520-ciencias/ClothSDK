@@ -17,6 +17,7 @@ class Simulation:
         self.cloth_objects = {}  
         self._aero_forces = {}   
         self._pins = {}
+        self._colliders = {}
         
         self.substeps = substeps
         self.iterations = iterations
@@ -99,6 +100,14 @@ class Simulation:
     def fabrics(self):
         return self.cloth_objects.values()
     
+    @property
+    def time(self):
+        return self.solver.get_time()
+    
+    @property
+    def frame(self):
+        return self.solver.get_frame()
+    
     def get_fabric(self, name: str) -> Fabric:
         if name not in self.cloth_objects:
             raise KeyError(f"Fabric '{name}' not found.")
@@ -148,14 +157,14 @@ class Simulation:
         return sim
     
     def on_frame(self, frame: int):
-        def decorator(func):
+        def decorator(func, sim=self):
             self.actions[frame].append(func)
             sdk.Logger.info("Action added on " + str(frame) + " frame")
             return func
         return decorator
     
     def on_every(self, n: int, start: int = 0, end: int = None):
-        def decorator(func):
+        def decorator(func, sim=self):
             stop = end if end is not None else 100_000
             for frame in range(start, stop, n):
                 self.actions[frame].append(func)
@@ -163,7 +172,7 @@ class Simulation:
         return decorator
             
     def on_range(self, start: int, end: int):
-        def decorator(func):
+        def decorator(func, sim=self):
             for frame in range(start, end):
                 self.actions[frame].append(func)
             return func
@@ -173,7 +182,7 @@ class Simulation:
         for frame in tqdm(range(frames), desc="Simulating", unit="frame"):
             if frame in self.actions:
                 for action in self.actions[frame]:
-                    action()
+                    action(self)
             self.step(dt)
     
     def add_fabric(self, fabric: Fabric) -> None:
@@ -238,26 +247,30 @@ class Simulation:
                 f"Expected str, dict, Material or None."
             )
 
-    def add_floor(self, height: float = 0.0, friction: float =0.5):
+    def add_floor(self, name: str, height: float = 0.0, friction: float =0.5):
         """
         Adds a horizontal floor to the simulation.
 
         Args:
+            name: Name of the floor collider.
             height: Vertical position of the floor in world space.
             friction: Surface friction in the range [0.0, 1.0].
                     0.0 is completely slippery, 1.0 is fully grippy.
         """
         self.world.add_plane_collider([0.0, float(height), 0.0], [0.0, 1.0, 0.0], float(friction))
-        sdk.Logger.info(f"Added collision floor at Y={height}")
+        sdk.Logger.info(f"Added collision floor '{name}' at Y={height}")
+        self._colliders[name] = len(self.world.get_colliders()) - 1
 
-    def add_sphere(self, name: str, center: np.array, radius: float, friction: float = 0.5) -> None:
+    def add_sphere(self, name: str, center: np.array, radius: float, friction: float = 0.5):
         self.world.add_sphere_collider(center, float(radius), float(friction))
         sdk.Logger.info(f"Added sphere collider '{name}' at {center}")
-        
-    def add_capsule(self, start: np.array, end: np.array, radius: float = 1.0, friction: float = 0.5) -> None:
+        self._colliders[name] = len(self.world.get_colliders()) - 1
+
+    def add_capsule(self, name: str, start: np.array, end: np.array, radius: float = 1.0, friction: float = 0.5):
         self.world.add_capsule_collider(start, end, float(radius), float(friction))
-        sdk.Logger.info(f"Added capsule collider")
-    
+        sdk.Logger.info(f"Added capsule collider '{name}' from {start} to {end}")
+        self._colliders[name] = len(self.world.get_colliders()) - 1
+
     def step(self, dt: float = 1.0/60.0):
         self.solver.update(self.world, dt)
         
@@ -319,7 +332,7 @@ class Simulation:
         for frame_idx in tqdm(range(total_frames), desc="Baking Alembic", unit="frames"):
             if frame_idx in self.actions:
                 for action in self.actions[frame_idx]:
-                    action()
+                    action(self)
             
             self.step(dt)
             current_pos = [p.get_position() for p in self.solver.get_particles()] 
@@ -433,6 +446,16 @@ class Simulation:
         
     def load_state(self, filepath: str):
         sdk.StateSerializer.load(filepath, self.solver, self.world)
+        
+    def move_collider(self, name: str, new_position: np.array, new_rotation: np.array = None):
+        if new_rotation is None:
+            new_rotation = np.array([0.0, 0.0, 0.0, 1.0])
+        
+        index = self._colliders.get(name)
+        if index is None:
+            raise KeyError(f"Collider '{name}' not found in simulation.")
+        
+        self.world.move_collider(index, new_position, new_rotation)
         
     def __repr__(self):
         fabric_list = ", ".join(repr(fabric) for fabric in self.cloth_objects.values())
