@@ -5,59 +5,58 @@
 
 namespace Tissu {
 
-Particle::Particle(const Eigen::Vector3d& pos) : m_position(pos), m_oldPosition(pos), m_acceleration(Eigen::Vector3d::Zero()), inverseMass(1.0) {}
+Particle::Particle(const Eigen::Vector3d &pos)
+    : m_position(pos), m_oldPosition(pos),
+      m_acceleration(Eigen::Vector3d::Zero()), inverseMass(1.0) {}
 
-void Particle::addForce(const Eigen::Vector3d& force) {
-    double fx = force.x() * inverseMass;
-    double fy = force.y() * inverseMass;
-    double fz = force.z() * inverseMass;
+void Particle::addForce(const Eigen::Vector3d &force) {
+  double fx = force.x() * inverseMass;
+  double fy = force.y() * inverseMass;
+  double fz = force.z() * inverseMass;
 
-    #pragma omp atomic
-    m_acceleration[0] += fx;
-    #pragma omp atomic
-    m_acceleration[1] += fy;
-    #pragma omp atomic
-    m_acceleration[2] += fz;
+#pragma omp atomic
+  m_acceleration[0] += fx;
+#pragma omp atomic
+  m_acceleration[1] += fy;
+#pragma omp atomic
+  m_acceleration[2] += fz;
 }
 
-void Particle::clearForces() {
-    m_acceleration = Eigen::Vector3d::Zero();
-}
+void Particle::clearForces() { m_acceleration = Eigen::Vector3d::Zero(); }
 
 void Particle::integrate(double deltaTime) {
-    if (inverseMass <= 0.0) {
-        m_acceleration = Eigen::Vector3d::Zero();
-        m_oldPosition = m_position; 
-        return;
-    }
+  if (inverseMass <= 0.0) {
+    m_acceleration = Eigen::Vector3d::Zero();
+    m_oldPosition = m_position;
+    return;
+  }
 
-    Eigen::Vector3d velocity = (m_position - m_oldPosition) * m_damping;
-    Eigen::Vector3d currentPos = m_position;
+  Eigen::Vector3d velocity = (m_position - m_oldPosition) * m_damping;
+  Eigen::Vector3d currentPos = m_position;
 
-    m_position = m_position + velocity + m_acceleration * (deltaTime * deltaTime);
-    
-    m_oldPosition = currentPos;
-    clearForces();
+  m_position = m_position + velocity + m_acceleration * (deltaTime * deltaTime);
+
+  m_oldPosition = currentPos;
+  clearForces();
 }
 
-void Particle::setPosition(const Eigen::Vector3d& newPosition) {
-    m_position = newPosition;
+void Particle::setPosition(const Eigen::Vector3d &newPosition) {
+  m_position = newPosition;
 }
 
-void Particle::setInverseMass(double invMass) {
-    inverseMass = invMass;
-}
+void Particle::setInverseMass(double invMass) { inverseMass = invMass; }
 
-void Particle::setOldPosition(const Eigen::Vector3d& newOldPosition) {
-    m_oldPosition = newOldPosition;
+void Particle::setOldPosition(const Eigen::Vector3d &newOldPosition) {
+  m_oldPosition = newOldPosition;
 }
 
 void Particle::addMass(double mass) {
-    if (inverseMass == 0.0) return;
+  if (inverseMass == 0.0)
+    return;
 
-    double currentMass = 1.0 / inverseMass;
-    currentMass += mass;
-    inverseMass = 1.0 / currentMass;
+  double currentMass = 1.0 / inverseMass;
+  currentMass += mass;
+  inverseMass = 1.0 / currentMass;
 }
 
-}
+} // namespace Tissu

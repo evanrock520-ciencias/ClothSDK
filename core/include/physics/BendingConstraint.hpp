@@ -25,17 +25,18 @@ namespace Tissu {
 
 class BendingConstraint : public Constraint {
 public:
-    BendingConstraint(int idA, int idB, int idc, int idD, double restAngle, double compliance);
+  BendingConstraint(int idA, int idB, int idc, int idD, double restAngle,
+                    double compliance);
 
-    void solve(std::vector<Particle>& particles, double dt) override;
+  void solve(std::vector<Particle> &particles, double dt) override;
 
-    std::vector<int> getParticleIds() const override {
-        return {m_idA, m_idB, m_idC, m_idD};
-    }
+  std::vector<int> getParticleIds() const override {
+    return {m_idA, m_idB, m_idC, m_idD};
+  }
 
 private:
-    int m_idA, m_idB, m_idC, m_idD;
-    double m_restAngle;
+  int m_idA, m_idB, m_idC, m_idD;
+  double m_restAngle;
 };
 
-}
+} // namespace Tissu

@@ -14,15 +14,14 @@
  * limitations under the License.
  */
 
-
 #pragma once
 
 #include "engine/World.hpp"
 #include "math/Types.hpp"
-#include <string>
-#include <nlohmann/json.hpp>
 #include <Eigen/Dense>
 #include <fstream>
+#include <nlohmann/json.hpp>
+#include <string>
 
 namespace Tissu {
 
@@ -32,81 +31,89 @@ class ClothMesh;
 /**
  * @class ConfigLoader
  * @brief Static utility class for managing configuration persistence.
- * 
- * This class handles the conversion between SDK objects 
+ *
+ * This class handles the conversion between SDK objects
  * and JSON files.
  */
 
 class ConfigLoader {
 public:
+  /**
+   * @brief Loads a material preset from a JSON file.
+   *
+   * @param filepath Path to the configuration file.
+   * @param solver The solver instance to configure.
+   * @param outMaterial The material object that will be updated with loaded
+   * data.
+   */
+  static void loadMaterial(const std::string &filepath,
+                           ClothMaterial &outMaterial);
 
-    /**
-     * @brief Loads a material preset from a JSON file.
-     * 
-     * @param filepath Path to the configuration file.
-     * @param solver The solver instance to configure.
-     * @param outMaterial The material object that will be updated with loaded data.
-     */
-    static void loadMaterial(const std::string& filepath, ClothMaterial& outMaterial);
+  /**
+   * @brief Loads a material preset from a JSON object.
+   *
+   * @param data JSON object containing material configuration.
+   * @param outMaterial The material object that will be updated with loaded
+   * data.
+   */
+  static void loadMaterialFromJson(const nlohmann::json &data,
+                                   ClothMaterial &outMaterial);
 
-    /**
-     * @brief Loads a material preset from a JSON object.
-     * 
-     * @param data JSON object containing material configuration.
-     * @param outMaterial The material object that will be updated with loaded data.
-     */
-    static void loadMaterialFromJson(const nlohmann::json& data, ClothMaterial& outMaterial);
+  /**
+   * @brief Loads a physics preset from a JSON file.
+   *
+   * @param filepath Path to the configuration file.
+   * @param solver The solver instance to configure.
+   * @param outMaterial The material object that will be updated with loaded
+   * data.
+   */
+  static void loadPhysics(const std::string &filepath, Solver &solver,
+                          World &world);
 
-    /**
-     * @brief Loads a physics preset from a JSON file.
-     * 
-     * @param filepath Path to the configuration file.
-     * @param solver The solver instance to configure.
-     * @param outMaterial The material object that will be updated with loaded data.
-     */
-    static void loadPhysics(const std::string& filepath, Solver& solver, World& world);
+  /**
+   * @brief Loads a physics preset from a JSON object.
+   *
+   * @param data JSON object containing physics configuration.
+   * @param solver The solver instance to configure.
+   * @param world The physics world to configure.
+   */
+  static void loadPhysicsFromJson(const nlohmann::json &data, Solver &solver,
+                                  World &world);
 
-    /**
-     * @brief Loads a physics preset from a JSON object.
-     * 
-     * @param data JSON object containing physics configuration.
-     * @param solver The solver instance to configure.
-     * @param world The physics world to configure.
-     */
-    static void loadPhysicsFromJson(const nlohmann::json& data, Solver& solver, World& world);
+  /**
+   * @brief Saves the current material configuration to a JSON file.
+   *
+   * @param filepath The destination path where the config file will be created.
+   * @param material The material properties to be serialized.
+   */
+  static void saveMaterial(const std::string &filepath,
+                           const ClothMaterial &material,
+                           const std::string &name);
 
-    /**
-     * @brief Saves the current material configuration to a JSON file.
-     *
-     * @param filepath The destination path where the config file will be created.
-     * @param material The material properties to be serialized.
-     */
-    static void saveMaterial(const std::string& filepath, const ClothMaterial& material, const std::string& name);
+  /**
+   * @brief Saves the current physics configuration to a JSON file.
+   *
+   * @param filepath The destination path where the config file will be created.
+   * @param solver The solver instance whose parameters need to be saved.
+   * @param world The physics world context to include in the configuration.
+   */
+  static void savePhysics(const std::string &filepath, const Solver &solver,
+                          const World &world, const std::string &name);
 
-    /**
-     * @brief Saves the current physics configuration to a JSON file.
-     *
-     * @param filepath The destination path where the config file will be created.
-     * @param solver The solver instance whose parameters need to be saved.
-     * @param world The physics world context to include in the configuration.
-     */
-    static void savePhysics(const std::string& filepath, const Solver& solver, const World& world, const std::string& name);
+  /**
+   * @brief Converts a JSON object into an Eigen vector.
+   * @param json JSON object containing coordinates
+   * @return Eigen::Vector3d Resulting vector representation.
+   */
+  static Eigen::Vector3d jsonToVector(const nlohmann::json &json);
 
-    /**
-     * @brief Converts a JSON object into an Eigen vector.
-     * @param json JSON object containing coordinates 
-     * @return Eigen::Vector3d Resulting vector representation.
-     */
-    static Eigen::Vector3d jsonToVector(const nlohmann::json& json);    
-
-    /**
-     * @brief Converts an Eigen vector into a JSON object.
-     * 
-     * @param vector The Eigen::Vector3d to be converted.
-     * @return nlohmann::json A JSON object representing the vector's coordinates.
-     */
-    static nlohmann::json vectorToJson(const Eigen::Vector3d& vector);   
-    
+  /**
+   * @brief Converts an Eigen vector into a JSON object.
+   *
+   * @param vector The Eigen::Vector3d to be converted.
+   * @return nlohmann::json A JSON object representing the vector's coordinates.
+   */
+  static nlohmann::json vectorToJson(const Eigen::Vector3d &vector);
 };
 
-}
+} // namespace Tissu

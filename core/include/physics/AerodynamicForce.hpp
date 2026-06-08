@@ -16,8 +16,8 @@
 
 #pragma once
 
-#include <vector>
 #include <Eigen/Dense>
+#include <vector>
 
 #include "physics/Force.hpp"
 #include "physics/Particle.hpp"
@@ -27,10 +27,10 @@ namespace Tissu {
 /**
  * @struct AeroFace
  * @brief Triangle face used for aerodynamic force calculations.
- * 
+ *
  */
 struct AeroFace {
-    int a, b, c;
+  int a, b, c;
 };
 
 /**
@@ -42,41 +42,41 @@ struct AeroFace {
  */
 class AerodynamicForce final : public Force {
 public:
-    AerodynamicForce(
-        const std::vector<AeroFace>& faces,
-        const Eigen::Vector3d& wind,
-        double airDensity
-    );
+  AerodynamicForce(const std::vector<AeroFace> &faces,
+                   const Eigen::Vector3d &wind, double airDensity);
 
-    /**
-     * @brief Computes aerodynamic pressure and accumulates in into each particle.
-     * 
-     * The force applied to each face is:
-     * @f[
-     * \mathbf{F} = -\frac{1}{2} \rho \|\mathbf{v}_{rel}\| \cdot (\mathbf{v}_{rel} \cdot \hat{n}) \cdot A \cdot \hat{n}
-     * @f]
-     * where @f$ \rho @f$ is the air density, @f$ \mathbf{v}_{rel} @f$ is the relative velocity
-     * between the face and the wind, @f$ \hat{n} @f$ is the face normal, and @f$ A @f$ is the triangle area.
-     * The resulting force is distributed equally across the three vertices of each face.
-     *
-     * 
-     * @param particles Reference to the solver's global particle buffer.
-     * @param dt Current substep time delta.
-     */
-    void apply(std::vector<Particle>& particles, double dt) override;
+  /**
+   * @brief Computes aerodynamic pressure and accumulates in into each particle.
+   *
+   * The force applied to each face is:
+   * @f[
+   * \mathbf{F} = -\frac{1}{2} \rho \|\mathbf{v}_{rel}\| \cdot (\mathbf{v}_{rel}
+   * \cdot \hat{n}) \cdot A \cdot \hat{n}
+   * @f]
+   * where @f$ \rho @f$ is the air density, @f$ \mathbf{v}_{rel} @f$ is the
+   * relative velocity between the face and the wind, @f$ \hat{n} @f$ is the
+   * face normal, and @f$ A @f$ is the triangle area. The resulting force is
+   * distributed equally across the three vertices of each face.
+   *
+   *
+   * @param particles Reference to the solver's global particle buffer.
+   * @param dt Current substep time delta.
+   */
+  void apply(std::vector<Particle> &particles, double dt) override;
 
-    inline const Eigen::Vector3d& getWind() const { return m_wind; }
-    inline double getAirDensity() const { return m_airDensity; }
+  inline const Eigen::Vector3d &getWind() const { return m_wind; }
+  inline double getAirDensity() const { return m_airDensity; }
 
-    inline void setWind(const Eigen::Vector3d& wind) { m_wind = wind; }
-    inline void setAirDensity(double density) { m_airDensity = density; }
-    inline void setFaces(AeroFace face) { m_faces.push_back(face); }
+  inline void setWind(const Eigen::Vector3d &wind) { m_wind = wind; }
+  inline void setAirDensity(double density) { m_airDensity = density; }
+  inline void setFaces(AeroFace face) { m_faces.push_back(face); }
 
 private:
-    std::vector<AeroFace> m_faces; ///< Aerodynamic triangle faces.
-    Eigen::Vector3d m_wind;        ///< Base wind velocity vector in world space (m/s).
-    double m_airDensity;           ///< Air density used in pressure calculation (kg/m³).
-    double m_time = 0.0;           ///< Accumulated simulation time, used for gust oscillation.
+  std::vector<AeroFace> m_faces; ///< Aerodynamic triangle faces.
+  Eigen::Vector3d m_wind; ///< Base wind velocity vector in world space (m/s).
+  double m_airDensity;    ///< Air density used in pressure calculation (kg/m³).
+  double m_time =
+      0.0; ///< Accumulated simulation time, used for gust oscillation.
 };
 
-}
+} // namespace Tissu
