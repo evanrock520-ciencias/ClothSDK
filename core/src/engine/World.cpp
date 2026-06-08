@@ -51,4 +51,9 @@ void World::addCapsuleCollider(const Eigen::Vector3d start,
       std::make_unique<CapsuleCollider>(radius, start, end, friction));
 }
 
+void World::moveCollider(size_t index, const Eigen::Vector3d& newPosition, const Eigen::Quaterniond& newRotation) {
+  if (index < m_colliders.size()) 
+    m_colliders[index]->transform(newPosition, newRotation);
+}
+
 }  // namespace Tissu

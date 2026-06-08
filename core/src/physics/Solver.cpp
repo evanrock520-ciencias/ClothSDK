@@ -58,9 +58,9 @@ void Solver::step(World& world, double dt) {
   }
 
   const auto& colliders = world.getColliders();
-  for (auto& collider : colliders) {
+  for (auto& collider : colliders) 
     collider->resolve(m_particles, dt, world.getThickness());
-  }
+  
 
   solveSelfCollisions(dt, world.getThickness());
 }
