@@ -46,6 +46,9 @@ class World {
                           const Eigen::Vector3d end, double radius,
                           double friction);
 
+  void moveCollider(size_t index, const Eigen::Vector3d& position,
+                    const Eigen::Quaterniond& rotation);
+
   inline void setGravity(const Eigen::Vector3d& gravity) {
     m_gravity = gravity;
   }
