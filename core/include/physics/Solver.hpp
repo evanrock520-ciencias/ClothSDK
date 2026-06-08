@@ -16,6 +16,11 @@
 
 #pragma once
 
+#include <Eigen/Dense>
+#include <memory>
+#include <unordered_set>
+#include <vector>
+
 #include "Constraint.hpp"
 #include "Particle.hpp"
 #include "PinConstraint.hpp"
@@ -23,21 +28,17 @@
 #include "engine/World.hpp"
 #include "math/Types.hpp"
 #include "physics/ConstraintGraph.hpp"
-#include <Eigen/Dense>
-#include <memory>
-#include <unordered_set>
-#include <vector>
 
 namespace Tissu {
 
 class Solver {
-public:
+ public:
   Solver();
 
-  int addParticle(const Particle &p);
+  int addParticle(const Particle& p);
   void clear();
-  const std::vector<Particle> &getParticles() const;
-  std::vector<Particle> &getParticles() { return m_particles; }
+  const std::vector<Particle>& getParticles() const;
+  std::vector<Particle>& getParticles() { return m_particles; }
   void setParticleInverseMass(int id, double invMass);
   void addMassToParticle(int id, double mass);
 
@@ -53,18 +54,18 @@ public:
   }
   inline int getCurrentFrame() const { return m_currentFrame; }
   inline double getCurrentTime() const { return m_currentTime; }
-  inline const std::vector<std::unique_ptr<Constraint>> &
-  getConstraints() const {
+  inline const std::vector<std::unique_ptr<Constraint>>& getConstraints()
+      const {
     return m_constraints;
   }
 
   void addDistanceConstraint(int idA, int idB, double compliance);
   void addBendingConstraint(int a, int b, int c, int d, double restAngle,
                             double compliance);
-  double addVolumeConstraint(const std::vector<Triangle> &triangles,
-                             const std::vector<Particle> &particles,
+  double addVolumeConstraint(const std::vector<Triangle>& triangles,
+                             const std::vector<Particle>& particles,
                              double compliance);
-  void addPin(int id, const Eigen::Vector3d &pos, double compliance = 0.0);
+  void addPin(int id, const Eigen::Vector3d& pos, double compliance = 0.0);
   void removePin(int id);
 
   void buildGraph(unsigned int seed);
@@ -72,11 +73,11 @@ public:
 
   void softReset();
 
-  void update(World &world, double deltaTime);
+  void update(World& world, double deltaTime);
 
-private:
-  void step(World &world, double dt);
-  void applyForces(World &world, double dt);
+ private:
+  void step(World& world, double dt);
+  void applyForces(World& world, double dt);
   void solveSelfCollisions(double dt, double thickness);
 
   void predictPositions(double dt);
@@ -105,4 +106,4 @@ private:
   std::vector<std::unique_ptr<PinConstraint>> m_transientPins;
 };
 
-} // namespace Tissu
+}  // namespace Tissu

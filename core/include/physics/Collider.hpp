@@ -32,7 +32,7 @@ class Particle;
  * implicit velocity via friction.
  */
 class Collider {
-public:
+ public:
   /**
    * @brief Destroy the collider for safe cleanup.
    *
@@ -49,7 +49,7 @@ public:
    * @param dt Current substep time delta. Required for kinematic friction
    * calculations.
    */
-  virtual void resolve(std::vector<Particle> &particles, double dt,
+  virtual void resolve(std::vector<Particle>& particles, double dt,
                        double thickness) = 0;
 
   /**
@@ -62,7 +62,7 @@ public:
   /** @return The current surface friction coefficient. */
   inline double getFriction() const { return m_friction; }
 
-protected:
+ protected:
   /**
    * @brief Tangential friction coefficient used during collision response.
    *
@@ -70,4 +70,4 @@ protected:
   double m_friction = 0.5;
 };
 
-} // namespace Tissu
+}  // namespace Tissu

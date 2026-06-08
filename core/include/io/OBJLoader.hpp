@@ -30,7 +30,7 @@ namespace Tissu {
  * @ref ClothMesh::buildFromMesh.
  */
 class OBJLoader {
-public:
+ public:
   /**
    * @brief Loads vertex positions and triangle indices from a Wavefront OBJ
    * file.
@@ -43,9 +43,9 @@ public:
    * @return true If correctly loaded.
    * @return false In other way.
    */
-  static bool load(const std::string &path,
-                   std::vector<Eigen::Vector3d> &outPos,
-                   std::vector<int> &outIndices);
+  static bool load(const std::string& path,
+                   std::vector<Eigen::Vector3d>& outPos,
+                   std::vector<int>& outIndices);
 };
 
-} // namespace Tissu
+}  // namespace Tissu

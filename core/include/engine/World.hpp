@@ -30,7 +30,7 @@ class Collider;
 class Force;
 
 class World {
-public:
+ public:
   World();
 
   void addCloth(std::shared_ptr<Cloth> cloth);
@@ -38,39 +38,39 @@ public:
   void addForce(std::shared_ptr<Force> force);
   void clear();
 
-  void addPlaneCollider(const Eigen::Vector3d &origin,
-                        const Eigen::Vector3d &normal, double friction);
-  void addSphereCollider(const Eigen::Vector3d &center, double radius,
+  void addPlaneCollider(const Eigen::Vector3d& origin,
+                        const Eigen::Vector3d& normal, double friction);
+  void addSphereCollider(const Eigen::Vector3d& center, double radius,
                          double friction);
   void addCapsuleCollider(const Eigen::Vector3d start,
                           const Eigen::Vector3d end, double radius,
                           double friction);
 
-  inline void setGravity(const Eigen::Vector3d &gravity) {
+  inline void setGravity(const Eigen::Vector3d& gravity) {
     m_gravity = gravity;
   }
-  inline void setWind(const Eigen::Vector3d &wind) { m_wind = wind; }
+  inline void setWind(const Eigen::Vector3d& wind) { m_wind = wind; }
   inline void setAirDensity(double density) { m_airDensity = density; }
   inline void setThickness(double thickness) { m_thickness = thickness; }
 
-  inline const Eigen::Vector3d &getGravity() const { return m_gravity; }
-  inline const Eigen::Vector3d &getWind() const { return m_wind; }
+  inline const Eigen::Vector3d& getGravity() const { return m_gravity; }
+  inline const Eigen::Vector3d& getWind() const { return m_wind; }
   inline double getAirDensity() const { return m_airDensity; }
   inline double getThickness() const { return m_thickness; }
 
-  inline const std::vector<std::shared_ptr<Cloth>> &getCloths() const {
+  inline const std::vector<std::shared_ptr<Cloth>>& getCloths() const {
     return m_cloths;
   }
-  inline const std::vector<std::shared_ptr<Collider>> &getColliders() const {
+  inline const std::vector<std::shared_ptr<Collider>>& getColliders() const {
     return m_colliders;
   }
-  inline const std::vector<std::shared_ptr<Force>> &getForces() const {
+  inline const std::vector<std::shared_ptr<Force>>& getForces() const {
     return m_forces;
   }
 
   inline size_t collidersCount() { return m_colliders.size(); }
 
-private:
+ private:
   std::vector<std::shared_ptr<Cloth>> m_cloths;
   std::vector<std::shared_ptr<Collider>> m_colliders;
   std::vector<std::shared_ptr<Force>> m_forces;
@@ -81,4 +81,4 @@ private:
   double m_thickness;
 };
 
-} // namespace Tissu
+}  // namespace Tissu

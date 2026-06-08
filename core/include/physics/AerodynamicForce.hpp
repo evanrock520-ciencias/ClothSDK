@@ -41,9 +41,9 @@ struct AeroFace {
  * velocity between the wind and the face's surface normal.
  */
 class AerodynamicForce final : public Force {
-public:
-  AerodynamicForce(const std::vector<AeroFace> &faces,
-                   const Eigen::Vector3d &wind, double airDensity);
+ public:
+  AerodynamicForce(const std::vector<AeroFace>& faces,
+                   const Eigen::Vector3d& wind, double airDensity);
 
   /**
    * @brief Computes aerodynamic pressure and accumulates in into each particle.
@@ -62,21 +62,21 @@ public:
    * @param particles Reference to the solver's global particle buffer.
    * @param dt Current substep time delta.
    */
-  void apply(std::vector<Particle> &particles, double dt) override;
+  void apply(std::vector<Particle>& particles, double dt) override;
 
-  inline const Eigen::Vector3d &getWind() const { return m_wind; }
+  inline const Eigen::Vector3d& getWind() const { return m_wind; }
   inline double getAirDensity() const { return m_airDensity; }
 
-  inline void setWind(const Eigen::Vector3d &wind) { m_wind = wind; }
+  inline void setWind(const Eigen::Vector3d& wind) { m_wind = wind; }
   inline void setAirDensity(double density) { m_airDensity = density; }
   inline void setFaces(AeroFace face) { m_faces.push_back(face); }
 
-private:
-  std::vector<AeroFace> m_faces; ///< Aerodynamic triangle faces.
-  Eigen::Vector3d m_wind; ///< Base wind velocity vector in world space (m/s).
-  double m_airDensity;    ///< Air density used in pressure calculation (kg/m³).
+ private:
+  std::vector<AeroFace> m_faces;  ///< Aerodynamic triangle faces.
+  Eigen::Vector3d m_wind;  ///< Base wind velocity vector in world space (m/s).
+  double m_airDensity;  ///< Air density used in pressure calculation (kg/m³).
   double m_time =
-      0.0; ///< Accumulated simulation time, used for gust oscillation.
+      0.0;  ///< Accumulated simulation time, used for gust oscillation.
 };
 
-} // namespace Tissu
+}  // namespace Tissu

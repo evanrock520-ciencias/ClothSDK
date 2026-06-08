@@ -16,9 +16,10 @@
 
 #pragma once
 
+#include <vector>
+
 #include "Constraint.hpp"
 #include "Particle.hpp"
-#include <vector>
 
 namespace Tissu {
 
@@ -33,7 +34,7 @@ namespace Tissu {
  * where @f$ L_{rest} @f$ is the natural length of the connection.
  */
 class DistanceConstraint : public Constraint {
-public:
+ public:
   /**
    * @brief Constructs a distance constraint between two particles.
    *
@@ -59,15 +60,15 @@ public:
    * @param particles Reference to the solver's particle buffer.
    * @param dt Current substep time delta.
    */
-  void solve(std::vector<Particle> &particles, double dt) override;
+  void solve(std::vector<Particle>& particles, double dt) override;
 
   std::vector<int> getParticleIds() const override { return {m_idA, m_idB}; }
 
-private:
-  int m_idA;           ///< Index of the first particle.
-  int m_idB;           ///< Index of the second particle.
-  double m_restLength; ///< Natural length of the constraint.
-  double m_compliance; ///< Physical compliance @f$ \alpha @f$.
+ private:
+  int m_idA;            ///< Index of the first particle.
+  int m_idB;            ///< Index of the second particle.
+  double m_restLength;  ///< Natural length of the constraint.
+  double m_compliance;  ///< Physical compliance @f$ \alpha @f$.
 };
 
-} // namespace Tissu
+}  // namespace Tissu

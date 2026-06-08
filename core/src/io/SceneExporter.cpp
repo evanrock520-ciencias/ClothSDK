@@ -2,6 +2,11 @@
 // SPDX-License-Identifier: Apache-2.0
 
 #include "io/SceneExporter.hpp"
+
+#include <fstream>
+#include <memory>
+#include <vector>
+
 #include "engine/Cloth.hpp"
 #include "io/ConfigLoader.hpp"
 #include "math/Types.hpp"
@@ -9,15 +14,12 @@
 #include "physics/PlaneCollider.hpp"
 #include "physics/SphereCollider.hpp"
 #include "utils/Logger.hpp"
-#include <fstream>
-#include <memory>
-#include <vector>
 
 namespace Tissu {
 
-void SceneExporter::saveScene(const std::string &filepath,
-                              const std::string &name, Solver &solver,
-                              World &world) {
+void SceneExporter::saveScene(const std::string& filepath,
+                              const std::string& name, Solver& solver,
+                              World& world) {
   std::ofstream file(filepath);
   if (!file.is_open())
     throw std::runtime_error("Could not open file: " + filepath);
@@ -38,10 +40,10 @@ void SceneExporter::saveScene(const std::string &filepath,
       ConfigLoader::vectorToJson(world.getWind());
   data["physics"]["environment"]["air_density"] = world.getAirDensity();
 
-  const auto &fabrics = world.getCloths();
+  const auto& fabrics = world.getCloths();
   saveFabrics(data, fabrics);
 
-  const auto &colliders = world.getColliders();
+  const auto& colliders = world.getColliders();
   saveColliders(data, colliders);
 
   file << data.dump(4);
@@ -49,11 +51,11 @@ void SceneExporter::saveScene(const std::string &filepath,
 }
 
 void SceneExporter::saveFabrics(
-    nlohmann::ordered_json &data,
-    const std::vector<std::shared_ptr<Cloth>> &fabrics) {
+    nlohmann::ordered_json& data,
+    const std::vector<std::shared_ptr<Cloth>>& fabrics) {
   data["fabrics"] = nlohmann::ordered_json::array();
 
-  for (const auto &cloth : fabrics) {
+  for (const auto& cloth : fabrics) {
     nlohmann::ordered_json fabric;
     fabric["name"] = cloth->getName();
     fabric["type"] = cloth->isGrid() ? "grid" : "mesh";
@@ -75,7 +77,7 @@ void SceneExporter::saveFabrics(
     fabric["material"]["compliance"]["bending"] =
         material->getBendingCompliance();
 
-    const Pin &pin = cloth->getPin();
+    const Pin& pin = cloth->getPin();
     if (pin.getPinMode() != NONE) {
       fabric["pins"]["compliance"] = pin.getCompliance();
       fabric["pins"]["threshold"] = pin.getThreshold();
@@ -91,26 +93,26 @@ void SceneExporter::saveFabrics(
 }
 
 void SceneExporter::saveColliders(
-    nlohmann::ordered_json &data,
-    const std::vector<std::shared_ptr<Collider>> &colliders) {
+    nlohmann::ordered_json& data,
+    const std::vector<std::shared_ptr<Collider>>& colliders) {
   data["colliders"] = nlohmann::ordered_json::array();
 
-  for (const auto &collider : colliders) {
+  for (const auto& collider : colliders) {
     nlohmann::ordered_json cld;
 
-    if (auto *plane = dynamic_cast<PlaneCollider *>(collider.get())) {
+    if (auto* plane = dynamic_cast<PlaneCollider*>(collider.get())) {
       cld["type"] = "plane";
       cld["origin"] = plane->getOrigin();
       cld["normal"] = plane->getNormal();
     }
 
-    else if (auto *sphere = dynamic_cast<SphereCollider *>(collider.get())) {
+    else if (auto* sphere = dynamic_cast<SphereCollider*>(collider.get())) {
       cld["type"] = "sphere";
       cld["center"] = sphere->getCenter();
       cld["radius"] = sphere->getRadius();
     }
 
-    else if (auto *capsule = dynamic_cast<CapsuleCollider *>(collider.get())) {
+    else if (auto* capsule = dynamic_cast<CapsuleCollider*>(collider.get())) {
       cld["type"] = "capsule";
       cld["start"] = capsule->getStart();
       cld["end"] = capsule->getEnd();
@@ -123,4 +125,4 @@ void SceneExporter::saveColliders(
   }
 }
 
-} // namespace Tissu
+}  // namespace Tissu

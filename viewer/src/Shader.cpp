@@ -1,15 +1,18 @@
 #include "Shader.hpp"
-#include "utils/Logger.hpp"
-#include <fstream>
+
 #include <glad/gl.h>
+
+#include <fstream>
 #include <sstream>
 #include <string>
+
+#include "utils/Logger.hpp"
 
 namespace Tissu {
 
 namespace Viewer {
 
-Shader::Shader(const std::string &vertPath, const std::string &fragmentPath)
+Shader::Shader(const std::string& vertPath, const std::string& fragmentPath)
     : m_fragmentPath(fragmentPath), m_vertPath(vertPath) {}
 
 bool Shader::init() {
@@ -17,7 +20,7 @@ bool Shader::init() {
   return m_program != 0;
 }
 
-std::string Shader::loadFile(const std::string &path) const {
+std::string Shader::loadFile(const std::string& path) const {
   std::ifstream file(path);
   if (!file.is_open()) {
     Logger::error("Could not open shader file: " + path);
@@ -29,15 +32,14 @@ std::string Shader::loadFile(const std::string &path) const {
   return ss.str();
 }
 
-unsigned int Shader::compile(const std::string &vertPath,
-                             const std::string &fragPath) {
+unsigned int Shader::compile(const std::string& vertPath,
+                             const std::string& fragPath) {
   std::string vCode = loadFile(vertPath);
   std::string fCode = loadFile(fragPath);
-  if (vCode.empty() || fCode.empty())
-    return 0;
+  if (vCode.empty() || fCode.empty()) return 0;
 
-  const char *vShaderCode = vCode.c_str();
-  const char *fShaderCode = fCode.c_str();
+  const char* vShaderCode = vCode.c_str();
+  const char* fShaderCode = fCode.c_str();
 
   int success;
   char infoLog[512];
@@ -89,24 +91,24 @@ void Shader::reload() {
   m_program = compile(m_vertPath, m_fragmentPath);
 }
 
-int Shader::getUniformLocation(const std::string &name) const {
+int Shader::getUniformLocation(const std::string& name) const {
   return glGetUniformLocation(m_program, name.c_str());
 }
 
-void Shader::setFloat(const std::string &name, float value) const {
+void Shader::setFloat(const std::string& name, float value) const {
   glUniform1f(getUniformLocation(name), value);
 }
 
-void Shader::setVec3(const std::string &name,
-                     const Eigen::Vector3f &value) const {
+void Shader::setVec3(const std::string& name,
+                     const Eigen::Vector3f& value) const {
   glUniform3fv(getUniformLocation(name), 1, value.data());
 }
 
-void Shader::setMat4(const std::string &name,
-                     const Eigen::Matrix4f &value) const {
+void Shader::setMat4(const std::string& name,
+                     const Eigen::Matrix4f& value) const {
   glUniformMatrix4fv(getUniformLocation(name), 1, GL_FALSE, value.data());
 }
 
-} // namespace Viewer
+}  // namespace Viewer
 
-} // namespace Tissu
+}  // namespace Tissu

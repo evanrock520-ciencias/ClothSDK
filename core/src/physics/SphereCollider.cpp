@@ -2,22 +2,22 @@
 // SPDX-License-Identifier: Apache-2.0
 
 #include "physics/SphereCollider.hpp"
+
 #include "physics/Particle.hpp"
 
 namespace Tissu {
 
-SphereCollider::SphereCollider(const Eigen::Vector3d &center, double radius,
+SphereCollider::SphereCollider(const Eigen::Vector3d& center, double radius,
                                double friction)
     : m_center(center), m_radius(radius) {
   m_friction = friction;
 }
 
-void SphereCollider::resolve(std::vector<Particle> &particles, double dt,
+void SphereCollider::resolve(std::vector<Particle>& particles, double dt,
                              double thickness) {
-
   double collisionRadius = m_radius + thickness;
 
-  for (auto &particle : particles) {
+  for (auto& particle : particles) {
     Eigen::Vector3d vec = particle.getPosition() - m_center;
     double distance = vec.norm();
 
@@ -46,4 +46,4 @@ void SphereCollider::resolve(std::vector<Particle> &particles, double dt,
   }
 }
 
-} // namespace Tissu
+}  // namespace Tissu

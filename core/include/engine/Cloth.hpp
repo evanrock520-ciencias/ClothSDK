@@ -16,13 +16,14 @@
 
 #pragma once
 
-#include "math/Types.hpp"
-#include "physics/AerodynamicForce.hpp"
 #include <cmath>
 #include <map>
 #include <memory>
 #include <string>
 #include <vector>
+
+#include "math/Types.hpp"
+#include "physics/AerodynamicForce.hpp"
 
 namespace Tissu {
 
@@ -31,9 +32,9 @@ namespace Tissu {
  * @brief Describes the construction method of a cloth object.
  */
 enum class ClothTopology {
-  Grid, ///< Procedurally generated uniform grid via @ref ClothMesh::initGrid.
-  Mesh  ///< Topology loaded from a Wavefront OBJ file via @ref
-        ///< ClothMesh::buildFromMesh.
+  Grid,  ///< Procedurally generated uniform grid via @ref ClothMesh::initGrid.
+  Mesh   ///< Topology loaded from a Wavefront OBJ file via @ref
+         ///< ClothMesh::buildFromMesh.
 };
 
 /**
@@ -49,8 +50,8 @@ enum class ClothTopology {
  * by the @ref Solver.
  */
 class Cloth {
-public:
-  Cloth(const std::string &name, std::shared_ptr<ClothMaterial> material);
+ public:
+  Cloth(const std::string& name, std::shared_ptr<ClothMaterial> material);
 
   /**
    * @brief Returns the particle's ID using the rows and cols as parameters to
@@ -73,47 +74,47 @@ public:
 
   inline void addAeroFace(int a, int b, int c) { m_faces.push_back({a, b, c}); }
   void addParticleId(int id);
-  void addTriangle(const Triangle &tri);
+  void addTriangle(const Triangle& tri);
   void addVisualEdge(unsigned int idA, unsigned int idB);
 
-  void setName(const std::string &name);
+  void setName(const std::string& name);
   void setMaterial(std::shared_ptr<ClothMaterial> material);
   void setGridDimensions(int rows, int cols);
   void setTopology(ClothTopology topology);
   inline void setRestVolume(double restVolume) { m_restVolume = restVolume; }
   inline void setSpacing(double spacing) { m_spacing = spacing; }
-  inline void setPin(const Pin &pin) { m_pin = pin; }
-  inline void setMeshPath(const std::string &meshPath) {
+  inline void setPin(const Pin& pin) { m_pin = pin; }
+  inline void setMeshPath(const std::string& meshPath) {
     m_meshPath = meshPath;
   }
 
-  inline const std::string &getName() const { return m_name; }
+  inline const std::string& getName() const { return m_name; }
   inline const ClothTopology getTopology() const { return m_topology; }
   inline std::shared_ptr<ClothMaterial> getMaterial() const {
     return m_material;
   }
-  inline const std::vector<int> &getParticleIndices() const {
+  inline const std::vector<int>& getParticleIndices() const {
     return m_particleIndices;
   }
-  inline const std::vector<Triangle> &getTriangles() const {
+  inline const std::vector<Triangle>& getTriangles() const {
     return m_triangles;
   }
-  inline const std::vector<unsigned int> &getVisualEdges() const {
+  inline const std::vector<unsigned int>& getVisualEdges() const {
     return m_visualEdges;
   }
-  inline const std::vector<AeroFace> &getAeroFaces() const { return m_faces; }
+  inline const std::vector<AeroFace>& getAeroFaces() const { return m_faces; }
   inline const int getRows() const { return m_gridRows; }
   inline const int getCols() const { return m_gridCols; }
   inline const double getRestVolume() const { return m_restVolume; }
   inline const double getSpacing() const { return m_spacing; }
-  inline const Pin &getPin() const { return m_pin; }
-  inline const std::string &getMeshPath() const { return m_meshPath; }
+  inline const Pin& getPin() const { return m_pin; }
+  inline const std::string& getMeshPath() const { return m_meshPath; }
 
   bool isGrid() const { return m_topology == ClothTopology::Grid; }
   bool isMesh() const { return m_topology == ClothTopology::Mesh; }
   bool isClosed() const;
 
-private:
+ private:
   std::string m_name;
   ClothTopology m_topology;
   std::string m_meshPath;
@@ -130,4 +131,4 @@ private:
   Pin m_pin;
 };
 
-} // namespace Tissu
+}  // namespace Tissu

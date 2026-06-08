@@ -2,10 +2,12 @@
 // SPDX-License-Identifier: Apache-2.0
 
 #include "Renderer.hpp"
+
+#include <glad/gl.h>
+
 #include "Camera.hpp"
 #include "Shader.hpp"
 #include "physics/Solver.hpp"
-#include <glad/gl.h>
 
 namespace Tissu {
 namespace Viewer {
@@ -32,11 +34,11 @@ bool Renderer::init() {
 
   constexpr GLsizei stride = 6 * sizeof(float);
 
-  glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, stride, (void *)0);
+  glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, stride, (void*)0);
   glEnableVertexAttribArray(0);
 
   glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, stride,
-                        (void *)(3 * sizeof(float)));
+                        (void*)(3 * sizeof(float)));
   glEnableVertexAttribArray(1);
 
   glBindVertexArray(0);
@@ -46,10 +48,9 @@ bool Renderer::init() {
   return true;
 }
 
-void Renderer::render(const Tissu::Solver &solver, const Camera &camera) {
-  const auto &particles = solver.getParticles();
-  if (particles.empty() || m_indices.empty())
-    return;
+void Renderer::render(const Tissu::Solver& solver, const Camera& camera) {
+  const auto& particles = solver.getParticles();
+  if (particles.empty() || m_indices.empty()) return;
 
   const size_t vertexCount = particles.size();
 
@@ -60,12 +61,11 @@ void Renderer::render(const Tissu::Solver &solver, const Camera &camera) {
     const unsigned int ib = m_indices[i + 1];
     const unsigned int ic = m_indices[i + 2];
 
-    if (ia >= vertexCount || ib >= vertexCount || ic >= vertexCount)
-      continue;
+    if (ia >= vertexCount || ib >= vertexCount || ic >= vertexCount) continue;
 
-    const Eigen::Vector3d &pa = particles[ia].getPosition();
-    const Eigen::Vector3d &pb = particles[ib].getPosition();
-    const Eigen::Vector3d &pc = particles[ic].getPosition();
+    const Eigen::Vector3d& pa = particles[ia].getPosition();
+    const Eigen::Vector3d& pb = particles[ib].getPosition();
+    const Eigen::Vector3d& pc = particles[ic].getPosition();
 
     Eigen::Vector3f faceNormal = (pb - pa).cross(pc - pa).cast<float>();
 
@@ -78,15 +78,14 @@ void Renderer::render(const Tissu::Solver &solver, const Camera &camera) {
   m_vertexBuffer.reserve(vertexCount * 6);
 
   for (size_t i = 0; i < vertexCount; ++i) {
-    const Eigen::Vector3d &pos = particles[i].getPosition();
+    const Eigen::Vector3d& pos = particles[i].getPosition();
     m_vertexBuffer.push_back(static_cast<float>(pos.x()));
     m_vertexBuffer.push_back(static_cast<float>(pos.y()));
     m_vertexBuffer.push_back(static_cast<float>(pos.z()));
 
     Eigen::Vector3f n = m_normals[i];
     float len = n.norm();
-    if (len > 1e-6f)
-      n /= len;
+    if (len > 1e-6f) n /= len;
 
     m_vertexBuffer.push_back(n.x());
     m_vertexBuffer.push_back(n.y());
@@ -121,17 +120,13 @@ void Renderer::render(const Tissu::Solver &solver, const Camera &camera) {
 }
 
 void Renderer::cleanup() {
-  if (m_vao)
-    glDeleteVertexArrays(1, &m_vao);
-  if (m_vbo)
-    glDeleteBuffers(1, &m_vbo);
-  if (m_ebo)
-    glDeleteBuffers(1, &m_ebo);
+  if (m_vao) glDeleteVertexArrays(1, &m_vao);
+  if (m_vbo) glDeleteBuffers(1, &m_vbo);
+  if (m_ebo) glDeleteBuffers(1, &m_ebo);
 }
 
 void Renderer::updateTopology() {
-  if (m_vao == 0 || m_ebo == 0)
-    return;
+  if (m_vao == 0 || m_ebo == 0) return;
 
   glBindVertexArray(m_vao);
   glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_ebo);
@@ -140,7 +135,7 @@ void Renderer::updateTopology() {
   glBindVertexArray(0);
 }
 
-void Renderer::updateColor(float *color) {
+void Renderer::updateColor(float* color) {
   m_shader.bind();
   m_shader.setVec3("COLOR_FRONT",
                    Eigen::Vector3f(color[0], color[1], color[2]));
@@ -176,5 +171,5 @@ void Renderer::updateAnisotropyWidth(float anisotropyWidth) {
   m_shader.setFloat("ANISOTROPY_WIDTH", anisotropyWidth);
 }
 
-} // namespace Viewer
-} // namespace Tissu
+}  // namespace Viewer
+}  // namespace Tissu

@@ -15,10 +15,11 @@
  */
 
 #pragma once
-#include "Shader.hpp"
 #include <Eigen/Dense>
 #include <string>
 #include <vector>
+
+#include "Shader.hpp"
 
 namespace Tissu {
 class Solver;
@@ -26,17 +27,17 @@ namespace Viewer {
 class Camera;
 
 class Renderer {
-public:
+ public:
   Renderer();
   ~Renderer();
 
   bool init();
 
-  void render(const Tissu::Solver &solver, const Camera &camera);
+  void render(const Tissu::Solver& solver, const Camera& camera);
   void cleanup();
   void updateTopology();
 
-  void updateColor(float *color);
+  void updateColor(float* color);
   void updateAmbient(float ambient);
   void updateDifusse(float difusse);
   void updateSheenAmount(float sheenAmount);
@@ -44,12 +45,12 @@ public:
   void updateAnisotropy(float anisotropy);
   void updateAnisotropyWidth(float anisotropyWidth);
 
-  inline void setIndices(const std::vector<unsigned int> &indices) {
+  inline void setIndices(const std::vector<unsigned int>& indices) {
     m_indices = indices;
   }
-  inline void setShaderPath(const std::string &path) { m_shaderPath = path; }
+  inline void setShaderPath(const std::string& path) { m_shaderPath = path; }
 
-private:
+ private:
   Shader m_shader;
   unsigned int m_vao = 0;
   unsigned int m_vbo = 0;
@@ -60,5 +61,5 @@ private:
   std::vector<Eigen::Vector3f> m_normals;
   std::string m_shaderPath = "../viewer/shaders/";
 };
-} // namespace Viewer
-} // namespace Tissu
+}  // namespace Viewer
+}  // namespace Tissu

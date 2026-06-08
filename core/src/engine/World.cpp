@@ -2,10 +2,12 @@
 // SPDX-License-Identifier: Apache-2.0
 
 #include "engine/World.hpp"
+
+#include <memory>
+
 #include "physics/CapsuleCollider.hpp"
 #include "physics/PlaneCollider.hpp"
 #include "physics/SphereCollider.hpp"
-#include <memory>
 
 namespace Tissu {
 
@@ -30,13 +32,13 @@ void World::clear() {
   m_forces.clear();
 }
 
-void World::addPlaneCollider(const Eigen::Vector3d &origin,
-                             const Eigen::Vector3d &normal, double friction) {
+void World::addPlaneCollider(const Eigen::Vector3d& origin,
+                             const Eigen::Vector3d& normal, double friction) {
   m_colliders.push_back(
       std::make_unique<PlaneCollider>(origin, normal, friction));
 }
 
-void World::addSphereCollider(const Eigen::Vector3d &center, double radius,
+void World::addSphereCollider(const Eigen::Vector3d& center, double radius,
                               double friction) {
   m_colliders.push_back(
       std::make_unique<SphereCollider>(center, radius, friction));
@@ -49,4 +51,4 @@ void World::addCapsuleCollider(const Eigen::Vector3d start,
       std::make_unique<CapsuleCollider>(radius, start, end, friction));
 }
 
-} // namespace Tissu
+}  // namespace Tissu

@@ -16,11 +16,12 @@
 
 #pragma once
 
-#include "math/Types.hpp"
 #include <Eigen/Dense>
 #include <map>
 #include <memory>
 #include <vector>
+
+#include "math/Types.hpp"
 
 namespace Tissu {
 
@@ -28,24 +29,24 @@ class Solver;
 class Cloth;
 
 class ClothMesh {
-public:
+ public:
   ClothMesh() = default;
 
-  void initGrid(int rows, int cols, double spacing, Cloth &outCloth,
-                Solver &solver);
+  void initGrid(int rows, int cols, double spacing, Cloth& outCloth,
+                Solver& solver);
 
-  void buildFromMesh(const std::vector<Eigen::Vector3d> &positions,
-                     const std::vector<int> &indices, Cloth &outCloth,
-                     Solver &solver, const std::string &meshPath);
+  void buildFromMesh(const std::vector<Eigen::Vector3d>& positions,
+                     const std::vector<int>& indices, Cloth& outCloth,
+                     Solver& solver, const std::string& meshPath);
 
-private:
+ private:
   bool isClosed() const;
 
-  int getOppositeVertex(const Triangle &tri, int v1, int v2) const;
+  int getOppositeVertex(const Triangle& tri, int v1, int v2) const;
   double calculateInitialAngle(int id1, int id2, int id3, int id4,
-                               const Solver &solver) const;
+                               const Solver& solver) const;
 
-  void computePhysicalAttributes(Cloth &cloth, Solver &solver) const;
+  void computePhysicalAttributes(Cloth& cloth, Solver& solver) const;
 };
 
-} // namespace Tissu
+}  // namespace Tissu

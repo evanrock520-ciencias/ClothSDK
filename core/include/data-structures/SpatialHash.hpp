@@ -41,7 +41,7 @@ class Particle;
  * and false negatives are rare enough to be acceptable for real-time use.
  */
 class SpatialHash {
-public:
+ public:
   /**
    * @brief Constructs a SpatialHash with a fixed table size and initial cell
    * size.
@@ -64,7 +64,7 @@ public:
    *
    * @param particles Reference to the solver's global particle buffer.
    */
-  void build(const std::vector<Particle> &particles);
+  void build(const std::vector<Particle>& particles);
 
   /**
    * @brief Returns the indices of all particles within a sphere.
@@ -80,8 +80,8 @@ public:
    * @param outNeighbors  Output vector populated with matching particle
    * indices.
    */
-  void query(const std::vector<Particle> &particles, const Eigen::Vector3d &pos,
-             double radius, std::vector<int> &outNeighbors) const;
+  void query(const std::vector<Particle>& particles, const Eigen::Vector3d& pos,
+             double radius, std::vector<int>& outNeighbors) const;
 
   /**
    * @brief Updates the grid cell size.
@@ -96,7 +96,7 @@ public:
   /** @return Current grid cell side length in world units. */
   double getCellSize() const { return m_cellSize; }
 
-private:
+ private:
   /**
    * @brief Maps a 3D grid coordinate to a hash table slot.
    *
@@ -124,21 +124,21 @@ private:
    * @param gy  Output grid coordinate on the Y axis.
    * @param gz  Output grid coordinate on the Z axis.
    */
-  inline void posToGrid(const Eigen::Vector3d &pos, int &gx, int &gy,
-                        int &gz) const {
+  inline void posToGrid(const Eigen::Vector3d& pos, int& gx, int& gy,
+                        int& gz) const {
     gx = static_cast<int>(std::floor(pos.x() / m_cellSize));
     gy = static_cast<int>(std::floor(pos.y() / m_cellSize));
     gz = static_cast<int>(std::floor(pos.z() / m_cellSize));
   }
 
-  int m_tableSize;   ///< Number of slots in the hash table.
-  double m_cellSize; ///< Side length of each grid cell in world units.
-  std::vector<int> m_cellStart; ///< Prefix-sum array mapping each hash slot to
-                                ///< its first entry in @ref m_particleIndices.
-  std::vector<int> m_particleIndices; ///< Particle indices sorted by their hash
-                                      ///< slot, built during @ref build.
+  int m_tableSize;    ///< Number of slots in the hash table.
+  double m_cellSize;  ///< Side length of each grid cell in world units.
+  std::vector<int> m_cellStart;  ///< Prefix-sum array mapping each hash slot to
+                                 ///< its first entry in @ref m_particleIndices.
+  std::vector<int> m_particleIndices;  ///< Particle indices sorted by their
+                                       ///< hash slot, built during @ref build.
   std::vector<int> m_particleHashes;  ///< Hash slot assigned to each particle,
                                       ///< indexed by particle ID.
 };
 
-} // namespace Tissu
+}  // namespace Tissu

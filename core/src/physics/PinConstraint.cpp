@@ -1,26 +1,26 @@
 // Copyright 2026 Evan M.
 // SPDX-License-Identifier: Apache-2.0
 
+#include "physics/PinConstraint.hpp"
+
 #include <Eigen/Dense>
 
 #include "physics/Particle.hpp"
-#include "physics/PinConstraint.hpp"
 
 namespace Tissu {
 
-PinConstraint::PinConstraint(int particleId, const Eigen::Vector3d &pinPosition,
+PinConstraint::PinConstraint(int particleId, const Eigen::Vector3d& pinPosition,
                              double compliance)
     : m_particleId(particleId), m_pinPos(pinPosition) {
   m_compliance = compliance;
 }
 
-void PinConstraint::solve(std::vector<Particle> &particles, double dt) {
-  Particle &p = particles[m_particleId];
+void PinConstraint::solve(std::vector<Particle>& particles, double dt) {
+  Particle& p = particles[m_particleId];
   Eigen::Vector3d dir = p.getPosition() - m_pinPos;
   double dist = dir.norm();
 
-  if (dist < 1e-6)
-    return;
+  if (dist < 1e-6) return;
 
   Eigen::Vector3d n = dir / dist;
 
@@ -28,8 +28,7 @@ void PinConstraint::solve(std::vector<Particle> &particles, double dt) {
   double invMass = p.getInverseMass();
   double denominator = invMass + alphaHat;
 
-  if (denominator < 1e-12)
-    return;
+  if (denominator < 1e-12) return;
 
   double deltaLambda = (-dist - alphaHat * m_lambda) / denominator;
   m_lambda += deltaLambda;
@@ -37,4 +36,4 @@ void PinConstraint::solve(std::vector<Particle> &particles, double dt) {
   p.setPosition(p.getPosition() + n * (p.getInverseMass() * deltaLambda));
 }
 
-} // namespace Tissu
+}  // namespace Tissu

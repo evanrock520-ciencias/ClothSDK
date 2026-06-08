@@ -2,19 +2,20 @@
 // SPDX-License-Identifier: Apache-2.0
 
 #include "physics/AerodynamicForce.hpp"
-#include <cmath>
+
 #include <omp.h>
+
+#include <cmath>
 
 namespace Tissu {
 
-AerodynamicForce::AerodynamicForce(const std::vector<AeroFace> &faces,
-                                   const Eigen::Vector3d &wind,
+AerodynamicForce::AerodynamicForce(const std::vector<AeroFace>& faces,
+                                   const Eigen::Vector3d& wind,
                                    double airDensity)
     : m_faces(faces), m_wind(wind), m_airDensity(airDensity) {}
 
-void AerodynamicForce::apply(std::vector<Particle> &particles, double dt) {
-  if (dt < 1e-6)
-    return;
+void AerodynamicForce::apply(std::vector<Particle>& particles, double dt) {
+  if (dt < 1e-6) return;
 
   m_time += dt;
 
@@ -23,11 +24,11 @@ void AerodynamicForce::apply(std::vector<Particle> &particles, double dt) {
 
 #pragma omp parallel for
   for (int i = 0; i < (int)m_faces.size(); i++) {
-    const auto &face = m_faces[i];
+    const auto& face = m_faces[i];
 
-    Particle &pA = particles[face.a];
-    Particle &pB = particles[face.b];
-    Particle &pC = particles[face.c];
+    Particle& pA = particles[face.a];
+    Particle& pB = particles[face.b];
+    Particle& pC = particles[face.c];
 
     Eigen::Vector3d vFace =
         (pA.getVelocity(dt) + pB.getVelocity(dt) + pC.getVelocity(dt)) / 3.0;
@@ -35,8 +36,7 @@ void AerodynamicForce::apply(std::vector<Particle> &particles, double dt) {
     Eigen::Vector3d vRel = vFace - currentWind;
     double vMag = vRel.norm();
 
-    if (vMag < 1e-4)
-      continue;
+    if (vMag < 1e-4) continue;
 
     Eigen::Vector3d edge1 = pB.getPosition() - pA.getPosition();
     Eigen::Vector3d edge2 = pC.getPosition() - pA.getPosition();
@@ -44,8 +44,7 @@ void AerodynamicForce::apply(std::vector<Particle> &particles, double dt) {
     Eigen::Vector3d n = edge1.cross(edge2);
     double area = 0.5 * n.norm();
 
-    if (area < 1e-6)
-      continue;
+    if (area < 1e-6) continue;
 
     Eigen::Vector3d normal = n.normalized();
 
@@ -62,4 +61,4 @@ void AerodynamicForce::apply(std::vector<Particle> &particles, double dt) {
   }
 }
 
-} // namespace Tissu
+}  // namespace Tissu

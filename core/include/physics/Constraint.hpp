@@ -16,8 +16,9 @@
 
 #pragma once
 
-#include "Particle.hpp"
 #include <vector>
+
+#include "Particle.hpp"
 
 namespace Tissu {
 
@@ -31,7 +32,7 @@ namespace Tissu {
  * multipliers.
  */
 class Constraint {
-public:
+ public:
   /**
    * @brief Construct the constraint with zeroed internal state.
    *
@@ -54,7 +55,7 @@ public:
    * @param particles Reference to the global particle buffer.
    * @param dt The current substep time delta.
    */
-  virtual void solve(std::vector<Particle> &particles, double dt) = 0;
+  virtual void solve(std::vector<Particle>& particles, double dt) = 0;
 
   /**
    * @brief Resets the accumulated Lagrange multiplier.
@@ -68,7 +69,7 @@ public:
 
   virtual std::vector<int> getParticleIds() const = 0;
 
-protected:
+ protected:
   /**
    * @brief Accumulated Lagrange multiplier for the current substep.
    *
@@ -82,4 +83,4 @@ protected:
   double m_compliance;
 };
 
-} // namespace Tissu
+}  // namespace Tissu

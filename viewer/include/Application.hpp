@@ -16,11 +16,12 @@
 
 #pragma once
 
-#include "engine/Cloth.hpp"
-#include "math/Types.hpp"
 #include <memory>
 #include <string>
 #include <vector>
+
+#include "engine/Cloth.hpp"
+#include "math/Types.hpp"
 
 struct GLFWwindow;
 
@@ -37,17 +38,17 @@ class Renderer;
 class Camera;
 
 class Application {
-public:
+ public:
   Application();
   ~Application();
 
-  bool init(int width, int height, const std::string &title,
-            const std::string &shaderPath);
+  bool init(int width, int height, const std::string& title,
+            const std::string& shaderPath);
   void run();
   void shutdown();
   void syncVisualTopology();
-  int findClosestParticleToRay(const Ray &ray,
-                               const std::vector<Particle> &particles);
+  int findClosestParticleToRay(const Ray& ray,
+                               const std::vector<Particle>& particles);
 
   inline void setWorld(std::shared_ptr<World> world) { m_world = world; }
   inline void setSolver(std::shared_ptr<Solver> solver) { m_solver = solver; }
@@ -61,16 +62,16 @@ public:
     m_initCols = cloth->getCols();
     cloth_material = cloth->getMaterial();
   }
-  inline Renderer &getRenderer() { return *m_renderer; }
+  inline Renderer& getRenderer() { return *m_renderer; }
 
-private:
+ private:
   void processInput();
   void update();
   void render();
   void drawUI();
   void resetSimulation();
 
-  GLFWwindow *m_window;
+  GLFWwindow* m_window;
   std::shared_ptr<World> m_world;
   std::shared_ptr<Solver> m_solver;
   std::unique_ptr<Renderer> m_renderer;
@@ -108,5 +109,5 @@ private:
   float m_color[4] = {0.0f, 0.0f, 0.0f, 1.0f};
 };
 
-} // namespace Viewer
-} // namespace Tissu
+}  // namespace Viewer
+}  // namespace Tissu

@@ -1,15 +1,16 @@
 #include "physics/VolumeConstraint.hpp"
+
 #include "physics/Particle.hpp"
 
 namespace Tissu {
 
-VolumeConstraint::VolumeConstraint(const std::vector<Triangle> &triangles,
-                                   const std::vector<Particle> &particles,
+VolumeConstraint::VolumeConstraint(const std::vector<Triangle>& triangles,
+                                   const std::vector<Particle>& particles,
                                    double compliance)
     : m_triangles(triangles) {
   m_compliance = compliance;
   double sum = 0;
-  for (auto &tri : triangles) {
+  for (auto& tri : triangles) {
     Eigen::Vector3d posA = particles[tri.a].getPosition();
     Eigen::Vector3d posB = particles[tri.b].getPosition();
     Eigen::Vector3d posC = particles[tri.c].getPosition();
@@ -20,10 +21,10 @@ VolumeConstraint::VolumeConstraint(const std::vector<Triangle> &triangles,
   m_restVolume = std::abs(sum / 6.0);
 }
 
-double
-VolumeConstraint::computeVolume(const std::vector<Particle> &particles) const {
+double VolumeConstraint::computeVolume(
+    const std::vector<Particle>& particles) const {
   double sum = 0;
-  for (auto &tri : m_triangles) {
+  for (auto& tri : m_triangles) {
     Eigen::Vector3d posA = particles[tri.a].getPosition();
     Eigen::Vector3d posB = particles[tri.b].getPosition();
     Eigen::Vector3d posC = particles[tri.c].getPosition();
@@ -33,17 +34,16 @@ VolumeConstraint::computeVolume(const std::vector<Particle> &particles) const {
   return std::abs(sum / 6.0);
 }
 
-void VolumeConstraint::solve(std::vector<Particle> &particles, double dt) {
+void VolumeConstraint::solve(std::vector<Particle>& particles, double dt) {
   double currentVolume = computeVolume(particles);
   double C = (currentVolume / m_restVolume) - 1.0;
 
-  if (std::abs(C) < 1e-6)
-    return;
+  if (std::abs(C) < 1e-6) return;
 
   std::vector<Eigen::Vector3d> gradients(particles.size(),
                                          Eigen::Vector3d::Zero());
 
-  for (auto &tri : m_triangles) {
+  for (auto& tri : m_triangles) {
     Eigen::Vector3d posA = particles[tri.a].getPosition();
     Eigen::Vector3d posB = particles[tri.b].getPosition();
     Eigen::Vector3d posC = particles[tri.c].getPosition();
@@ -63,8 +63,7 @@ void VolumeConstraint::solve(std::vector<Particle> &particles, double dt) {
   m_lambda += deltaLambda;
 
   for (size_t i = 0; i < particles.size(); i++) {
-    if (gradients[i].isZero())
-      continue;
+    if (gradients[i].isZero()) continue;
 
     double w = particles[i].getInverseMass();
     particles[i].setPosition(particles[i].getPosition() +
@@ -72,4 +71,4 @@ void VolumeConstraint::solve(std::vector<Particle> &particles, double dt) {
   }
 }
 
-} // namespace Tissu
+}  // namespace Tissu

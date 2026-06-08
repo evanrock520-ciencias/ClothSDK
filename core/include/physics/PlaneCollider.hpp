@@ -16,8 +16,9 @@
 
 #pragma once
 
-#include "Collider.hpp"
 #include <Eigen/Dense>
+
+#include "Collider.hpp"
 
 namespace Tissu {
 
@@ -31,7 +32,7 @@ namespace Tissu {
  * along the fixed normal.
  */
 class PlaneCollider : public Collider {
-public:
+ public:
   /**
    * @brief Constructs a new Plane Collider.
    *
@@ -40,7 +41,7 @@ public:
    * @param friction The friction coefficient [0.0 - 1.0] for tangential
    * damping.
    */
-  PlaneCollider(const Eigen::Vector3d &origin, const Eigen::Vector3d &normal,
+  PlaneCollider(const Eigen::Vector3d& origin, const Eigen::Vector3d& normal,
                 double friction);
 
   /**
@@ -53,15 +54,16 @@ public:
    * @param particles Reference to the global particle buffer.
    * @param dt Current substep time delta.
    */
-  void resolve(std::vector<Particle> &particles, double dt, double thickness);
+  void resolve(std::vector<Particle>& particles, double dt, double thickness);
 
-  inline const Eigen::Vector3d &getOrigin() const { return m_origin; }
-  inline const Eigen::Vector3d &getNormal() const { return m_normal; }
+  inline const Eigen::Vector3d& getOrigin() const { return m_origin; }
+  inline const Eigen::Vector3d& getNormal() const { return m_normal; }
 
-private:
-  Eigen::Vector3d m_origin; ///< World-space coordinate of a point in the plane.
+ private:
   Eigen::Vector3d
-      m_normal; ///< Normalized vector defining the surface orientation.
+      m_origin;  ///< World-space coordinate of a point in the plane.
+  Eigen::Vector3d
+      m_normal;  ///< Normalized vector defining the surface orientation.
 };
 
-} // namespace Tissu
+}  // namespace Tissu

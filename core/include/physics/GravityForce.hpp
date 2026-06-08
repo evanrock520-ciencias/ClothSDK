@@ -35,7 +35,7 @@ namespace Tissu {
  * such as zero-gravity or lateral pull.
  */
 class GravityForce : public Force {
-public:
+ public:
   /**
    * @brief Constructs a GravityForce with a given acceleration vector.
    *
@@ -43,7 +43,7 @@ public:
    *                Defaults to @f$ (0, -9.81, 0) @f$ in typical usage.
    *                Pass @f$ (0, 0, 0) @f$ to disable gravity at runtime.
    */
-  explicit GravityForce(const Eigen::Vector3d &gravity) : m_gravity(gravity) {}
+  explicit GravityForce(const Eigen::Vector3d& gravity) : m_gravity(gravity) {}
 
   /**
    * @brief Accumulates the gravitational acceleration into each dynamic
@@ -55,14 +55,14 @@ public:
    * @param particles Reference to the solver's global particle buffer.
    * @param dt Current substep time delta in seconds.
    */
-  void apply(std::vector<Particle> &particles, double dt) override;
+  void apply(std::vector<Particle>& particles, double dt) override;
 
   /**
    * @brief Updates the gravitational acceleration vector at runtime.
    *
    * @param gravity New world-space acceleration vector in m/s².
    */
-  inline void setGravity(const Eigen::Vector3d &gravity) {
+  inline void setGravity(const Eigen::Vector3d& gravity) {
     m_gravity = gravity;
   }
 
@@ -71,11 +71,11 @@ public:
    *
    * @return The world-space acceleration vector in m/s².
    */
-  inline const Eigen::Vector3d &getGravity() const { return m_gravity; }
+  inline const Eigen::Vector3d& getGravity() const { return m_gravity; }
 
-private:
+ private:
   Eigen::Vector3d
-      m_gravity; //< Constant gravitational acceleration vector in m/s².
+      m_gravity;  //< Constant gravitational acceleration vector in m/s².
 };
 
-} // namespace Tissu
+}  // namespace Tissu

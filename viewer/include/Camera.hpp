@@ -16,9 +16,10 @@
 
 #pragma once
 
-#include "math/Types.hpp"
 #include <Eigen/Dense>
 #include <vector>
+
+#include "math/Types.hpp"
 
 namespace Tissu {
 class Particle;
@@ -28,7 +29,7 @@ namespace Tissu {
 namespace Viewer {
 
 class Camera {
-public:
+ public:
   Camera(Eigen::Vector3f position = Eigen::Vector3f(0.0f, 5.0f, 15.0f),
          Eigen::Vector3f target = Eigen::Vector3f(0.0f, 5.0f, 0.0f));
 
@@ -45,7 +46,7 @@ public:
 
   Eigen::Vector3f inline getPosition() const { return m_position; }
 
-private:
+ private:
   void updateCameraVectors();
 
   Eigen::Vector3f m_position;
@@ -63,5 +64,5 @@ private:
   float m_far;
 };
 
-} // namespace Viewer
-} // namespace Tissu
+}  // namespace Viewer
+}  // namespace Tissu

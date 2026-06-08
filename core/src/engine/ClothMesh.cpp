@@ -2,20 +2,22 @@
 // SPDX-License-Identifier: Apache-2.0
 
 #include "engine/ClothMesh.hpp"
-#include "engine/Cloth.hpp"
-#include "math/Types.hpp"
-#include "physics/Particle.hpp"
-#include "physics/Solver.hpp"
-#include "utils/Logger.hpp"
+
 #include <cmath>
 #include <fstream>
 #include <map>
 #include <vector>
 
+#include "engine/Cloth.hpp"
+#include "math/Types.hpp"
+#include "physics/Particle.hpp"
+#include "physics/Solver.hpp"
+#include "utils/Logger.hpp"
+
 namespace Tissu {
 
-void ClothMesh::initGrid(int rows, int cols, double spacing, Cloth &outCloth,
-                         Solver &solver) {
+void ClothMesh::initGrid(int rows, int cols, double spacing, Cloth& outCloth,
+                         Solver& solver) {
   std::vector<int> gridIndices;
   gridIndices.reserve(rows * cols);
   auto mat = outCloth.getMaterial();
@@ -78,9 +80,9 @@ void ClothMesh::initGrid(int rows, int cols, double spacing, Cloth &outCloth,
   computePhysicalAttributes(outCloth, solver);
 }
 
-void ClothMesh::buildFromMesh(const std::vector<Eigen::Vector3d> &positions,
-                              const std::vector<int> &indices, Cloth &outCloth,
-                              Solver &solver, const std::string &meshPath) {
+void ClothMesh::buildFromMesh(const std::vector<Eigen::Vector3d>& positions,
+                              const std::vector<int>& indices, Cloth& outCloth,
+                              Solver& solver, const std::string& meshPath) {
   std::map<Edge, std::vector<int>> edgeToTriangles;
   std::vector<int> localToGlobal;
   localToGlobal.reserve(positions.size());
@@ -96,7 +98,7 @@ void ClothMesh::buildFromMesh(const std::vector<Eigen::Vector3d> &positions,
 
   Logger::info("Mesh Path: " + meshPath);
 
-  for (auto &position : positions) {
+  for (auto& position : positions) {
     auto id = solver.addParticle(Particle(position));
     outCloth.addParticleId(id);
     localToGlobal.push_back(id);
@@ -112,7 +114,7 @@ void ClothMesh::buildFromMesh(const std::vector<Eigen::Vector3d> &positions,
     int currentTriId = outCloth.getTriangles().size() - 1;
 
     Edge edges[3] = {{vA, vB}, {vB, vC}, {vC, vA}};
-    for (auto &edge : edges) {
+    for (auto& edge : edges) {
       if (edgeToTriangles.find(edge) == edgeToTriangles.end()) {
         solver.addDistanceConstraint(edge.v1, edge.v2, stComp);
         outCloth.addVisualEdge(edge.v1, edge.v2);
@@ -121,13 +123,13 @@ void ClothMesh::buildFromMesh(const std::vector<Eigen::Vector3d> &positions,
     }
   }
 
-  for (auto const &[key, triList] : edgeToTriangles) {
+  for (auto const& [key, triList] : edgeToTriangles) {
     if (triList.size() == 2) {
       int v1 = key.v1;
       int v2 = key.v2;
 
-      const Triangle &t1 = outCloth.getTriangles()[triList[0]];
-      const Triangle &t2 = outCloth.getTriangles()[triList[1]];
+      const Triangle& t1 = outCloth.getTriangles()[triList[0]];
+      const Triangle& t2 = outCloth.getTriangles()[triList[1]];
 
       int v3 = getOppositeVertex(t1, v1, v2);
       int v4 = getOppositeVertex(t2, v1, v2);
@@ -141,26 +143,23 @@ void ClothMesh::buildFromMesh(const std::vector<Eigen::Vector3d> &positions,
   computePhysicalAttributes(outCloth, solver);
 }
 
-int ClothMesh::getOppositeVertex(const Triangle &tri, int v1, int v2) const {
-  if (tri.a != v1 && tri.a != v2)
-    return tri.a;
-  if (tri.b != v1 && tri.b != v2)
-    return tri.b;
+int ClothMesh::getOppositeVertex(const Triangle& tri, int v1, int v2) const {
+  if (tri.a != v1 && tri.a != v2) return tri.a;
+  if (tri.b != v1 && tri.b != v2) return tri.b;
   return tri.c;
 }
 
 double ClothMesh::calculateInitialAngle(int id1, int id2, int id3, int id4,
-                                        const Solver &solver) const {
-  const auto &particles = solver.getParticles();
+                                        const Solver& solver) const {
+  const auto& particles = solver.getParticles();
 
-  const Eigen::Vector3d &p1 = particles[id1].getPosition();
-  const Eigen::Vector3d &p2 = particles[id2].getPosition();
-  const Eigen::Vector3d &p3 = particles[id3].getPosition();
-  const Eigen::Vector3d &p4 = particles[id4].getPosition();
+  const Eigen::Vector3d& p1 = particles[id1].getPosition();
+  const Eigen::Vector3d& p2 = particles[id2].getPosition();
+  const Eigen::Vector3d& p3 = particles[id3].getPosition();
+  const Eigen::Vector3d& p4 = particles[id4].getPosition();
 
   Eigen::Vector3d e = p2 - p1;
-  if (e.isZero(1e-6))
-    return 0.0;
+  if (e.isZero(1e-6)) return 0.0;
 
   Eigen::Vector3d n1 = e.cross(p3 - p1);
   Eigen::Vector3d n2 = (p4 - p1).cross(e);
@@ -168,32 +167,30 @@ double ClothMesh::calculateInitialAngle(int id1, int id2, int id3, int id4,
   double len1 = n1.norm();
   double len2 = n2.norm();
 
-  if (len1 < 1e-6 || len2 < 1e-6)
-    return 0.0;
+  if (len1 < 1e-6 || len2 < 1e-6) return 0.0;
 
   double cosTheta = n1.dot(n2) / (len1 * len2);
 
   return std::acos(std::clamp(cosTheta, -1.0, 1.0));
 }
 
-void ClothMesh::computePhysicalAttributes(Cloth &cloth, Solver &solver) const {
-  const auto &particles = solver.getParticles();
-  const auto &triangles = cloth.getTriangles();
-  const auto &indices = cloth.getParticleIndices();
+void ClothMesh::computePhysicalAttributes(Cloth& cloth, Solver& solver) const {
+  const auto& particles = solver.getParticles();
+  const auto& triangles = cloth.getTriangles();
+  const auto& indices = cloth.getParticleIndices();
   double density = cloth.getMaterial()->getDensity();
 
-  for (const auto &triangle : triangles) {
-    const Particle &pA = particles[triangle.a];
-    const Particle &pB = particles[triangle.b];
-    const Particle &pC = particles[triangle.c];
+  for (const auto& triangle : triangles) {
+    const Particle& pA = particles[triangle.a];
+    const Particle& pB = particles[triangle.b];
+    const Particle& pC = particles[triangle.c];
 
     Eigen::Vector3d v1 = pB.getPosition() - pA.getPosition();
     Eigen::Vector3d v2 = pC.getPosition() - pA.getPosition();
 
     double area = 0.5 * v1.cross(v2).norm();
     double massPerVertex = (area * density) / 3.0;
-    if (massPerVertex < 0.001)
-      massPerVertex = 0.001;
+    if (massPerVertex < 0.001) massPerVertex = 0.001;
 
     solver.addMassToParticle(triangle.a, massPerVertex);
     solver.addMassToParticle(triangle.b, massPerVertex);
@@ -203,4 +200,4 @@ void ClothMesh::computePhysicalAttributes(Cloth &cloth, Solver &solver) const {
   }
 }
 
-} // namespace Tissu
+}  // namespace Tissu

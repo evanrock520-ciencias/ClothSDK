@@ -2,8 +2,10 @@
 // SPDX-License-Identifier: Apache-2.0
 
 #include "physics/ContactConstraint.hpp"
-#include "physics/Particle.hpp"
+
 #include <Eigen/Dense>
+
+#include "physics/Particle.hpp"
 
 namespace Tissu {
 
@@ -13,15 +15,14 @@ ContactConstraint::ContactConstraint(int idA, int idB, double thickness,
   m_compliance = compliance;
 }
 
-void ContactConstraint::solve(std::vector<Particle> &particles, double dt) {
-  Particle &pA = particles[m_idA];
-  Particle &pB = particles[m_idB];
+void ContactConstraint::solve(std::vector<Particle>& particles, double dt) {
+  Particle& pA = particles[m_idA];
+  Particle& pB = particles[m_idB];
 
   Eigen::Vector3d d = pA.getPosition() - pB.getPosition();
   double dist = d.norm();
 
-  if (dist >= m_thickness || dist < 1e-8)
-    return;
+  if (dist >= m_thickness || dist < 1e-8) return;
 
   Eigen::Vector3d n = d / dist;
 
@@ -30,8 +31,7 @@ void ContactConstraint::solve(std::vector<Particle> &particles, double dt) {
   double wA = pA.getInverseMass();
   double wB = pB.getInverseMass();
   double wSum = wA + wB;
-  if (wSum == 0.0)
-    return;
+  if (wSum == 0.0) return;
 
   double correction = -C / wSum;
 
@@ -39,4 +39,4 @@ void ContactConstraint::solve(std::vector<Particle> &particles, double dt) {
   pB.setPosition(pB.getPosition() - wB * correction * n);
 }
 
-} // namespace Tissu
+}  // namespace Tissu

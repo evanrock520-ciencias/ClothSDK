@@ -16,8 +16,9 @@
 
 #pragma once
 
-#include "Collider.hpp"
 #include <Eigen/Dense>
+
+#include "Collider.hpp"
 
 namespace Tissu {
 
@@ -31,7 +32,7 @@ namespace Tissu {
  * relative position.
  */
 class SphereCollider : public Collider {
-public:
+ public:
   /**
    * @brief Constructs a new Sphere Collider.
    *
@@ -39,7 +40,7 @@ public:
    * @param radius The radius of the sphere in world units.
    * @param friction The friction coefficient.
    */
-  SphereCollider(const Eigen::Vector3d &center, double radius, double friction);
+  SphereCollider(const Eigen::Vector3d& center, double radius, double friction);
 
   /**
    * @brief Resolves collisions between the sphere and a buffer of particles.
@@ -53,14 +54,14 @@ public:
    * @param particles Reference to the global particle buffer.
    * @param dt Current substep time delta.
    */
-  void resolve(std::vector<Particle> &particles, double dt, double thickness);
+  void resolve(std::vector<Particle>& particles, double dt, double thickness);
 
   inline const Eigen::Vector3d getCenter() const { return m_center; }
   inline double getRadius() const { return m_radius; }
 
-private:
-  Eigen::Vector3d m_center; ///< The center point of the sphere in 3D space.
-  double m_radius;          ///< Radius of the collision volume.
+ private:
+  Eigen::Vector3d m_center;  ///< The center point of the sphere in 3D space.
+  double m_radius;           ///< Radius of the collision volume.
 };
 
-} // namespace Tissu
+}  // namespace Tissu

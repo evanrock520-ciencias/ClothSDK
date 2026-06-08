@@ -2,30 +2,31 @@
 // SPDX-License-Identifier: Apache-2.0
 
 #include "physics/DistanceConstraint.hpp"
+
 #include <vector>
 
 namespace Tissu {
 
 DistanceConstraint::DistanceConstraint(int idA, int idB, double restLength,
                                        double compliance)
-    : m_idA(idA), m_idB(idB), m_restLength(restLength),
+    : m_idA(idA),
+      m_idB(idB),
+      m_restLength(restLength),
       m_compliance(compliance) {}
 
-void DistanceConstraint::solve(std::vector<Particle> &particles, double dt) {
-  Particle &pA = particles[m_idA];
-  Particle &pB = particles[m_idB];
+void DistanceConstraint::solve(std::vector<Particle>& particles, double dt) {
+  Particle& pA = particles[m_idA];
+  Particle& pB = particles[m_idB];
 
   Eigen::Vector3d delta = pA.getPosition() - pB.getPosition();
   double currentLength = delta.norm();
 
-  if (currentLength < 1e-6)
-    return;
+  if (currentLength < 1e-6) return;
 
   double wA = pA.getInverseMass();
   double wB = pB.getInverseMass();
   double wSum = wA + wB;
-  if (wSum == 0.0)
-    return;
+  if (wSum == 0.0) return;
 
   Eigen::Vector3d n = delta / currentLength;
   double C = currentLength - m_restLength;
@@ -38,4 +39,4 @@ void DistanceConstraint::solve(std::vector<Particle> &particles, double dt) {
   pB.setPosition(pB.getPosition() - wB * n * deltaLambda);
 }
 
-} // namespace Tissu
+}  // namespace Tissu

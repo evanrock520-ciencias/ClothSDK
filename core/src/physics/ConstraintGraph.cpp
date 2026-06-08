@@ -1,15 +1,17 @@
 #include "physics/ConstraintGraph.hpp"
-#include "utils/Logger.hpp"
+
 #include <cstddef>
 #include <random>
 #include <vector>
+
+#include "utils/Logger.hpp"
 
 namespace Tissu {
 
 ConstraintGraph::ConstraintGraph() {}
 
 void ConstraintGraph::buildFrom(
-    const std::vector<std::unique_ptr<Constraint>> &constraints,
+    const std::vector<std::unique_ptr<Constraint>>& constraints,
     unsigned int seed = 42) {
   m_nodeCount = static_cast<int>(constraints.size());
   m_edgeCount = 0;
@@ -23,13 +25,13 @@ void ConstraintGraph::buildFrom(
     }
   }
 
-  for (const auto &[pid, constraintList] : particleToConstraints) {
+  for (const auto& [pid, constraintList] : particleToConstraints) {
     for (int a = 0; a < (int)constraintList.size(); a++) {
       for (int b = a + 1; b < (int)constraintList.size(); b++) {
         int idx = constraintList[a];
         int jdx = constraintList[b];
 
-        auto &ni = m_adjacency[idx];
+        auto& ni = m_adjacency[idx];
         if (std::find(ni.begin(), ni.end(), jdx) == ni.end()) {
           ni.push_back(jdx);
           m_adjacency[jdx].push_back(idx);
@@ -43,13 +45,11 @@ void ConstraintGraph::buildFrom(
   std::mt19937 rng(seed);
   std::uniform_real_distribution<double> dist(0.0, 1.0);
 
-  for (int i = 0; i < m_nodeCount; i++)
-    m_weights[i] = dist(rng);
+  for (int i = 0; i < m_nodeCount; i++) m_weights[i] = dist(rng);
 }
 
 std::vector<std::vector<int>> ConstraintGraph::colorBatches() {
-  if (m_nodeCount == 0)
-    return {{}};
+  if (m_nodeCount == 0) return {{}};
 
   std::vector<int> color(m_nodeCount, -1);
   std::vector<bool> done(m_nodeCount, false);
@@ -64,8 +64,7 @@ std::vector<std::vector<int>> ConstraintGraph::colorBatches() {
       std::vector<int> localBatch;
 #pragma omp for
       for (int idx = 0; idx < m_nodeCount; idx++) {
-        if (done[idx])
-          continue;
+        if (done[idx]) continue;
 
         bool wins = true;
         for (int neighbor : neighbors(idx)) {
@@ -100,4 +99,4 @@ std::vector<std::vector<int>> ConstraintGraph::colorBatches() {
   return batches;
 }
 
-} // namespace Tissu
+}  // namespace Tissu

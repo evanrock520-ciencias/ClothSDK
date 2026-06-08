@@ -2,20 +2,20 @@
 // SPDX-License-Identifier: Apache-2.0
 
 #include "physics/PlaneCollider.hpp"
+
 #include "physics/Particle.hpp"
 
 namespace Tissu {
 
-PlaneCollider::PlaneCollider(const Eigen::Vector3d &origin,
-                             const Eigen::Vector3d &normal, double friction)
+PlaneCollider::PlaneCollider(const Eigen::Vector3d& origin,
+                             const Eigen::Vector3d& normal, double friction)
     : m_origin(origin), m_normal(normal.normalized()) {
   m_friction = friction;
 }
 
-void PlaneCollider::resolve(std::vector<Particle> &particles, double dt,
+void PlaneCollider::resolve(std::vector<Particle>& particles, double dt,
                             double thickness) {
-
-  for (auto &particle : particles) {
+  for (auto& particle : particles) {
     Eigen::Vector3d vec = particle.getPosition() - m_origin;
     double distance = vec.dot(m_normal);
 
@@ -39,4 +39,4 @@ void PlaneCollider::resolve(std::vector<Particle> &particles, double dt,
   }
 }
 
-} // namespace Tissu
+}  // namespace Tissu

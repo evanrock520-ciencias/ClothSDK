@@ -16,27 +16,27 @@
 
 #pragma once
 
-#include "Constraint.hpp"
-
-#include "Particle.hpp"
 #include <vector>
+
+#include "Constraint.hpp"
+#include "Particle.hpp"
 
 namespace Tissu {
 
 class BendingConstraint : public Constraint {
-public:
+ public:
   BendingConstraint(int idA, int idB, int idc, int idD, double restAngle,
                     double compliance);
 
-  void solve(std::vector<Particle> &particles, double dt) override;
+  void solve(std::vector<Particle>& particles, double dt) override;
 
   std::vector<int> getParticleIds() const override {
     return {m_idA, m_idB, m_idC, m_idD};
   }
 
-private:
+ private:
   int m_idA, m_idB, m_idC, m_idD;
   double m_restAngle;
 };
 
-} // namespace Tissu
+}  // namespace Tissu

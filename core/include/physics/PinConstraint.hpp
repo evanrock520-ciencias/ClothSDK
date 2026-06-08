@@ -33,7 +33,7 @@ namespace Tissu {
  * elastic attachments or soft anchors.
  */
 class PinConstraint : public Constraint {
-public:
+ public:
   /**
    * @brief Constructs a pin constraint for a single particle.
    *
@@ -45,7 +45,7 @@ public:
    *                   Use 0.0 for a rigid pin, or a small positive value for a
    * soft anchor.
    */
-  PinConstraint(int particleId, const Eigen::Vector3d &pinPosition,
+  PinConstraint(int particleId, const Eigen::Vector3d& pinPosition,
                 double compliance);
 
   /**
@@ -64,7 +64,7 @@ public:
    * @param particles Reference to the solver's global particle buffer.
    * @param dt Current substep time delta.
    */
-  void solve(std::vector<Particle> &particles, double dt) override;
+  void solve(std::vector<Particle>& particles, double dt) override;
 
   /**
    * @brief Relocates the anchor point at runtime.
@@ -74,7 +74,7 @@ public:
    *
    * @param newPos The new world-space anchor position.
    */
-  inline void setPinPosition(const Eigen::Vector3d &newPos) {
+  inline void setPinPosition(const Eigen::Vector3d& newPos) {
     m_pinPos = newPos;
   }
 
@@ -82,9 +82,10 @@ public:
 
   std::vector<int> getParticleIds() const override { return {m_particleId}; }
 
-private:
-  int m_particleId; ///< Index of the constrained particle in the solver buffer.
-  Eigen::Vector3d m_pinPos; ///< Fixed world-space anchor position.
+ private:
+  int m_particleId;  ///< Index of the constrained particle in the solver
+                     ///< buffer.
+  Eigen::Vector3d m_pinPos;  ///< Fixed world-space anchor position.
 };
 
-} // namespace Tissu
+}  // namespace Tissu

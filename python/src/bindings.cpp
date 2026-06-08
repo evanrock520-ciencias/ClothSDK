@@ -1,11 +1,12 @@
 // Copyright 2026 Evan M.
 // SPDX-License-Identifier: Apache-2.0
 
-#include <memory>
 #include <pybind11/cast.h>
 #include <pybind11/eigen.h>
 #include <pybind11/pybind11.h>
 #include <pybind11/stl.h>
+
+#include <memory>
 #include <tuple>
 
 #include "Application.hpp"
@@ -55,7 +56,7 @@ PYBIND11_MODULE(_cloth_sdk_core, m) {
       .value("NONE", PinMode::NONE);
 
   py::class_<Pin>(m, "Pin")
-      .def(py::init<const PinMode &, double, double>(), py::arg("pin_mode"),
+      .def(py::init<const PinMode&, double, double>(), py::arg("pin_mode"),
            py::arg("compliance"), py::arg("threshold"))
       .def("get_pin_mode", &Pin::getPinMode)
       .def("get_compliance", &Pin::getCompliance)
@@ -88,17 +89,17 @@ PYBIND11_MODULE(_cloth_sdk_core, m) {
 
   py::class_<Tissu::GravityForce, Tissu::Force,
              std::shared_ptr<Tissu::GravityForce>>(m, "GravityForce")
-      .def(py::init<const Eigen::Vector3d &>())
+      .def(py::init<const Eigen::Vector3d&>())
       .def("set_gravity", &GravityForce::setGravity)
       .def("get_gravity", &GravityForce::getGravity);
 
   py::class_<Tissu::AerodynamicForce, Tissu::Force,
              std::shared_ptr<Tissu::AerodynamicForce>>(m, "AerodynamicForce")
-      .def(py::init<const std::vector<AeroFace> &, const Eigen::Vector3d &,
+      .def(py::init<const std::vector<AeroFace>&, const Eigen::Vector3d&,
                     double>());
 
   py::class_<Particle>(m, "Particle")
-      .def(py::init<const Eigen::Vector3d &>(), py::arg("initial_pos"))
+      .def(py::init<const Eigen::Vector3d&>(), py::arg("initial_pos"))
       .def("get_position", &Particle::getPosition)
       .def("set_position", &Particle::setPosition)
       .def("set_old_position", &Particle::setOldPosition)
@@ -123,8 +124,8 @@ PYBIND11_MODULE(_cloth_sdk_core, m) {
 
   py::class_<VolumeConstraint, Constraint, std::unique_ptr<VolumeConstraint>>(
       m, "VolumeConstraint")
-      .def(py::init<const std::vector<Triangle> &,
-                    const std::vector<Particle> &, double>(),
+      .def(py::init<const std::vector<Triangle>&, const std::vector<Particle>&,
+                    double>(),
            py::arg("triangles"), py::arg("particles"), py::arg("compliance"))
       .def("get_rest_volume", &VolumeConstraint::getRestVolume);
 
@@ -134,17 +135,17 @@ PYBIND11_MODULE(_cloth_sdk_core, m) {
 
   py::class_<PlaneCollider, Collider, std::unique_ptr<PlaneCollider>>(
       m, "PlaneCollider")
-      .def(py::init<const Eigen::Vector3d &, const Eigen::Vector3d &, double>(),
+      .def(py::init<const Eigen::Vector3d&, const Eigen::Vector3d&, double>(),
            py::arg("origin"), py::arg("normal"), py::arg("friction"));
 
   py::class_<SphereCollider, Collider, std::unique_ptr<SphereCollider>>(
       m, "SphereCollider")
-      .def(py::init<const Eigen::Vector3d &, double, double>(),
+      .def(py::init<const Eigen::Vector3d&, double, double>(),
            py::arg("center"), py::arg("radius"), py::arg("friction"));
 
   py::class_<CapsuleCollider, Collider, std::unique_ptr<CapsuleCollider>>(
       m, "CapsuleCollider")
-      .def(py::init<double, const Eigen::Vector3d &, const Eigen::Vector3d &,
+      .def(py::init<double, const Eigen::Vector3d&, const Eigen::Vector3d&,
                     double>(),
            py::arg("radius"), py::arg("start"), py::arg("end"),
            py::arg("friction"));
@@ -180,7 +181,7 @@ PYBIND11_MODULE(_cloth_sdk_core, m) {
       .def("clear", &Solver::clear)
       .def("add_particle", &Solver::addParticle)
       .def("get_particles",
-           static_cast<const std::vector<Particle> &(Solver::*)() const>(
+           static_cast<const std::vector<Particle>& (Solver::*)() const>(
                &Solver::getParticles),
            py::return_value_policy::reference_internal)
       .def("set_substeps", &Solver::setSubsteps)
@@ -204,7 +205,7 @@ PYBIND11_MODULE(_cloth_sdk_core, m) {
            py::arg("mesh_path"));
 
   py::class_<Tissu::Cloth, std::shared_ptr<Tissu::Cloth>>(m, "Cloth")
-      .def(py::init<const std::string &, std::shared_ptr<ClothMaterial>>(),
+      .def(py::init<const std::string&, std::shared_ptr<ClothMaterial>>(),
            py::arg("name"), py::arg("material"))
       .def("get_name", &Cloth::getName)
       .def("get_particle_id", &Cloth::getParticleID, py::arg("row"),
@@ -219,9 +220,9 @@ PYBIND11_MODULE(_cloth_sdk_core, m) {
       .def("get_particle_indices", &Cloth::getParticleIndices)
       .def("get_aerofaces", &Cloth::getAeroFaces)
       .def("get_triangles",
-           [](const Cloth &cloth) {
+           [](const Cloth& cloth) {
              std::vector<int> flat;
-             for (const auto &t : cloth.getTriangles()) {
+             for (const auto& t : cloth.getTriangles()) {
                flat.push_back(t.a);
                flat.push_back(t.b);
                flat.push_back(t.c);
@@ -229,10 +230,10 @@ PYBIND11_MODULE(_cloth_sdk_core, m) {
              return flat;
            })
       .def("get_triangles_native",
-           [](const Cloth &cloth) { return cloth.getTriangles(); });
+           [](const Cloth& cloth) { return cloth.getTriangles(); });
 
   py::class_<OBJLoader>(m, "OBJLoader")
-      .def_static("load", [](const std::string &path) {
+      .def_static("load", [](const std::string& path) {
         std::vector<Eigen::Vector3d> pos;
         std::vector<int> indices;
         bool success = Tissu::OBJLoader::load(path, pos, indices);

@@ -16,12 +16,13 @@
 
 #pragma once
 
-#include "engine/World.hpp"
-#include "math/Types.hpp"
 #include <Eigen/Dense>
 #include <fstream>
 #include <nlohmann/json.hpp>
 #include <string>
+
+#include "engine/World.hpp"
+#include "math/Types.hpp"
 
 namespace Tissu {
 
@@ -37,7 +38,7 @@ class ClothMesh;
  */
 
 class ConfigLoader {
-public:
+ public:
   /**
    * @brief Loads a material preset from a JSON file.
    *
@@ -46,8 +47,8 @@ public:
    * @param outMaterial The material object that will be updated with loaded
    * data.
    */
-  static void loadMaterial(const std::string &filepath,
-                           ClothMaterial &outMaterial);
+  static void loadMaterial(const std::string& filepath,
+                           ClothMaterial& outMaterial);
 
   /**
    * @brief Loads a material preset from a JSON object.
@@ -56,8 +57,8 @@ public:
    * @param outMaterial The material object that will be updated with loaded
    * data.
    */
-  static void loadMaterialFromJson(const nlohmann::json &data,
-                                   ClothMaterial &outMaterial);
+  static void loadMaterialFromJson(const nlohmann::json& data,
+                                   ClothMaterial& outMaterial);
 
   /**
    * @brief Loads a physics preset from a JSON file.
@@ -67,8 +68,8 @@ public:
    * @param outMaterial The material object that will be updated with loaded
    * data.
    */
-  static void loadPhysics(const std::string &filepath, Solver &solver,
-                          World &world);
+  static void loadPhysics(const std::string& filepath, Solver& solver,
+                          World& world);
 
   /**
    * @brief Loads a physics preset from a JSON object.
@@ -77,8 +78,8 @@ public:
    * @param solver The solver instance to configure.
    * @param world The physics world to configure.
    */
-  static void loadPhysicsFromJson(const nlohmann::json &data, Solver &solver,
-                                  World &world);
+  static void loadPhysicsFromJson(const nlohmann::json& data, Solver& solver,
+                                  World& world);
 
   /**
    * @brief Saves the current material configuration to a JSON file.
@@ -86,9 +87,9 @@ public:
    * @param filepath The destination path where the config file will be created.
    * @param material The material properties to be serialized.
    */
-  static void saveMaterial(const std::string &filepath,
-                           const ClothMaterial &material,
-                           const std::string &name);
+  static void saveMaterial(const std::string& filepath,
+                           const ClothMaterial& material,
+                           const std::string& name);
 
   /**
    * @brief Saves the current physics configuration to a JSON file.
@@ -97,15 +98,15 @@ public:
    * @param solver The solver instance whose parameters need to be saved.
    * @param world The physics world context to include in the configuration.
    */
-  static void savePhysics(const std::string &filepath, const Solver &solver,
-                          const World &world, const std::string &name);
+  static void savePhysics(const std::string& filepath, const Solver& solver,
+                          const World& world, const std::string& name);
 
   /**
    * @brief Converts a JSON object into an Eigen vector.
    * @param json JSON object containing coordinates
    * @return Eigen::Vector3d Resulting vector representation.
    */
-  static Eigen::Vector3d jsonToVector(const nlohmann::json &json);
+  static Eigen::Vector3d jsonToVector(const nlohmann::json& json);
 
   /**
    * @brief Converts an Eigen vector into a JSON object.
@@ -113,7 +114,7 @@ public:
    * @param vector The Eigen::Vector3d to be converted.
    * @return nlohmann::json A JSON object representing the vector's coordinates.
    */
-  static nlohmann::json vectorToJson(const Eigen::Vector3d &vector);
+  static nlohmann::json vectorToJson(const Eigen::Vector3d& vector);
 };
 
-} // namespace Tissu
+}  // namespace Tissu

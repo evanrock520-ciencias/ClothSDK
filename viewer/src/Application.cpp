@@ -1,17 +1,19 @@
 // Copyright 2026 Evan M.
 // SPDX-License-Identifier: Apache-2.0
 
-#include <Eigen/Dense>
+#include "Application.hpp"
+
 #include <GLFW/glfw3.h>
 #include <glad/gl.h>
 #include <imgui.h>
 #include <imgui_impl_glfw.h>
 #include <imgui_impl_opengl3.h>
+
+#include <Eigen/Dense>
 #include <memory>
 #include <string>
 #include <vector>
 
-#include "Application.hpp"
 #include "Camera.hpp"
 #include "Renderer.hpp"
 #include "engine/Cloth.hpp"
@@ -26,26 +28,30 @@
 #include "physics/Solver.hpp"
 #include "utils/Logger.hpp"
 
-extern IMGUI_IMPL_API void ImGui_ImplGlfw_CursorPosCallback(GLFWwindow *window,
+extern IMGUI_IMPL_API void ImGui_ImplGlfw_CursorPosCallback(GLFWwindow* window,
                                                             double x, double y);
-extern IMGUI_IMPL_API void
-ImGui_ImplGlfw_MouseButtonCallback(GLFWwindow *window, int button, int action,
-                                   int mods);
-extern IMGUI_IMPL_API void ImGui_ImplGlfw_ScrollCallback(GLFWwindow *window,
+extern IMGUI_IMPL_API void ImGui_ImplGlfw_MouseButtonCallback(
+    GLFWwindow* window, int button, int action, int mods);
+extern IMGUI_IMPL_API void ImGui_ImplGlfw_ScrollCallback(GLFWwindow* window,
                                                          double xoffset,
                                                          double yoffset);
-extern IMGUI_IMPL_API void ImGui_ImplGlfw_KeyCallback(GLFWwindow *window,
+extern IMGUI_IMPL_API void ImGui_ImplGlfw_KeyCallback(GLFWwindow* window,
                                                       int key, int scancode,
                                                       int action, int mods);
-extern IMGUI_IMPL_API void ImGui_ImplGlfw_CharCallback(GLFWwindow *window,
+extern IMGUI_IMPL_API void ImGui_ImplGlfw_CharCallback(GLFWwindow* window,
                                                        unsigned int c);
 
 namespace Tissu {
 namespace Viewer {
 
 Application::Application()
-    : m_window(nullptr), m_solver(nullptr), m_renderer(nullptr),
-      m_camera(nullptr), m_deltaTime(0.0), m_lastFrame(0.0), m_isPaused(false) {
+    : m_window(nullptr),
+      m_solver(nullptr),
+      m_renderer(nullptr),
+      m_camera(nullptr),
+      m_deltaTime(0.0),
+      m_lastFrame(0.0),
+      m_isPaused(false) {
   m_world = std::make_shared<World>();
   m_solver = std::make_shared<Solver>();
   m_isGridScene = true;
@@ -58,8 +64,8 @@ Application::Application()
 
 Application::~Application() = default;
 
-bool Application::init(int width, int height, const std::string &title,
-                       const std::string &shaderPath) {
+bool Application::init(int width, int height, const std::string& title,
+                       const std::string& shaderPath) {
   if (!glfwInit()) {
     Logger::error("Failed to initialize GLFW");
     return false;
@@ -89,7 +95,7 @@ bool Application::init(int width, int height, const std::string &title,
 
   IMGUI_CHECKVERSION();
   ImGui::CreateContext();
-  ImGuiIO &io = ImGui::GetIO();
+  ImGuiIO& io = ImGui::GetIO();
   (void)io;
   ImGui::StyleColorsDark();
 
@@ -108,48 +114,46 @@ bool Application::init(int width, int height, const std::string &title,
   ImGui_ImplGlfw_InitForOpenGL(m_window, false);
   ImGui_ImplOpenGL3_Init("#version 330");
 
-  glfwSetCursorPosCallback(m_window, [](GLFWwindow *window, double xpos,
-                                        double ypos) {
-    ImGui_ImplGlfw_CursorPosCallback(window, xpos, ypos);
+  glfwSetCursorPosCallback(
+      m_window, [](GLFWwindow* window, double xpos, double ypos) {
+        ImGui_ImplGlfw_CursorPosCallback(window, xpos, ypos);
 
-    if (ImGui::GetIO().WantCaptureMouse)
-      return;
+        if (ImGui::GetIO().WantCaptureMouse) return;
 
-    auto *app = static_cast<Application *>(glfwGetWindowUserPointer(window));
-    if (app->m_firstMouse) {
-      app->m_lastX = xpos;
-      app->m_lastY = ypos;
-      app->m_firstMouse = false;
-    }
+        auto* app = static_cast<Application*>(glfwGetWindowUserPointer(window));
+        if (app->m_firstMouse) {
+          app->m_lastX = xpos;
+          app->m_lastY = ypos;
+          app->m_firstMouse = false;
+        }
 
-    float xoffset = static_cast<float>(xpos - app->m_lastX);
-    float yoffset = static_cast<float>(app->m_lastY - ypos);
+        float xoffset = static_cast<float>(xpos - app->m_lastX);
+        float yoffset = static_cast<float>(app->m_lastY - ypos);
 
-    app->m_lastX = xpos;
-    app->m_lastY = ypos;
+        app->m_lastX = xpos;
+        app->m_lastY = ypos;
 
-    if (glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_RIGHT) == GLFW_PRESS) {
-      app->m_camera->handleMouse(xoffset, yoffset);
-    }
-  });
+        if (glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_RIGHT) == GLFW_PRESS) {
+          app->m_camera->handleMouse(xoffset, yoffset);
+        }
+      });
 
   glfwSetMouseButtonCallback(
-      m_window, [](GLFWwindow *window, int button, int action, int mods) {
+      m_window, [](GLFWwindow* window, int button, int action, int mods) {
         ImGui_ImplGlfw_MouseButtonCallback(window, button, action, mods);
       });
 
-  glfwSetScrollCallback(m_window, [](GLFWwindow *window, double xoffset,
-                                     double yoffset) {
-    ImGui_ImplGlfw_ScrollCallback(window, xoffset, yoffset);
+  glfwSetScrollCallback(
+      m_window, [](GLFWwindow* window, double xoffset, double yoffset) {
+        ImGui_ImplGlfw_ScrollCallback(window, xoffset, yoffset);
 
-    if (ImGui::GetIO().WantCaptureMouse)
-      return;
+        if (ImGui::GetIO().WantCaptureMouse) return;
 
-    auto *app = static_cast<Application *>(glfwGetWindowUserPointer(window));
-    app->m_camera->handleZoom(static_cast<float>(yoffset));
-  });
+        auto* app = static_cast<Application*>(glfwGetWindowUserPointer(window));
+        app->m_camera->handleZoom(static_cast<float>(yoffset));
+      });
 
-  glfwSetKeyCallback(m_window, [](GLFWwindow *window, int key, int scancode,
+  glfwSetKeyCallback(m_window, [](GLFWwindow* window, int key, int scancode,
                                   int action, int mods) {
     ImGui_ImplGlfw_KeyCallback(window, key, scancode, action, mods);
 
@@ -157,27 +161,24 @@ bool Application::init(int width, int height, const std::string &title,
       glfwSetWindowShouldClose(window, true);
   });
 
-  glfwSetCharCallback(m_window, [](GLFWwindow *window, unsigned int c) {
+  glfwSetCharCallback(m_window, [](GLFWwindow* window, unsigned int c) {
     ImGui_ImplGlfw_CharCallback(window, c);
   });
 
-  glfwSetFramebufferSizeCallback(m_window, [](GLFWwindow *window, int width,
-                                              int height) {
-    glViewport(0, 0, width, height);
+  glfwSetFramebufferSizeCallback(
+      m_window, [](GLFWwindow* window, int width, int height) {
+        glViewport(0, 0, width, height);
 
-    auto *app = static_cast<Application *>(glfwGetWindowUserPointer(window));
-    if (app->m_camera && height > 0) {
-      app->m_camera->setAspectRatio(static_cast<float>(width) /
-                                    static_cast<float>(height));
-    }
-  });
+        auto* app = static_cast<Application*>(glfwGetWindowUserPointer(window));
+        if (app->m_camera && height > 0) {
+          app->m_camera->setAspectRatio(static_cast<float>(width) /
+                                        static_cast<float>(height));
+        }
+      });
 
-  if (!m_world)
-    m_world = std::make_shared<World>();
-  if (!m_solver)
-    m_solver = std::make_shared<Solver>();
-  if (!m_mesh)
-    m_mesh = std::make_shared<ClothMesh>();
+  if (!m_world) m_world = std::make_shared<World>();
+  if (!m_solver) m_solver = std::make_shared<Solver>();
+  if (!m_mesh) m_mesh = std::make_shared<ClothMesh>();
 
   m_gravityForce =
       std::make_shared<GravityForce>(Eigen::Vector3d(0.0, -9.81, 0.0));
@@ -214,8 +215,7 @@ void Application::run() {
     double currentFrame = glfwGetTime();
     m_deltaTime = currentFrame - m_lastFrame;
     m_lastFrame = currentFrame;
-    if (m_deltaTime > 0.05)
-      m_deltaTime = 0.05;
+    if (m_deltaTime > 0.05) m_deltaTime = 0.05;
 
     glfwPollEvents();
 
@@ -255,7 +255,7 @@ void Application::processInput() {
 
   if (sIsPressed && !sWasPressed) {
     int frame = m_solver->getCurrentFrame();
-    const std::string &cloth_name = m_cloth->getName();
+    const std::string& cloth_name = m_cloth->getName();
     std::string name =
         "data/snapshots/" + cloth_name + "On" + std::to_string(frame) + ".obj";
     OBJExporter::exportOBJ(name, *m_cloth, *m_solver);
@@ -297,7 +297,7 @@ void Application::processInput() {
         findClosestParticleToRay(ray, m_solver->getParticles());
     if (m_grabbedParticleIndex != -1) {
       m_isGrabbing = true;
-      const Particle &grabbed =
+      const Particle& grabbed =
           m_solver->getParticles()[m_grabbedParticleIndex];
       Eigen::Vector3d particlePos = grabbed.getPosition();
       Eigen::Vector3d rayOrigin = ray.getOrigin();
@@ -332,8 +332,7 @@ void Application::processInput() {
 }
 
 void Application::update() {
-  if (!m_isPaused)
-    m_solver->update(*m_world, 1.0 / 60.0);
+  if (!m_isPaused) m_solver->update(*m_world, 1.0 / 60.0);
 }
 
 void Application::render() {
@@ -369,7 +368,7 @@ void Application::drawUI() {
                                    *(m_cloth->getMaterial()));
         Logger::info("Material loaded from: " +
                      std::string(m_configMaterialPath));
-      } catch (const std::exception &e) {
+      } catch (const std::exception& e) {
         Logger::error("Failed to load config: " + std::string(e.what()));
       }
     }
@@ -381,7 +380,7 @@ void Application::drawUI() {
         ConfigLoader::saveMaterial("exported_material.json",
                                    *(m_cloth->getMaterial()), "exported");
         Logger::info("Material saved to exported_material.json");
-      } catch (const std::exception &e) {
+      } catch (const std::exception& e) {
         Logger::error("Failed to save config: " + std::string(e.what()));
       }
     }
@@ -394,7 +393,7 @@ void Application::drawUI() {
         ConfigLoader::loadPhysics(m_configPhysicsPath, *m_solver, *m_world);
         Logger::info("Physics loaded from: " +
                      std::string(m_configMaterialPath));
-      } catch (const std::exception &e) {
+      } catch (const std::exception& e) {
         Logger::error("Failed to load config: " + std::string(e.what()));
       }
     }
@@ -406,7 +405,7 @@ void Application::drawUI() {
         ConfigLoader::savePhysics("exported_physics.json", *m_solver, *m_world,
                                   "exported");
         Logger::info("Physics saved to exported_physics.json");
-      } catch (const std::exception &e) {
+      } catch (const std::exception& e) {
         Logger::error("Failed to save config: " + std::string(e.what()));
       }
     }
@@ -416,7 +415,7 @@ void Application::drawUI() {
         SceneExporter::saveScene("exported_scene.json", "exported", *m_solver,
                                  *m_world);
         Logger::info("Scene saved to exported_scene.json");
-      } catch (const std::exception &e) {
+      } catch (const std::exception& e) {
         Logger::error("Failed to save config: " + std::string(e.what()));
       }
     }
@@ -493,8 +492,7 @@ void Application::drawUI() {
 
     static int subs = m_solver->getSubsteps();
     if (ImGui::InputInt("Substeps", &subs)) {
-      if (subs < 1)
-        subs = 1;
+      if (subs < 1) subs = 1;
       m_solver->setSubsteps(subs);
     }
 
@@ -520,12 +518,10 @@ void Application::drawUI() {
       if (windEnabled) {
         Eigen::Vector3d wind = dir * windStrength;
         m_world->setWind(wind);
-        if (m_aeroForce)
-          m_aeroForce->setWind(wind);
+        if (m_aeroForce) m_aeroForce->setWind(wind);
       } else {
         m_world->setWind(Eigen::Vector3d::Zero());
-        if (m_aeroForce)
-          m_aeroForce->setWind(Eigen::Vector3d::Zero());
+        if (m_aeroForce) m_aeroForce->setWind(Eigen::Vector3d::Zero());
       }
     }
   }
@@ -546,7 +542,7 @@ void Application::syncVisualTopology() {
   }
 
   std::vector<unsigned int> triangles;
-  for (const auto &tri : m_cloth->getTriangles()) {
+  for (const auto& tri : m_cloth->getTriangles()) {
     triangles.push_back(tri.a);
     triangles.push_back(tri.b);
     triangles.push_back(tri.c);
@@ -557,9 +553,8 @@ void Application::syncVisualTopology() {
 }
 
 int Application::findClosestParticleToRay(
-    const Ray &ray, const std::vector<Particle> &particles) {
-  if (particles.empty())
-    return -1;
+    const Ray& ray, const std::vector<Particle>& particles) {
+  if (particles.empty()) return -1;
 
   Eigen::Vector3d rayOrigin = ray.getOrigin();
   Eigen::Vector3d rayDir = ray.getDirection();
@@ -575,12 +570,10 @@ int Application::findClosestParticleToRay(
 
     double t = toParticle.dot(rayDir);
 
-    if (t < 0)
-      continue;
+    if (t < 0) continue;
     double distSq = toParticle.squaredNorm() - (t * t);
 
-    if (distSq < 0)
-      distSq = 0;
+    if (distSq < 0) distSq = 0;
     double currentDistance = std::sqrt(distSq);
 
     if (currentDistance < clickTolerance && currentDistance < minDistance) {
@@ -592,5 +585,5 @@ int Application::findClosestParticleToRay(
   return closestIndex;
 }
 
-} // namespace Viewer
-} // namespace Tissu
+}  // namespace Viewer
+}  // namespace Tissu

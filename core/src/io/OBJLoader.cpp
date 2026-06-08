@@ -3,15 +3,17 @@
 
 #include <vector>
 #define TINYOBJLOADER_IMPLEMENTATION
-#include "io/OBJLoader.hpp"
-#include <iostream>
 #include <tiny_obj_loader.h>
+
+#include <iostream>
+
+#include "io/OBJLoader.hpp"
 
 namespace Tissu {
 
-bool OBJLoader::load(const std::string &path,
-                     std::vector<Eigen::Vector3d> &outPos,
-                     std::vector<int> &outIndices) {
+bool OBJLoader::load(const std::string& path,
+                     std::vector<Eigen::Vector3d>& outPos,
+                     std::vector<int>& outIndices) {
   tinyobj::attrib_t attrib;
   std::vector<tinyobj::shape_t> shapes;
   std::vector<tinyobj::material_t> materials;
@@ -20,12 +22,9 @@ bool OBJLoader::load(const std::string &path,
   bool ret =
       tinyobj::LoadObj(&attrib, &shapes, &materials, &warn, &err, path.c_str());
 
-  if (!warn.empty())
-    std::cout << "OBJ Warning: " << warn << std::endl;
-  if (!err.empty())
-    std::cerr << "OBJ Error: " << err << std::endl;
-  if (!ret)
-    return false;
+  if (!warn.empty()) std::cout << "OBJ Warning: " << warn << std::endl;
+  if (!err.empty()) std::cerr << "OBJ Error: " << err << std::endl;
+  if (!ret) return false;
 
   size_t numVertices = attrib.vertices.size() / 3;
   outPos.reserve(numVertices);
@@ -38,8 +37,8 @@ bool OBJLoader::load(const std::string &path,
     outPos.emplace_back(vx, vy, vz);
   }
 
-  for (const auto &shape : shapes) {
-    for (const auto &index : shape.mesh.indices) {
+  for (const auto& shape : shapes) {
+    for (const auto& index : shape.mesh.indices) {
       outIndices.push_back(index.vertex_index);
     }
   }
@@ -47,4 +46,4 @@ bool OBJLoader::load(const std::string &path,
   return true;
 }
 
-} // namespace Tissu
+}  // namespace Tissu

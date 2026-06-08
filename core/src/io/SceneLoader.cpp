@@ -2,6 +2,10 @@
 // SPDX-License-Identifier: Apache-2.0
 
 #include "io/SceneLoader.hpp"
+
+#include <stdexcept>
+#include <string>
+
 #include "engine/Cloth.hpp"
 #include "engine/ClothMesh.hpp"
 #include "io/ConfigLoader.hpp"
@@ -9,13 +13,11 @@
 #include "math/Types.hpp"
 #include "nlohmann/detail/meta/type_traits.hpp"
 #include "utils/Logger.hpp"
-#include <stdexcept>
-#include <string>
 
 namespace Tissu {
 
-void SceneLoader::loadScene(const std::string &filepath, Solver &solver,
-                            World &world) {
+void SceneLoader::loadScene(const std::string& filepath, Solver& solver,
+                            World& world) {
   std::ifstream file(filepath);
   if (!file.is_open())
     throw std::runtime_error("Could not open file: " + filepath);
@@ -23,7 +25,7 @@ void SceneLoader::loadScene(const std::string &filepath, Solver &solver,
   nlohmann::json data;
   try {
     data = nlohmann::json::parse(file);
-  } catch (const nlohmann::json::parse_error &e) {
+  } catch (const nlohmann::json::parse_error& e) {
     throw std::runtime_error("Invalid JSON in " + filepath + ": " + e.what());
   }
 
@@ -31,14 +33,14 @@ void SceneLoader::loadScene(const std::string &filepath, Solver &solver,
     throw std::invalid_argument("The given JSON is not a valid scene.");
 
   if (data.contains("physics")) {
-    const auto &physicsData = data.at("physics");
+    const auto& physicsData = data.at("physics");
     if (physicsData.is_string())
       ConfigLoader::loadPhysics(physicsData.get<std::string>(), solver, world);
     else if (physicsData.is_object())
       ConfigLoader::loadPhysicsFromJson(physicsData, solver, world);
   }
 
-  for (const auto &fabricData : data.at("fabrics")) {
+  for (const auto& fabricData : data.at("fabrics")) {
     std::string name = fabricData.value("name", "cloth");
     auto material = std::make_shared<ClothMaterial>();
     auto cloth = std::make_shared<Cloth>(name, material);
@@ -49,18 +51,18 @@ void SceneLoader::loadScene(const std::string &filepath, Solver &solver,
   }
 
   if (data.contains("colliders")) {
-    for (const auto &colliderData : data.at("colliders"))
+    for (const auto& colliderData : data.at("colliders"))
       loadCollider(colliderData, world);
   }
 }
 
-void SceneLoader::loadFabric(const nlohmann::json &fabric, Cloth &outCloth,
-                             Solver &solver) {
+void SceneLoader::loadFabric(const nlohmann::json& fabric, Cloth& outCloth,
+                             Solver& solver) {
   std::string type = fabric.value("type", "grid");
   std::string name = fabric.value("name", "default");
 
   if (fabric.contains("material")) {
-    const auto &materialData = fabric.at("material");
+    const auto& materialData = fabric.at("material");
     if (materialData.is_string())
       ConfigLoader::loadMaterial(materialData.get<std::string>(),
                                  *outCloth.getMaterial());
@@ -106,7 +108,7 @@ void SceneLoader::loadFabric(const nlohmann::json &fabric, Cloth &outCloth,
   }
 }
 
-void SceneLoader::loadCollider(const nlohmann::json &collider, World &world) {
+void SceneLoader::loadCollider(const nlohmann::json& collider, World& world) {
   std::string type = collider.value("type", "plane");
   double friction = collider.value("friction", 0.2);
 
@@ -141,4 +143,4 @@ void SceneLoader::loadCollider(const nlohmann::json &collider, World &world) {
     throw std::invalid_argument("Unknown collider " + type);
 }
 
-} // namespace Tissu
+}  // namespace Tissu

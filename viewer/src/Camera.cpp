@@ -2,9 +2,11 @@
 // SPDX-License-Identifier: Apache-2.0
 
 #include "Camera.hpp"
-#include "physics/Particle.hpp"
+
 #include <cmath>
 #include <limits>
+
+#include "physics/Particle.hpp"
 
 namespace Tissu {
 namespace Viewer {
@@ -14,8 +16,13 @@ static constexpr float RAD_TO_DEG = 180.0f / PI;
 static constexpr float DEG_TO_RAD = PI / 180.0f;
 
 Camera::Camera(Eigen::Vector3f position, Eigen::Vector3f target)
-    : m_position(position), m_target(target), m_up(0.0f, 1.0f, 0.0f),
-      m_fov(45.0f), m_aspectRatio(1.77f), m_near(0.1f), m_far(1000.0f) {
+    : m_position(position),
+      m_target(target),
+      m_up(0.0f, 1.0f, 0.0f),
+      m_fov(45.0f),
+      m_aspectRatio(1.77f),
+      m_near(0.1f),
+      m_far(1000.0f) {
   Eigen::Vector3f dir = m_position - m_target;
 
   m_distance = dir.norm();
@@ -70,10 +77,8 @@ void Camera::handleMouse(float xoffset, float yoffset) {
   m_yaw += xoffset;
   m_pitch += yoffset;
 
-  if (m_pitch > 89.0f)
-    m_pitch = 89.0f;
-  if (m_pitch < -89.0f)
-    m_pitch = -89.0f;
+  if (m_pitch > 89.0f) m_pitch = 89.0f;
+  if (m_pitch < -89.0f) m_pitch = -89.0f;
 
   updateCameraVectors();
 }
@@ -82,10 +87,8 @@ void Camera::handleZoom(float yoffset) {
   float zoomSpeed = 0.5f;
   m_distance -= yoffset * zoomSpeed;
 
-  if (m_distance < 0.1f)
-    m_distance = 0.1f;
-  if (m_distance > 100.0f)
-    m_distance = 100.0f;
+  if (m_distance < 0.1f) m_distance = 0.1f;
+  if (m_distance > 100.0f) m_distance = 100.0f;
 
   updateCameraVectors();
 }
@@ -126,5 +129,5 @@ void Camera::updateCameraVectors() {
   m_position = m_target + dis;
 }
 
-} // namespace Viewer
-} // namespace Tissu
+}  // namespace Viewer
+}  // namespace Tissu

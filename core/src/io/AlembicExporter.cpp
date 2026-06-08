@@ -2,11 +2,12 @@
 // SPDX-License-Identifier: Apache-2.0
 
 #include "io/AlembicExporter.hpp"
-#include "utils/Logger.hpp"
 
 #include <Alembic/Abc/ErrorHandler.h>
 #include <Alembic/AbcCoreOgawa/All.h>
 #include <Alembic/AbcGeom/All.h>
+
+#include "utils/Logger.hpp"
 
 namespace Tissu {
 
@@ -23,9 +24,9 @@ struct AlembicExporter::Impl {
 AlembicExporter::AlembicExporter() : m_impl(std::make_unique<Impl>()) {}
 AlembicExporter::~AlembicExporter() = default;
 
-bool AlembicExporter::open(const std::string &path,
-                           const std::vector<Eigen::Vector3d> &positions,
-                           const std::vector<int> &indices) {
+bool AlembicExporter::open(const std::string& path,
+                           const std::vector<Eigen::Vector3d>& positions,
+                           const std::vector<int>& indices) {
   try {
     m_impl->archive =
         std::make_unique<OArchive>(Alembic::AbcCoreOgawa::WriteArchive(), path);
@@ -42,7 +43,7 @@ bool AlembicExporter::open(const std::string &path,
 
     std::vector<Imath::V3f> initialPos;
     initialPos.reserve(positions.size());
-    for (const auto &p : positions) {
+    for (const auto& p : positions) {
       initialPos.emplace_back(static_cast<float>(p.x()),
                               static_cast<float>(p.y()),
                               static_cast<float>(p.z()));
@@ -61,21 +62,20 @@ bool AlembicExporter::open(const std::string &path,
     m_impl->schema.set(initialSample);
 
     return true;
-  } catch (const std::exception &e) {
+  } catch (const std::exception& e) {
     Logger::error("Alembic Exception: " + std::string(e.what()));
     return false;
   }
 }
 
-void AlembicExporter::writeFrame(const std::vector<Eigen::Vector3d> &positions,
+void AlembicExporter::writeFrame(const std::vector<Eigen::Vector3d>& positions,
                                  double time) {
-  if (!m_impl->mesh)
-    return;
+  if (!m_impl->mesh) return;
 
   std::vector<Imath::V3f> alembicPos;
   alembicPos.reserve(positions.size());
 
-  for (const auto &p : positions) {
+  for (const auto& p : positions) {
     alembicPos.emplace_back(static_cast<float>(p.x()),
                             static_cast<float>(p.y()),
                             static_cast<float>(p.z()));
@@ -94,4 +94,4 @@ void AlembicExporter::close() {
   m_impl->archive.reset();
 }
 
-} // namespace Tissu
+}  // namespace Tissu

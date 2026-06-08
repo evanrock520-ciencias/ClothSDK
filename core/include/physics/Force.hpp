@@ -34,7 +34,7 @@ class Particle;
  * Current implementations include @ref GravityForce and @ref AerodynamicForce.
  */
 class Force {
-public:
+ public:
   /**
    * @brief Destroy the Force object.
    *
@@ -54,7 +54,7 @@ public:
    * @param particles Reference to the solver's global particle buffer.
    * @param dt Current substep time delta in seconds.
    */
-  virtual void apply(std::vector<Particle> &particles, double dt) = 0;
+  virtual void apply(std::vector<Particle>& particles, double dt) = 0;
 };
 
-} // namespace Tissu
+}  // namespace Tissu

@@ -2,20 +2,22 @@
 // SPDX-License-Identifier: Apache-2.0
 
 #include "io/ConfigLoader.hpp"
-#include "engine/ClothMesh.hpp"
-#include "engine/World.hpp"
-#include "nlohmann/json_fwd.hpp"
-#include "physics/Solver.hpp"
+
 #include <filesystem>
 #include <fstream>
 #include <iostream>
 #include <stdexcept>
 #include <string>
 
+#include "engine/ClothMesh.hpp"
+#include "engine/World.hpp"
+#include "nlohmann/json_fwd.hpp"
+#include "physics/Solver.hpp"
+
 namespace Tissu {
 
-void ConfigLoader::loadMaterial(const std::string &filepath,
-                                ClothMaterial &outMaterial) {
+void ConfigLoader::loadMaterial(const std::string& filepath,
+                                ClothMaterial& outMaterial) {
   std::ifstream file(filepath);
   if (!file.is_open())
     throw std::runtime_error("Could not open file: " + filepath);
@@ -23,15 +25,15 @@ void ConfigLoader::loadMaterial(const std::string &filepath,
   nlohmann::json data;
   try {
     data = nlohmann::json::parse(file);
-  } catch (const nlohmann::json::parse_error &e) {
+  } catch (const nlohmann::json::parse_error& e) {
     throw std::runtime_error("Invalid JSON in " + filepath + ": " + e.what());
   }
 
   loadMaterialFromJson(data, outMaterial);
 }
 
-void ConfigLoader::loadMaterialFromJson(const nlohmann::json &data,
-                                        ClothMaterial &outMaterial) {
+void ConfigLoader::loadMaterialFromJson(const nlohmann::json& data,
+                                        ClothMaterial& outMaterial) {
   if (data.contains("type") && data["type"] != "material")
     throw std::invalid_argument("The given JSON is not a material preset.");
 
@@ -43,8 +45,8 @@ void ConfigLoader::loadMaterialFromJson(const nlohmann::json &data,
   outMaterial.setBendingCompliance(comp.value("bending", 1e-4));
 }
 
-void ConfigLoader::loadPhysics(const std::string &filepath, Solver &solver,
-                               World &world) {
+void ConfigLoader::loadPhysics(const std::string& filepath, Solver& solver,
+                               World& world) {
   std::ifstream file(filepath);
   if (!file.is_open())
     throw std::runtime_error("Could not open file: " + filepath);
@@ -52,15 +54,15 @@ void ConfigLoader::loadPhysics(const std::string &filepath, Solver &solver,
   nlohmann::json data;
   try {
     data = nlohmann::json::parse(file);
-  } catch (const nlohmann::json::parse_error &e) {
+  } catch (const nlohmann::json::parse_error& e) {
     throw std::runtime_error("Invalid JSON in " + filepath + ": " + e.what());
   }
 
   loadPhysicsFromJson(data, solver, world);
 }
 
-void ConfigLoader::loadPhysicsFromJson(const nlohmann::json &data,
-                                       Solver &solver, World &world) {
+void ConfigLoader::loadPhysicsFromJson(const nlohmann::json& data,
+                                       Solver& solver, World& world) {
   if (data.contains("type") && data["type"] != "physics")
     throw std::invalid_argument("The given JSON is not a physics preset.");
 
@@ -75,16 +77,15 @@ void ConfigLoader::loadPhysicsFromJson(const nlohmann::json &data,
 
   if (data.contains("environment")) {
     auto env = data.at("environment");
-    if (env.contains("wind"))
-      world.setWind(jsonToVector(env.at("wind")));
+    if (env.contains("wind")) world.setWind(jsonToVector(env.at("wind")));
     if (env.contains("air_density"))
       world.setAirDensity(env.value("air_density", 0.1));
   }
 }
 
-void ConfigLoader::saveMaterial(const std::string &filepath,
-                                const ClothMaterial &material,
-                                const std::string &name) {
+void ConfigLoader::saveMaterial(const std::string& filepath,
+                                const ClothMaterial& material,
+                                const std::string& name) {
   std::ofstream file(filepath);
   if (!file.is_open())
     throw std::runtime_error("Could not open file: " + filepath);
@@ -103,9 +104,9 @@ void ConfigLoader::saveMaterial(const std::string &filepath,
   file.close();
 }
 
-void ConfigLoader::savePhysics(const std::string &filepath,
-                               const Solver &solver, const World &world,
-                               const std::string &name) {
+void ConfigLoader::savePhysics(const std::string& filepath,
+                               const Solver& solver, const World& world,
+                               const std::string& name) {
   std::ofstream file(filepath);
   if (!file.is_open())
     throw std::runtime_error("Could not open file: " + filepath);
@@ -126,16 +127,15 @@ void ConfigLoader::savePhysics(const std::string &filepath,
   file.close();
 }
 
-Eigen::Vector3d ConfigLoader::jsonToVector(const nlohmann::json &json) {
-  if (!json.is_array() || json.size() != 3)
-    return Eigen::Vector3d::Zero();
+Eigen::Vector3d ConfigLoader::jsonToVector(const nlohmann::json& json) {
+  if (!json.is_array() || json.size() != 3) return Eigen::Vector3d::Zero();
 
   return Eigen::Vector3d(json[0].get<double>(), json[1].get<double>(),
                          json[2].get<double>());
 }
 
-nlohmann::json ConfigLoader::vectorToJson(const Eigen::Vector3d &vector) {
+nlohmann::json ConfigLoader::vectorToJson(const Eigen::Vector3d& vector) {
   return nlohmann::json{vector.x(), vector.y(), vector.z()};
 }
 
-} // namespace Tissu
+}  // namespace Tissu
