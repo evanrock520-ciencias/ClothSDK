@@ -95,7 +95,7 @@ def test_pin():
     sim.wind = [0.0, 7.0, 0.0]
     rows = 80
     
-    sim.add_floor(friction=0.5)
+    sim.add_floor(name="floor", friction=0.5)
     curtain = sim.create_grid(
         name="curtain",
         rows=rows,
@@ -118,7 +118,7 @@ def test_pin():
 
 def test_on_frame():
     sim = Simulation(substeps=15, iterations=3, gravity=-9.81, thickness=0.05)
-    sim.add_floor(friction=0.5)
+    sim.add_floor(name="floor", friction=0.5)
     curtain = sim.create_grid(
         name="curtain",
         rows=20,
@@ -134,7 +134,7 @@ def test_on_frame():
     event_frame = 40
     
     @sim.on_frame(event_frame)
-    def unpin():
+    def unpin(sim):
         curtain.unpin()
     
     sim.simulate(41)
