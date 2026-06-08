@@ -1,3 +1,10 @@
+#include <gtest/gtest.h>
+
+#include <filesystem>
+#include <fstream>
+#include <stdexcept>
+#include <vector>
+
 #include "engine/Cloth.hpp"
 #include "engine/ClothMesh.hpp"
 #include "engine/World.hpp"
@@ -6,24 +13,18 @@
 #include "physics/Constraint.hpp"
 #include "physics/Particle.hpp"
 #include "physics/Solver.hpp"
-#include <filesystem>
-#include <fstream>
-#include <gtest/gtest.h>
-#include <stdexcept>
-#include <vector>
 
 using namespace Tissu;
 namespace fs = std::filesystem;
 
 class StateSerializerTest : public ::testing::Test {
-protected:
+ protected:
   void SetUp() override {
     m_tempFile = fs::temp_directory_path() / "state.tissu";
   }
 
   void TearDown() override {
-    if (fs::exists(m_tempFile))
-      fs::remove(m_tempFile);
+    if (fs::exists(m_tempFile)) fs::remove(m_tempFile);
   }
 
   fs::path m_tempFile;
@@ -106,7 +107,7 @@ TEST_F(StateSerializerTest, RoundTripWorldParameters) {
 
   EXPECT_NEAR(world.getAirDensity(), loadedWorld.getAirDensity(), 1e-9);
   EXPECT_NEAR(world.getThickness(), loadedWorld.getThickness(), 1e-9);
-  EXPECT_TRUE(world.getGravity().isApprox(loadedWorld.getGravity())); // Trying
+  EXPECT_TRUE(world.getGravity().isApprox(loadedWorld.getGravity()));  // Trying
   EXPECT_TRUE(world.getWind().isApprox(loadedWorld.getWind()));
 }
 
@@ -128,8 +129,8 @@ TEST_F(StateSerializerTest, RoundTripParticleState) {
 
   StateSerializer::load(m_tempFile.string(), loadedSolver, loadedWorld);
 
-  const auto &loaded = loadedSolver.getParticles();
-  const auto &original = solver.getParticles();
+  const auto& loaded = loadedSolver.getParticles();
+  const auto& original = solver.getParticles();
   EXPECT_TRUE(loaded[0].getPosition().isApprox(original[0].getPosition()));
   EXPECT_TRUE(
       loaded[0].getOldPosition().isApprox(original[0].getOldPosition()));
@@ -145,8 +146,7 @@ TEST_F(StateSerializerTest, RoundTripParticles) {
   ClothMesh mesh;
   mesh.initGrid(50, 50, 0.05, *cloth, solver);
 
-  for (size_t idx = 0; idx < 30; idx++)
-    solver.update(world, 1.0 / 60.0);
+  for (size_t idx = 0; idx < 30; idx++) solver.update(world, 1.0 / 60.0);
 
   std::vector<Particle> initial = solver.getParticles();
   StateSerializer::save(m_tempFile.string(), solver, world);
@@ -178,10 +178,9 @@ TEST_F(StateSerializerTest, RoundTripConstraints) {
   ClothMesh mesh;
   mesh.initGrid(50, 50, 0.05, *cloth, solver);
 
-  for (size_t idx = 0; idx < 30; idx++)
-    solver.update(world, 1.0 / 60.0);
+  for (size_t idx = 0; idx < 30; idx++) solver.update(world, 1.0 / 60.0);
 
-  const auto &initial = solver.getConstraints();
+  const auto& initial = solver.getConstraints();
   StateSerializer::save(m_tempFile.string(), solver, world);
 
   Solver loadedSolver;
@@ -191,7 +190,7 @@ TEST_F(StateSerializerTest, RoundTripConstraints) {
   mesh.initGrid(50, 50, 50, *loadedCloth, loadedSolver);
   StateSerializer::load(m_tempFile.string(), loadedSolver, loadedWorld);
 
-  const auto &loaded = loadedSolver.getConstraints();
+  const auto& loaded = loadedSolver.getConstraints();
 
   for (size_t idx = 0; idx < loaded.size(); idx++)
     EXPECT_NEAR(initial[idx]->getLambda(), loaded[idx]->getLambda(), 1e-9);

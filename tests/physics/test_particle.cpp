@@ -1,5 +1,6 @@
-#include "physics/Particle.hpp"
 #include <gtest/gtest.h>
+
+#include "physics/Particle.hpp"
 
 using namespace Tissu;
 

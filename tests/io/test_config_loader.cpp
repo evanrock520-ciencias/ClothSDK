@@ -1,23 +1,24 @@
+#include <gtest/gtest.h>
+
+#include <filesystem>
+#include <stdexcept>
+
 #include "engine/World.hpp"
 #include "io/ConfigLoader.hpp"
 #include "math/Types.hpp"
 #include "physics/Solver.hpp"
-#include <filesystem>
-#include <gtest/gtest.h>
-#include <stdexcept>
 
 using namespace Tissu;
 namespace fs = std::filesystem;
 
 class ConfigLoaderTest : public ::testing::Test {
-protected:
+ protected:
   void SetUp() override {
     m_tempFile = fs::temp_directory_path() / "tissu_test_config.json";
   }
 
   void TearDown() override {
-    if (fs::exists(m_tempFile))
-      fs::remove(m_tempFile);
+    if (fs::exists(m_tempFile)) fs::remove(m_tempFile);
   }
 
   fs::path m_tempFile;

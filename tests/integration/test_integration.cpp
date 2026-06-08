@@ -1,11 +1,13 @@
+#include <gtest/gtest.h>
+
+#include <memory>
+
 #include "engine/Cloth.hpp"
 #include "engine/ClothMesh.hpp"
 #include "engine/World.hpp"
 #include "math/Types.hpp"
 #include "physics/GravityForce.hpp"
 #include "physics/Solver.hpp"
-#include <gtest/gtest.h>
-#include <memory>
 
 using namespace Tissu;
 
@@ -24,10 +26,9 @@ TEST(Integration, SimulationRuns120FramesWithoutNaN) {
   world.addForce(gravity);
   world.addCloth(cloth);
 
-  for (int idx = 0; idx < 120; idx++)
-    solver.update(world, 1.0 / 60.0);
+  for (int idx = 0; idx < 120; idx++) solver.update(world, 1.0 / 60.0);
 
-  for (const auto &p : solver.getParticles()) {
+  for (const auto& p : solver.getParticles()) {
     EXPECT_FALSE(std::isnan(p.getPosition().x()));
     EXPECT_FALSE(std::isnan(p.getPosition().y()));
     EXPECT_FALSE(std::isnan(p.getPosition().z()));
@@ -52,8 +53,7 @@ TEST(Integration, ClothFallsUnderGravity) {
   world.addForce(gravity);
   world.addCloth(cloth);
 
-  for (int idx = 0; idx < 300; idx++)
-    solver.update(world, 1.0 / 60.0);
+  for (int idx = 0; idx < 300; idx++) solver.update(world, 1.0 / 60.0);
 
   std::vector<Particle> after = solver.getParticles();
 

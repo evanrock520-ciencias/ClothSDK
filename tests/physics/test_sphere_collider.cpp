@@ -1,7 +1,8 @@
+#include <vector>
+
+#include "gtest/gtest.h"
 #include "physics/Particle.hpp"
 #include "physics/SphereCollider.hpp"
-#include "gtest/gtest.h"
-#include <vector>
 
 using namespace Tissu;
 

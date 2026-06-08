@@ -1,14 +1,16 @@
+#include <gtest/gtest.h>
+
+#include <Eigen/Dense>
+#include <memory>
+#include <string>
+#include <vector>
+
 #include "physics/BendingConstraint.hpp"
 #include "physics/Constraint.hpp"
 #include "physics/ConstraintGraph.hpp"
 #include "physics/DistanceConstraint.hpp"
 #include "physics/PinConstraint.hpp"
 #include "physics/VolumeConstraint.hpp"
-#include <Eigen/Dense>
-#include <gtest/gtest.h>
-#include <memory>
-#include <string>
-#include <vector>
 
 using namespace Tissu;
 
@@ -168,7 +170,7 @@ TEST(ConstraintGraph, EveryBatchIsAnIndependentSet) {
   graph.buildFrom(constraints, 42);
 
   auto batches = graph.colorBatches();
-  for (const auto &batch : batches) {
+  for (const auto& batch : batches) {
     for (size_t i = 0; i < batch.size(); ++i) {
       for (size_t j = i + 1; j < batch.size(); ++j) {
         EXPECT_FALSE(graph.hasEdge(batch[i], batch[j]));
@@ -196,9 +198,8 @@ TEST(ConstraintGraph, NodesInBatchesEqualsTotalNodes) {
   int nodeCount = 0;
 
   auto batches = graph.colorBatches();
-  for (const auto &batch : batches) {
-    for (size_t i = 0; i < batch.size(); ++i)
-      nodeCount++;
+  for (const auto& batch : batches) {
+    for (size_t i = 0; i < batch.size(); ++i) nodeCount++;
   }
 
   EXPECT_EQ(nodeCount, graph.nodeCount());

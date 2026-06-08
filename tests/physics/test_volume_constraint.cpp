@@ -1,14 +1,15 @@
+#include <string>
+
+#include "gtest/gtest.h"
 #include "physics/VolumeConstraint.hpp"
 #include "utils/Logger.hpp"
-#include "gtest/gtest.h"
-#include <string>
 
 using namespace Tissu;
 
 class VolumeConstraintTest : public ::testing::Test {
-protected:
+ protected:
   class TestableVolumeConstraint : public VolumeConstraint {
-  public:
+   public:
     using VolumeConstraint::computeVolume;
     using VolumeConstraint::VolumeConstraint;
   };
@@ -33,8 +34,7 @@ TEST_F(VolumeConstraintTest, ConvergesToRestVolume) {
   TestableVolumeConstraint constraint(triangles, particles, 0.0);
   double restVolume = constraint.getRestVolume();
 
-  for (int idx = 0; idx < 100; idx++)
-    constraint.solve(particles, 0.016);
+  for (int idx = 0; idx < 100; idx++) constraint.solve(particles, 0.016);
 
   double currentVolume = constraint.computeVolume(particles);
   EXPECT_NEAR(currentVolume, restVolume, 1e-4);
@@ -43,15 +43,14 @@ TEST_F(VolumeConstraintTest, ConvergesToRestVolume) {
 TEST_F(VolumeConstraintTest, CompressionPushesOutward) {
   TestableVolumeConstraint constraint(triangles, particles, 0.0);
 
-  for (auto &particle : particles) {
+  for (auto& particle : particles) {
     particle.setPosition(particle.getPosition() * 0.5);
   }
 
   double compressedVolume = constraint.computeVolume(particles);
 
   int iterations = 100;
-  for (int idx = 0; idx < iterations; idx++)
-    constraint.solve(particles, 0.016);
+  for (int idx = 0; idx < iterations; idx++) constraint.solve(particles, 0.016);
 
   double finalVolume = constraint.computeVolume(particles);
   EXPECT_GT(finalVolume, compressedVolume);
@@ -62,8 +61,7 @@ TEST_F(VolumeConstraintTest, StaticParticlesDoNotMove) {
   particles[0].setInverseMass(0.0);
 
   int iterations = 100;
-  for (int idx = 0; idx < iterations; idx++)
-    constraint.solve(particles, 0.016);
+  for (int idx = 0; idx < iterations; idx++) constraint.solve(particles, 0.016);
 
   EXPECT_EQ(particles[0].getPosition().x(), 1);
   EXPECT_EQ(particles[0].getPosition().y(), 0);
@@ -77,10 +75,8 @@ TEST_F(VolumeConstraintTest, LowerComplianceConvergesFaster) {
   TestableVolumeConstraint constraintA(triangles, particlesA, 0.2);
   TestableVolumeConstraint constraintB(triangles, particlesB, 0.8);
 
-  for (auto &p : particlesA)
-    p.setPosition(p.getPosition() * 0.5);
-  for (auto &p : particlesB)
-    p.setPosition(p.getPosition() * 0.5);
+  for (auto& p : particlesA) p.setPosition(p.getPosition() * 0.5);
+  for (auto& p : particlesB) p.setPosition(p.getPosition() * 0.5);
 
   int iterations = 5;
   for (int idx = 0; idx < iterations; idx++) {

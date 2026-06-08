@@ -1,6 +1,6 @@
+#include "gtest/gtest.h"
 #include "physics/Particle.hpp"
 #include "physics/PlaneCollider.hpp"
-#include "gtest/gtest.h"
 
 using namespace Tissu;
 

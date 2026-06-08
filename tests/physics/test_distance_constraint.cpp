@@ -1,6 +1,7 @@
+#include <gtest/gtest.h>
+
 #include "physics/DistanceConstraint.hpp"
 #include "physics/Particle.hpp"
-#include <gtest/gtest.h>
 
 using namespace Tissu;
 
@@ -12,8 +13,7 @@ TEST(DistanceConstraint, ConvergeToRestLenght) {
   int iterations = 100;
 
   DistanceConstraint constraint(0, 1, 1.0, 0.0);
-  for (int idx = 0; idx < iterations; idx++)
-    constraint.solve(particles, 0.016);
+  for (int idx = 0; idx < iterations; idx++) constraint.solve(particles, 0.016);
 
   double distance =
       (particles[0].getPosition() - particles[1].getPosition()).norm();
@@ -38,8 +38,7 @@ TEST(DistanceConstraint, StaticParticlesDoesNotChangeThemPositions) {
   int iterations = 100;
 
   DistanceConstraint constraint(0, 1, 1.0, 0.0);
-  for (int idx = 0; idx < iterations; idx++)
-    constraint.solve(particles, 0.016);
+  for (int idx = 0; idx < iterations; idx++) constraint.solve(particles, 0.016);
 
   EXPECT_EQ(particles[0].getPosition().x(), initialP1.x());
   EXPECT_EQ(particles[0].getPosition().y(), initialP1.y());
@@ -68,8 +67,7 @@ TEST(DistanceConstraint,
   int iterations = 100;
 
   DistanceConstraint constraint(0, 1, 1.0, 0.0);
-  for (int idx = 0; idx < iterations; idx++)
-    constraint.solve(particles, 0.016);
+  for (int idx = 0; idx < iterations; idx++) constraint.solve(particles, 0.016);
 
   double distance =
       (particles[0].getPosition() - particles[1].getPosition()).norm();

@@ -1,7 +1,9 @@
+#include <gtest/gtest.h>
+
+#include <vector>
+
 #include "physics/Particle.hpp"
 #include "physics/PinConstraint.hpp"
-#include <gtest/gtest.h>
-#include <vector>
 
 using namespace Tissu;
 
@@ -46,8 +48,7 @@ TEST(PinConstraint, ConvergeToPinPosition) {
   PinConstraint constraint(0, pinPos, 0.0);
   int iterations = 100;
 
-  for (int idx = 0; idx < iterations; idx++)
-    constraint.solve(particles, 0.016);
+  for (int idx = 0; idx < iterations; idx++) constraint.solve(particles, 0.016);
 
   ASSERT_NEAR(particles[0].getPosition().x(), pinPos.x(), 1e-4);
   ASSERT_NEAR(particles[0].getPosition().y(), pinPos.y(), 1e-4);
