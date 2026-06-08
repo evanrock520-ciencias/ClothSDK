@@ -445,6 +445,9 @@ class Simulation:
             f"Fabrics: {fabric_list if fabric_list else 'none'}\n"
         )
         
+    def __getitem__(self, key):
+        return self.cloth_objects[key]
+        
 class Fabric:
     def __init__(self, name: str, material: Material):
         self.name = name
