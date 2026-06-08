@@ -2,6 +2,7 @@
 // SPDX-License-Identifier: Apache-2.0
 
 #include <pybind11/cast.h>
+#include <pybind11/detail/common.h>
 #include <pybind11/eigen.h>
 #include <pybind11/pybind11.h>
 #include <pybind11/stl.h>
@@ -10,6 +11,7 @@
 #include <tuple>
 
 #include "Application.hpp"
+#include "Eigen/src/Geometry/Quaternion.h"
 #include "Renderer.hpp"
 #include "data-structures/SpatialHash.hpp"
 #include "engine/Cloth.hpp"
@@ -129,21 +131,21 @@ PYBIND11_MODULE(_cloth_sdk_core, m) {
            py::arg("triangles"), py::arg("particles"), py::arg("compliance"))
       .def("get_rest_volume", &VolumeConstraint::getRestVolume);
 
-  py::class_<Collider, std::unique_ptr<Collider>>(m, "Collider")
+  py::class_<Collider, std::shared_ptr<Collider>>(m, "Collider")
       .def("get_friction", &Collider::getFriction)
       .def("set_friction", &Collider::setFriction);
 
-  py::class_<PlaneCollider, Collider, std::unique_ptr<PlaneCollider>>(
+  py::class_<PlaneCollider, Collider, std::shared_ptr<PlaneCollider>>(
       m, "PlaneCollider")
       .def(py::init<const Eigen::Vector3d&, const Eigen::Vector3d&, double>(),
            py::arg("origin"), py::arg("normal"), py::arg("friction"));
 
-  py::class_<SphereCollider, Collider, std::unique_ptr<SphereCollider>>(
+  py::class_<SphereCollider, Collider, std::shared_ptr<SphereCollider>>(
       m, "SphereCollider")
       .def(py::init<const Eigen::Vector3d&, double, double>(),
            py::arg("center"), py::arg("radius"), py::arg("friction"));
 
-  py::class_<CapsuleCollider, Collider, std::unique_ptr<CapsuleCollider>>(
+  py::class_<CapsuleCollider, Collider, std::shared_ptr<CapsuleCollider>>(
       m, "CapsuleCollider")
       .def(py::init<double, const Eigen::Vector3d&, const Eigen::Vector3d&,
                     double>(),
@@ -170,10 +172,22 @@ PYBIND11_MODULE(_cloth_sdk_core, m) {
       .def("set_air_density", &World::setAirDensity)
       .def("set_thickness", &World::setThickness)
       .def("get_cloths", &World::getCloths)
+      .def("get_colliders", &World::getColliders,
+           py::return_value_policy::reference_internal)
       .def("get_thickness", &World::getThickness)
       .def("get_gravity", &World::getGravity)
       .def("get_wind", &World::getWind)
-      .def("get_air_density", &World::getAirDensity);
+      .def("get_air_density", &World::getAirDensity)
+      .def(
+          "move_collider",
+          [](World& self, size_t index, Eigen::Vector3d newPosition,
+             Eigen::Vector4d newRotation)  // <-- Vector4d, no Quaterniond
+          {
+            Eigen::Quaterniond quat(newRotation[3], newRotation[0],
+                                    newRotation[1], newRotation[2]);
+            self.moveCollider(index, newPosition, quat);
+          },
+          py::arg("index"), py::arg("new_position"), py::arg("new_rotation"));
 
   py::class_<Solver, std::shared_ptr<Tissu::Solver>>(m, "Solver")
       .def(py::init<>())
@@ -188,6 +202,8 @@ PYBIND11_MODULE(_cloth_sdk_core, m) {
       .def("set_iterations", &Solver::setIterations)
       .def("get_iterations", &Solver::getIterations)
       .def("get_substeps", &Solver::getSubsteps)
+      .def("get_time", &Solver::getCurrentTime)
+      .def("get_frame", &Solver::getCurrentFrame)
       .def("add_distance_constraint", &Solver::addDistanceConstraint)
       .def("add_bending_constraint", &Solver::addBendingConstraint)
       .def("add_volume_constraint", &Solver::addVolumeConstraint)
