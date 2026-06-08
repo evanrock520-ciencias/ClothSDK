@@ -21,17 +21,22 @@
 #include "physics/Collider.hpp"
 #include "physics/Solver.hpp"
 #include <memory>
-#include <nlohmann/json.hpp> 
+#include <nlohmann/json.hpp>
 #include <vector>
 
 namespace Tissu {
 
 class SceneExporter {
 public:
-    static void saveScene(const std::string& filepath, const std::string& name, Solver& solver, World& world);
+  static void saveScene(const std::string &filepath, const std::string &name,
+                        Solver &solver, World &world);
+
 private:
-    static void saveFabrics(nlohmann::ordered_json& data, const std::vector<std::shared_ptr<Cloth>>& fabrics);
-    static void saveColliders(nlohmann::ordered_json& data, const std::vector<std::shared_ptr<Collider>>& colliders);
+  static void saveFabrics(nlohmann::ordered_json &data,
+                          const std::vector<std::shared_ptr<Cloth>> &fabrics);
+  static void
+  saveColliders(nlohmann::ordered_json &data,
+                const std::vector<std::shared_ptr<Collider>> &colliders);
 };
 
-}
+} // namespace Tissu

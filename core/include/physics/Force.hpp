@@ -27,33 +27,34 @@ class Particle;
  *
  * Forces are applied once per substep, before position prediction.
  * They accumulate acceleration into each particle via @ref Particle::addForce,
- * which is then consumed by the Verlet integrator during @ref Particle::integrate.
+ * which is then consumed by the Verlet integrator during @ref
+ * Particle::integrate.
  *
  * Derived classes must implement @ref apply with their specific force model.
  * Current implementations include @ref GravityForce and @ref AerodynamicForce.
  */
 class Force {
 public:
-    /**
-     * @brief Destroy the Force object.
-     * 
-     */
-    virtual ~Force() = default;
+  /**
+   * @brief Destroy the Force object.
+   *
+   */
+  virtual ~Force() = default;
 
-    /**
-     * @brief Applies the force to all relevant particles in the buffer.
-     *
-     * Implementations should iterate over the particle buffer and call
-     * @ref Particle::addForce on each affected particle. Stationary particles
-     * (inverse mass == 0.0) should generally be skipped.
-     *
-     * This method is called by @ref Solver::applyForces once per substep,
-     * before constraint solving begins.
-     *
-     * @param particles Reference to the solver's global particle buffer.
-     * @param dt Current substep time delta in seconds.
-     */
-    virtual void apply(std::vector<Particle>& particles, double dt) = 0;
+  /**
+   * @brief Applies the force to all relevant particles in the buffer.
+   *
+   * Implementations should iterate over the particle buffer and call
+   * @ref Particle::addForce on each affected particle. Stationary particles
+   * (inverse mass == 0.0) should generally be skipped.
+   *
+   * This method is called by @ref Solver::applyForces once per substep,
+   * before constraint solving begins.
+   *
+   * @param particles Reference to the solver's global particle buffer.
+   * @param dt Current substep time delta in seconds.
+   */
+  virtual void apply(std::vector<Particle> &particles, double dt) = 0;
 };
 
-}
+} // namespace Tissu

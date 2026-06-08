@@ -16,25 +16,27 @@
 
 #pragma once
 
-#include "physics/Collider.hpp"
 #include "Eigen/Dense"
+#include "physics/Collider.hpp"
 
 namespace Tissu {
 
 class CapsuleCollider : public Collider {
 public:
-    CapsuleCollider(double radius, const Eigen::Vector3d& start, const Eigen::Vector3d& end, double friction);
+  CapsuleCollider(double radius, const Eigen::Vector3d &start,
+                  const Eigen::Vector3d &end, double friction);
 
-    void resolve(std::vector<Particle>& particles, double dt, double thickness) override;
+  void resolve(std::vector<Particle> &particles, double dt,
+               double thickness) override;
 
-    inline double getRadius() const { return m_radius; }
-    inline const Eigen::Vector3d& getStart() const { return m_start; }
-    inline const Eigen::Vector3d& getEnd() const { return m_end; }
+  inline double getRadius() const { return m_radius; }
+  inline const Eigen::Vector3d &getStart() const { return m_start; }
+  inline const Eigen::Vector3d &getEnd() const { return m_end; }
 
 private:
-    double m_radius;
-    Eigen::Vector3d m_start;
-    Eigen::Vector3d m_end;
+  double m_radius;
+  Eigen::Vector3d m_start;
+  Eigen::Vector3d m_end;
 };
 
-}
+} // namespace Tissu

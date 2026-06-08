@@ -3,6 +3,4 @@
 
 #include "physics/Collider.hpp"
 
-namespace Tissu {
-
-}
+namespace Tissu {}

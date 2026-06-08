@@ -17,47 +17,48 @@
 #pragma once
 #include "Shader.hpp"
 #include <Eigen/Dense>
-#include <vector>
 #include <string>
+#include <vector>
 
 namespace Tissu {
-    class Solver;
-    namespace Viewer {
-        class Camera;
+class Solver;
+namespace Viewer {
+class Camera;
 
-        class Renderer {
-        public:
-            Renderer();
-            ~Renderer();
+class Renderer {
+public:
+  Renderer();
+  ~Renderer();
 
-            bool init();
+  bool init();
 
-            void render(const Tissu::Solver& solver, const Camera& camera);
-            void cleanup();
-            void updateTopology();
+  void render(const Tissu::Solver &solver, const Camera &camera);
+  void cleanup();
+  void updateTopology();
 
-            void updateColor(float* color);
-            void updateAmbient(float ambient);
-            void updateDifusse(float difusse);
-            void updateSheenAmount(float sheenAmount);
-            void updateSheenWidth(float sheenWidth);
-            void updateAnisotropy(float anisotropy);
-            void updateAnisotropyWidth(float anisotropyWidth);
+  void updateColor(float *color);
+  void updateAmbient(float ambient);
+  void updateDifusse(float difusse);
+  void updateSheenAmount(float sheenAmount);
+  void updateSheenWidth(float sheenWidth);
+  void updateAnisotropy(float anisotropy);
+  void updateAnisotropyWidth(float anisotropyWidth);
 
-            inline void setIndices(const std::vector<unsigned int>& indices) { m_indices = indices; }
-            inline void setShaderPath(const std::string& path) { m_shaderPath = path; }
+  inline void setIndices(const std::vector<unsigned int> &indices) {
+    m_indices = indices;
+  }
+  inline void setShaderPath(const std::string &path) { m_shaderPath = path; }
 
-        private:
-            Shader m_shader;
-            unsigned int m_vao = 0;
-            unsigned int m_vbo = 0;
-            unsigned int m_ebo = 0;
+private:
+  Shader m_shader;
+  unsigned int m_vao = 0;
+  unsigned int m_vbo = 0;
+  unsigned int m_ebo = 0;
 
-            std::vector<float> m_vertexBuffer;
-            std::vector<unsigned int> m_indices;
-            std::vector<Eigen::Vector3f> m_normals;
-            std::string m_shaderPath = "../viewer/shaders/";
-
-        };
-    }
-}
+  std::vector<float> m_vertexBuffer;
+  std::vector<unsigned int> m_indices;
+  std::vector<Eigen::Vector3f> m_normals;
+  std::string m_shaderPath = "../viewer/shaders/";
+};
+} // namespace Viewer
+} // namespace Tissu

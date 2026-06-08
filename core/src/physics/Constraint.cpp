@@ -3,6 +3,4 @@
 
 #include "physics/Constraint.hpp"
 
-namespace Tissu {
-
-}
+namespace Tissu {}
