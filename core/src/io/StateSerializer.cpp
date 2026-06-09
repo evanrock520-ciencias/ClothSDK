@@ -68,6 +68,17 @@ bool StateSerializer::save(const std::string& path, Solver& solver,
 
   for (const auto& collider : colliders) {
     double friction = collider->getFriction();
+
+    auto pos = collider->getPosition();
+    auto rot = collider->getRotation();
+    auto prevPos = collider->getPrevPosition();
+    auto prevRot = collider->getPrevRotation();
+
+    write(pos.data(), 3 * sizeof(double));
+    write(rot.coeffs().data(), 4 * sizeof(double));
+    write(prevPos.data(), 3 * sizeof(double));
+    write(prevRot.coeffs().data(), 4 * sizeof(double));
+
     if (const auto* s = dynamic_cast<const SphereCollider*>(collider.get())) {
       uint8_t type = 0;
       Eigen::Vector3d center = s->getCenter();
@@ -175,6 +186,9 @@ bool StateSerializer::load(const std::string& path, Solver& solver,
   if (!read(&time, sizeof(double))) return false;
   if (!read(&count, sizeof(uint32_t))) return false;
 
+  solver.setCurrentFrame(frame);
+  solver.setCurrentTime(time);
+
   cursor += sizeof(uint32_t);
   cursor += sizeof(uint32_t);
 
@@ -200,13 +214,33 @@ bool StateSerializer::load(const std::string& path, Solver& solver,
   // Colliders
   uint32_t collidersCount;
   if (!read(&collidersCount, sizeof(uint32_t))) return false;
+  auto& colliders = world.getColliders();
+
+  if (colliders.size() < collidersCount) {
+    Logger::error("Not enough collider slots: '" + std::to_string(collidersCount) +
+                  "' rather than '" + std::to_string(colliders.size()) + "'");
+    return false;
+  }
 
   for (size_t idx = 0; idx < collidersCount; idx++) {
     uint8_t type;
     double friction;
+    Eigen::Vector3d pos, prevPos;
+    Eigen::Quaterniond rot, prevRot;
+
+    if (!read(pos.data(), 3 * sizeof(double))) return false;
+    if (!read(rot.coeffs().data(), 4 * sizeof(double))) return false;
+    if (!read(prevPos.data(), 3 * sizeof(double))) return false;
+    if (!read(prevRot.coeffs().data(), 4 * sizeof(double))) return false;
 
     if (!read(&type, sizeof(uint8_t))) return false;
     if (!read(&friction, sizeof(double))) return false;
+
+    colliders[idx]->setPosition(pos);
+    colliders[idx]->setRotation(rot);
+    colliders[idx]->setPrevPosition(prevPos);
+    colliders[idx]->setPrevRotation(prevRot);
+    colliders[idx]->setFriction(friction);
 
     switch (type) {
       case 0: {
@@ -216,7 +250,13 @@ bool StateSerializer::load(const std::string& path, Solver& solver,
         if (!read(&center, 3 * sizeof(double))) return false;
         if (!read(&radius, sizeof(double))) return false;
 
-        world.addSphereCollider(center, radius, friction);
+        if (colliders.size() > idx && dynamic_cast<SphereCollider*>(colliders[idx].get())) {
+          auto* sphere = dynamic_cast<SphereCollider*>(colliders[idx].get());
+          sphere->setCenter(center);
+          sphere->setRadius(radius);
+        } else 
+          throw std::runtime_error("Missing collider slot for sphere.");
+        
         break;
       }
       case 1: {
@@ -225,7 +265,12 @@ bool StateSerializer::load(const std::string& path, Solver& solver,
         if (!read(&origin, 3 * sizeof(double))) return false;
         if (!read(&normal, 3 * sizeof(double))) return false;
 
-        world.addPlaneCollider(origin, normal, friction);
+        if (colliders.size() > idx && dynamic_cast<PlaneCollider*>(colliders[idx].get())) {
+          auto* plane = dynamic_cast<PlaneCollider*>(colliders[idx].get());
+          plane->setOrigin(origin);
+          plane->setNormal(normal);
+        } else 
+          throw std::runtime_error("Missing collider slot for plane.");
         break;
       }
       case 2: {
@@ -236,7 +281,14 @@ bool StateSerializer::load(const std::string& path, Solver& solver,
         if (!read(&end, 3 * sizeof(double))) return false;
         if (!read(&radius, sizeof(double))) return false;
 
-        world.addCapsuleCollider(start, end, radius, friction);
+        if (colliders.size() > idx && dynamic_cast<CapsuleCollider*>(colliders[idx].get())) {
+          auto* capsule = dynamic_cast<CapsuleCollider*>(colliders[idx].get());
+          capsule->setStart(start);
+          capsule->setEnd(end);
+          capsule->setRadius(radius);
+        } else 
+          throw std::runtime_error("Missing collider slot for capsule.");
+        
         break;
       }
     }
