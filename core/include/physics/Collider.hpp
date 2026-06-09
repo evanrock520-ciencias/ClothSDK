@@ -75,6 +75,12 @@ class Collider {
    */
   void setFriction(double friction) { m_friction = friction; }
 
+  inline void setPosition(const Eigen::Vector3d& position) { m_position = position; }
+  inline void setRotation(const Eigen::Quaterniond& rotation) { m_rotation = rotation; }
+
+  inline void setPrevPosition(const Eigen::Vector3d& prevPosition) { m_prevPosition = prevPosition; }
+  inline void setPrevRotation(const Eigen::Quaterniond& prevRotation) { m_prevRotation = prevRotation; }
+
   /** @return The current surface friction coefficient. */
   inline double getFriction() const { return m_friction; }
 

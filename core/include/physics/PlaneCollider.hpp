@@ -61,6 +61,9 @@ class PlaneCollider : public Collider {
   inline const Eigen::Vector3d& getOrigin() const { return m_origin; }
   inline const Eigen::Vector3d& getNormal() const { return m_normal; }
 
+  void setOrigin(const Eigen::Vector3d& origin) { m_origin = origin; }
+  void setNormal(const Eigen::Vector3d& normal) { m_normal = normal.normalized(); }
+
  private:
   Eigen::Vector3d
       m_origin;  ///< World-space coordinate of a point in the plane.

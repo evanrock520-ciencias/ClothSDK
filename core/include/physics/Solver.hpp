@@ -45,6 +45,8 @@ class Solver {
   void setSubsteps(int count);
   void setIterations(int count);
   void setCollisionCompliance(double c) { m_collisionCompliance = c; }
+  void setCurrentFrame(int frame) { m_currentFrame = frame; }
+  void setCurrentTime(double time) { m_currentTime = time; }
 
   inline int getSubsteps() const { return m_substeps; }
   inline int getIterations() const { return m_iterations; }

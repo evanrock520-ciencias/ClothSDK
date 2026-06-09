@@ -58,8 +58,11 @@ class SphereCollider : public Collider {
 
   void transform(const Eigen::Vector3d& position, const Eigen::Quaterniond& rotation) override;
 
-  inline const Eigen::Vector3d getCenter() const { return m_center; }
+  inline const Eigen::Vector3d& getCenter() const { return m_center; }
   inline double getRadius() const { return m_radius; }
+
+  void setCenter(const Eigen::Vector3d& center) { m_center = center; }
+  void setRadius(double radius) { m_radius = radius; }
 
  private:
   Eigen::Vector3d m_center;  ///< The center point of the sphere in 3D space.

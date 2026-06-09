@@ -35,6 +35,10 @@ class CapsuleCollider : public Collider {
 
   void transform(const Eigen::Vector3d& position, const Eigen::Quaterniond& rotation) override;
 
+  void setStart(const Eigen::Vector3d& start) { m_start = start; }
+  void setEnd(const Eigen::Vector3d& end) { m_end = end; }
+  void setRadius(double radius) { m_radius = radius; }
+
  private:
   double m_radius;
   Eigen::Vector3d m_start;
