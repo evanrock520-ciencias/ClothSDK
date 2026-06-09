@@ -78,6 +78,12 @@ class Collider {
   /** @return The current surface friction coefficient. */
   inline double getFriction() const { return m_friction; }
 
+  inline const Eigen::Vector3d& getPosition() const { return m_position; }
+  inline const Eigen::Quaterniond& getRotation() const { return m_rotation; }
+
+  inline const Eigen::Vector3d& getPrevPosition() const { return m_prevPosition; }
+  inline const Eigen::Quaterniond& getPrevRotation() const { return m_prevRotation; }
+
  protected:
   /**
    * @brief Tangential friction coefficient used during collision response.
