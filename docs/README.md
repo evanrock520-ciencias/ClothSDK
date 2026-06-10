@@ -6,6 +6,8 @@
 
 [2. Architecture](core/architecture.md)
 
-[3. Python API](core/api.md)
+[3. Python API](python/api.md)
 
-[4. Build and Develops](core/build_and_develops.md)
+[4. Blender Add-on](blender/addon.md)
+
+[5. Build and Develops](core/build_and_develops.md)

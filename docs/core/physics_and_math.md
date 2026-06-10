@@ -54,7 +54,7 @@ In cloth simulation this is critical. A solver runs hundreds of substeps
 per second, and an unstable integrator would cause particles to explode
 almost immediately. This is why we need a more stable approach.
 
-![Euler Example](../videos/Euler.gif)
+![Euler Example](../videos/manim/Euler.gif)
 
 ### Verlet
 
@@ -85,7 +85,8 @@ the local truncation error on position is $O(Δt⁴)$, which is significantly be
 $O(Δt²)$. The global error over a full simulation remains $O(Δt²)$, but the method's symmetry
 suppresses the energy drift that accumulates with non-symplectic integrators.
 
-![Verlet Example](../videos/Verlet.gif)
+![Verlet Example](../videos/manim/Verlet.gif)
+
 Tissu uses Verlet integration as it's core integration.
 
 ```cpp
