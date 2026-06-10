@@ -367,7 +367,7 @@ class Simulation:
             
         current_dir = os.path.dirname(os.path.abspath(__file__))
         project_root = os.path.dirname(os.path.dirname(current_dir))
-        shader_path = os.path.join(project_root, "viewer", "shaders", "")
+        shader_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "shaders", "")
         
         self.app.set_solver(self.solver)
         self.app.set_world(self.world)
