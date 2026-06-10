@@ -447,6 +447,14 @@ class Simulation:
     def load_state(self, filepath: str):
         sdk.StateSerializer.load(filepath, self.solver, self.world)
         
+    @staticmethod
+    def get_state_status(filepath: str):
+        return sdk.StateSerializer.get_state_info(filepath)
+    
+    @staticmethod
+    def get_scene_status(filepath: str):
+        return sdk.SceneLoader.get_scene_header(filepath)
+        
     def move_collider(self, name: str, new_position: np.array, new_rotation: np.array = None):
         if new_rotation is None:
             new_rotation = np.array([0.0, 0.0, 0.0, 1.0])
