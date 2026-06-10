@@ -1,3 +1,7 @@
+if(MSCV)
+    add_compile_definitions(_USE_MATH_DEFINES)
+endif()
+
 add_executable(unit_tests
     physics/test_particle.cpp
     physics/test_distance_constraint.cpp
