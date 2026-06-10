@@ -9,12 +9,11 @@
 
 namespace Tissu {
 
-struct SimulationState {
+struct StateInfo {
+  uint8_t version;
   uint32_t frame;
   double timestamp;
-  std::vector<double> pos_x, pos_y, pos_z;
-  std::vector<double> old_x, old_y, old_z;
-  std::vector<double> inverse_mass;
+  int particleCount;
 };
 
 class StateSerializer {
@@ -24,6 +23,8 @@ class StateSerializer {
   static bool load(const std::string& path, Solver& solver, World& world);
 
   static bool validate(const std::string& path);
+
+  static StateInfo getStateInfo(const std::string& path);
 
  private:
   static constexpr uint8_t MAGIC[6] = {'T', 'I', 'S', 'S', 'U', '\0'};

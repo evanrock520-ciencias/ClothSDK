@@ -217,8 +217,9 @@ bool StateSerializer::load(const std::string& path, Solver& solver,
   auto& colliders = world.getColliders();
 
   if (colliders.size() < collidersCount) {
-    Logger::error("Not enough collider slots: '" + std::to_string(collidersCount) +
-                  "' rather than '" + std::to_string(colliders.size()) + "'");
+    Logger::error("Not enough collider slots: '" +
+                  std::to_string(collidersCount) + "' rather than '" +
+                  std::to_string(colliders.size()) + "'");
     return false;
   }
 
@@ -250,13 +251,14 @@ bool StateSerializer::load(const std::string& path, Solver& solver,
         if (!read(&center, 3 * sizeof(double))) return false;
         if (!read(&radius, sizeof(double))) return false;
 
-        if (colliders.size() > idx && dynamic_cast<SphereCollider*>(colliders[idx].get())) {
+        if (colliders.size() > idx &&
+            dynamic_cast<SphereCollider*>(colliders[idx].get())) {
           auto* sphere = dynamic_cast<SphereCollider*>(colliders[idx].get());
           sphere->setCenter(center);
           sphere->setRadius(radius);
-        } else 
+        } else
           throw std::runtime_error("Missing collider slot for sphere.");
-        
+
         break;
       }
       case 1: {
@@ -265,11 +267,12 @@ bool StateSerializer::load(const std::string& path, Solver& solver,
         if (!read(&origin, 3 * sizeof(double))) return false;
         if (!read(&normal, 3 * sizeof(double))) return false;
 
-        if (colliders.size() > idx && dynamic_cast<PlaneCollider*>(colliders[idx].get())) {
+        if (colliders.size() > idx &&
+            dynamic_cast<PlaneCollider*>(colliders[idx].get())) {
           auto* plane = dynamic_cast<PlaneCollider*>(colliders[idx].get());
           plane->setOrigin(origin);
           plane->setNormal(normal);
-        } else 
+        } else
           throw std::runtime_error("Missing collider slot for plane.");
         break;
       }
@@ -281,14 +284,15 @@ bool StateSerializer::load(const std::string& path, Solver& solver,
         if (!read(&end, 3 * sizeof(double))) return false;
         if (!read(&radius, sizeof(double))) return false;
 
-        if (colliders.size() > idx && dynamic_cast<CapsuleCollider*>(colliders[idx].get())) {
+        if (colliders.size() > idx &&
+            dynamic_cast<CapsuleCollider*>(colliders[idx].get())) {
           auto* capsule = dynamic_cast<CapsuleCollider*>(colliders[idx].get());
           capsule->setStart(start);
           capsule->setEnd(end);
           capsule->setRadius(radius);
-        } else 
+        } else
           throw std::runtime_error("Missing collider slot for capsule.");
-        
+
         break;
       }
     }
@@ -358,6 +362,23 @@ uint32_t StateSerializer::computeCRC32(const uint8_t* data, size_t length) {
   for (size_t idx = 0; idx < length; idx++)
     crc = (crc >> 8) ^ buildCrcTable[(crc ^ data[idx]) & 0xFF];
   return crc ^ 0xFFFFFFFF;
+}
+
+StateInfo StateSerializer::getStateInfo(const std::string& path) {
+  std::ifstream file(path, std::ios::binary);
+  if (!file.is_open()) throw std::runtime_error("File not found.");
+
+  std::vector<uint8_t> buf(std::istreambuf_iterator<char>(file), {});
+  if (buf.size() < 32) throw std::runtime_error("File too small");
+
+  StateInfo info;
+  info.version = *reinterpret_cast<uint8_t*>(buf.data() + 6);
+  info.frame = *reinterpret_cast<uint32_t*>(buf.data() + 8);
+  info.timestamp = *reinterpret_cast<double*>(buf.data() + 12);
+  info.particleCount = *reinterpret_cast<uint32_t*>(buf.data() + 20);
+  Logger::info("Version: " + std::to_string(info.version));
+
+  return info;
 }
 
 }  // namespace Tissu

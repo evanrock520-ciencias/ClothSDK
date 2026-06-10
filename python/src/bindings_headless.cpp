@@ -81,6 +81,33 @@ PYBIND11_MODULE(_cloth_sdk_core, m) {
       .def_readwrite("b", &AeroFace::b)
       .def_readwrite("c", &AeroFace::c);
 
+  py::class_<SceneHeader::FabricInfo>(m, "FabricInfo")
+      .def_readonly("name", &SceneHeader::FabricInfo::name)
+      .def_readonly("type", &SceneHeader::FabricInfo::type)
+      .def_readonly("rows", &SceneHeader::FabricInfo::rows)
+      .def_readonly("cols", &SceneHeader::FabricInfo::cols)
+      .def_readonly("spacing", &SceneHeader::FabricInfo::spacing)
+      .def_readonly("source", &SceneHeader::FabricInfo::source)
+      .def_readonly("material", &SceneHeader::FabricInfo::material)
+      .def_readonly("pin_mode", &SceneHeader::FabricInfo::pin_mode);
+
+  py::class_<SceneHeader::ColliderInfo>(m, "ColliderInfo")
+      .def_readonly("type", &SceneHeader::ColliderInfo::type)
+      .def_readonly("summary", &SceneHeader::ColliderInfo::summary);
+
+  py::class_<SceneHeader>(m, "SceneHeader")
+      .def_readonly("version", &SceneHeader::version)
+      .def_readonly("name", &SceneHeader::name)
+      .def_readonly("physics_preset", &SceneHeader::physics_preset)
+      .def_readonly("fabrics", &SceneHeader::fabrics)
+      .def_readonly("colliders", &SceneHeader::colliders);
+
+  py::class_<Tissu::StateInfo>(m, "StateInfo")
+      .def_property_readonly("version", [](const StateInfo &si) { return static_cast<int>(si.version); })
+      .def_readonly("frame", &StateInfo::frame)
+      .def_readonly("timestamp", &StateInfo::timestamp)
+      .def_readonly("particle_count", &StateInfo::particleCount);
+
   py::class_<Tissu::Force, std::shared_ptr<Tissu::Force>>(m, "Force");
 
   py::class_<Tissu::GravityForce, Tissu::Force,
@@ -251,14 +278,16 @@ PYBIND11_MODULE(_cloth_sdk_core, m) {
       .def_static("save_physics", &ConfigLoader::savePhysics);
 
   py::class_<SceneLoader>(m, "SceneLoader")
-      .def_static("load_scene", &SceneLoader::loadScene);
+      .def_static("load_scene", &SceneLoader::loadScene)
+      .def_static("get_scene_header", &SceneLoader::getSceneHeader);
 
   py::class_<SceneExporter>(m, "SceneExporter")
       .def_static("save_scene", &SceneExporter::saveScene);
 
   py::class_<StateSerializer>(m, "StateSerializer")
       .def_static("load", &StateSerializer::load)
-      .def_static("save", &StateSerializer::save);
+      .def_static("save", &StateSerializer::save)
+      .def_static("get_state_info", &StateSerializer::getStateInfo);
 
   py::class_<Logger>(m, "Logger")
       .def_static("info", &Logger::info, py::arg("message"))
