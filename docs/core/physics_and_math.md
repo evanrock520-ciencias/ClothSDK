@@ -32,6 +32,7 @@ There are 3 popular approaches to estimate a particle's position.
 The Euler's method is given by the next equations.
 
 $$x_{n+1} = x_n + v_n ⋅ Δt$$
+
 $$v_{n+1} = v_n + a_n ⋅ Δt$$
 
 Where:
@@ -78,6 +79,7 @@ This is a **two-step** integrator: the next position is estimated from both the 
 the previous position, rather than relying solely on velocity and $Δt$.
 As a consequence, velocity is implicit — it does not appear in the update equation directly.
 When needed, it can be recovered as:
+
 $$v_n = \frac{x_n - x_{n-1}}{Δt}$$
 
 Verlet's equation can be derived from a Taylor Series expansion. This derivation reveals that
