@@ -128,7 +128,7 @@ The viewer includes an integrated ImGui control panel to manage the simulation o
 - Tune Solver parameters in real-time
 - Monitor performance statistics
 
-![Viewer](docs/videos/viewer/viewer.gif)
+![Viewer](docs/videos/viewer/Viewer.gif)
 
 ### Keybindings
 
