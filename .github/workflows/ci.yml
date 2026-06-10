@@ -100,11 +100,11 @@ jobs:
             -DCMAKE_BUILD_TYPE=Release `
             -DCMAKE_INSTALL_PREFIX="${{ github.workspace }}/alembic-install" `
             -DUSE_TESTS=OFF `
-            -DCMAKE_WINDOWS_EXPORT_ALL_SYMBOLS=ON `
-            -DCMAKE_TOOLCHAIN_FILE="$env:VCPKG_ROOT/scripts/buildsystems/vcpkg.cmake"
+            -DCMAKE_WINDOWS_EXPORT_ALL_SYMBOLS=ON
+            # ← sin toolchain aquí
           cmake --build . --config Release --parallel $env:NUMBER_OF_PROCESSORS
           cmake --install . --config Release
-
+        
       - name: Install Python tools
         run: |
           pip install mypy tqdm numpy pytest
@@ -143,15 +143,13 @@ jobs:
 
       # ── Configure (Windows) ─────────────────────────────────────────────────
       - name: Configure (Windows)
-        if: runner.os == 'Windows'
         shell: pwsh
         run: |
-          mkdir -Force build | Out-Null
           cmake -S . -B build `
             -DCMAKE_BUILD_TYPE=Release `
             -DTISSU_BUILD_VIEWER=OFF `
             -DCMAKE_PREFIX_PATH="${{ github.workspace }}/alembic-install" `
-            -DCMAKE_TOOLCHAIN_FILE="$env:VCPKG_ROOT/scripts/buildsystems/vcpkg.cmake"
+            -DCMAKE_TOOLCHAIN_FILE="C:/vcpkg/scripts/buildsystems/vcpkg.cmake"
 
       - name: Build (Linux/macOS)
         if: runner.os != 'Windows'
