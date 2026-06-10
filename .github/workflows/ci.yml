@@ -68,7 +68,7 @@ jobs:
         id: cache-alembic
         with:
           path: ${{ github.workspace }}/alembic-install
-          key: alembic-1.8.6-${{ runner.os }}
+          key: alembic-1.8.11-${{ runner.os }}
 
       - name: Install Alembic from source (Linux/macOS)
         if: |
@@ -77,7 +77,7 @@ jobs:
         run: |
           git clone https://github.com/alembic/alembic.git
           cd alembic
-          git checkout 1.8.6
+          git checkout 1.8.11
           mkdir build && cd build
           cmake .. \
             -DCMAKE_BUILD_TYPE=Release \
@@ -94,7 +94,7 @@ jobs:
         run: |
           git clone https://github.com/alembic/alembic.git
           cd alembic
-          git checkout 1.8.6
+          git checkout 1.8.11
           mkdir build; cd build
           cmake .. `
             -DCMAKE_BUILD_TYPE=Release `
