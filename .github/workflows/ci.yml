@@ -58,9 +58,7 @@ jobs:
       - name: Install dependencies (Windows)
         if: runner.os == 'Windows'
         run: |
-          vcpkg install openexr:x64-windows boost-headers:x64-windows pybind11:x64-windows
-        env:
-          VCPKG_DEFAULT_TRIPLET: x64-windows
+          vcpkg install openexr:x64-windows imath:x64-windows boost-headers:x64-windows pybind11:x64-windows
 
       # ── Alembic cache ───────────────────────────────────────────────────────
       - name: Cache Alembic
@@ -87,9 +85,7 @@ jobs:
           make install
 
       - name: Install Alembic from source (Windows)
-        if: |
-          runner.os == 'Windows' &&
-          steps.cache-alembic.outputs.cache-hit != 'true'
+        if: runner.os == 'Windows' && steps.cache-alembic.outputs.cache-hit != 'true'
         shell: pwsh
         run: |
           git clone https://github.com/alembic/alembic.git
@@ -100,8 +96,9 @@ jobs:
             -DCMAKE_BUILD_TYPE=Release `
             -DCMAKE_INSTALL_PREFIX="${{ github.workspace }}/alembic-install" `
             -DUSE_TESTS=OFF `
-            -DCMAKE_WINDOWS_EXPORT_ALL_SYMBOLS=ON `
-            -DALEMBIC_SHARED_LIBS=OFF
+            -DALEMBIC_SHARED_LIBS=OFF `
+            -DCMAKE_PREFIX_PATH="C:/vcpkg/installed/x64-windows" `
+            -DCMAKE_TOOLCHAIN_FILE="C:/vcpkg/scripts/buildsystems/vcpkg.cmake"
           cmake --build . --config Release --parallel $env:NUMBER_OF_PROCESSORS
           cmake --install . --config Release
         
