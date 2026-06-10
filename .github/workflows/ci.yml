@@ -131,15 +131,11 @@ jobs:
       - name: Configure (macOS)
         if: runner.os == 'macOS'
         run: |
-          LIBOMP_PREFIX=$(brew --prefix libomp)
           mkdir -p build
           cmake -S . -B build \
             -DCMAKE_BUILD_TYPE=Release \
             -DTISSU_BUILD_VIEWER=OFF \
-            -DCMAKE_PREFIX_PATH="${{ github.workspace }}/alembic-install;$(brew --prefix openexr);$(brew --prefix boost)" \
-            -DOpenMP_CXX_FLAGS="-Xpreprocessor -fopenmp -I${LIBOMP_PREFIX}/include" \
-            -DOpenMP_CXX_LIB_NAMES="omp" \
-            -DOpenMP_omp_LIBRARY="${LIBOMP_PREFIX}/lib/libomp.dylib"
+            -DCMAKE_PREFIX_PATH="${{ github.workspace }}/alembic-install;$(brew --prefix openexr);$(brew --prefix boost)"
 
       # ── Configure (Windows) ─────────────────────────────────────────────────
       - name: Configure (Windows)
