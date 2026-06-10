@@ -376,8 +376,6 @@ StateInfo StateSerializer::getStateInfo(const std::string& path) {
   info.frame = *reinterpret_cast<uint32_t*>(buf.data() + 8);
   info.timestamp = *reinterpret_cast<double*>(buf.data() + 12);
   info.particleCount = *reinterpret_cast<uint32_t*>(buf.data() + 20);
-  Logger::info("Version: " + std::to_string(info.version));
-
   return info;
 }
 
