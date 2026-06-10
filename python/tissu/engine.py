@@ -121,6 +121,7 @@ class Simulation:
         sim.cloth_objects = {}
         sim._aero_forces = {}
         sim.app = None
+        sim.actions = defaultdict(list)
 
         sdk.SceneLoader.load_scene(filepath, sim.solver, sim.world)
         sim._gravity_force = sdk.GravityForce(sim.world.get_gravity())
