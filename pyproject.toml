@@ -21,4 +21,4 @@ license = { text = "Apache-2.0"}
 where = ["python"]
 
 [tool.setuptools.package-data]
-tissu = ["*.so", "*.pyd", "*.pyi"]
+tissu = ["*.so", "*.pyd", "*.pyi", "shaders/*.vert", "shaders/*.frag"]
