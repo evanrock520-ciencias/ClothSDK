@@ -66,8 +66,6 @@ set(PYBIND11_TEST OFF CACHE BOOL "" FORCE)
 
 FetchContent_MakeAvailable(googletest eigen tinyobjloader json pybind11 googlebenchmark)
 
-find_package(OpenMP REQUIRED)
-
 if(APPLE)
     execute_process(
         COMMAND brew --prefix libomp
@@ -80,6 +78,8 @@ if(APPLE)
     set(OpenMP_CXX_LIB_NAMES "omp")
     set(OpenMP_omp_LIBRARY "${LIBOMP_PREFIX}/lib/libomp.dylib")
 endif()
+
+find_package(OpenMP REQUIRED) 
 
 # Viewer
 option(TISSU_BUILD_VIEWER "Build the OpenGL viewer" ON)
