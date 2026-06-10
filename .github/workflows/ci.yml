@@ -100,8 +100,8 @@ jobs:
             -DCMAKE_BUILD_TYPE=Release `
             -DCMAKE_INSTALL_PREFIX="${{ github.workspace }}/alembic-install" `
             -DUSE_TESTS=OFF `
-            -DCMAKE_WINDOWS_EXPORT_ALL_SYMBOLS=ON
-            # ← sin toolchain aquí
+            -DCMAKE_WINDOWS_EXPORT_ALL_SYMBOLS=ON `
+            -DALEMBIC_SHARED_LIBS=OFF
           cmake --build . --config Release --parallel $env:NUMBER_OF_PROCESSORS
           cmake --install . --config Release
         
@@ -139,6 +139,7 @@ jobs:
 
       # ── Configure (Windows) ─────────────────────────────────────────────────
       - name: Configure (Windows)
+        if: runner.os == 'Windows'
         shell: pwsh
         run: |
           cmake -S . -B build `
