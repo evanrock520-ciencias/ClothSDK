@@ -96,8 +96,6 @@ void ClothMesh::buildFromMesh(const std::vector<Eigen::Vector3d>& positions,
   double beComp = mat->getBendingCompliance();
   double dens = mat->getDensity();
 
-  Logger::info("Mesh Path: " + meshPath);
-
   for (auto& position : positions) {
     auto id = solver.addParticle(Particle(position));
     outCloth.addParticleId(id);

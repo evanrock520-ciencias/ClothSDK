@@ -100,7 +100,6 @@ void SceneLoader::loadFabric(const nlohmann::json& fabric, Cloth& outCloth,
     auto compliance = pins.value("compliance", 0.0);
     auto threshold = pins.value("threshold", 0.1);
 
-    Logger::info("Mode: " + mode);
     if (mode == "top_corners")
       outCloth.setPin(Pin(TOP_CORNERS, compliance, threshold));
     else if (mode == "by_height")
