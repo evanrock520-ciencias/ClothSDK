@@ -76,10 +76,10 @@ jobs:
       - name: Build wheel
         run: |
           pip install build wheel auditwheel setuptools
-          python -m build --wheel --no-isolation
+          python -m build --wheel --no-isolation --outdir /tmp/pre-repair/
 
       - name: Repair wheel with auditwheel
-        run: auditwheel repair dist/*.whl -w dist/
+        run: auditwheel repair /tmp/pre-repair/*.whl -w dist/
 
       - name: Build sdist
         if: matrix.python-version == '3.12'
