@@ -1,4 +1,5 @@
-# Patch Alembic's lib/Alembic/CMakeLists.txt to skip install/export commands.
+# Patch Alembic's lib/Alembic/CMakeLists.txt to remove all install/export
+# and packaging commands that conflict with FetchContent-provided Imath.
 # Runs from Alembic's source dir (PATCH_COMMAND working directory).
 
 set(_file "lib/Alembic/CMakeLists.txt")
@@ -7,31 +8,16 @@ set(_tmp "lib/Alembic/CMakeLists.txt.patched")
 file(STRINGS "${_file}" _lines)
 file(WRITE "${_tmp}" "")
 
+# Lines to keep stop at the library target_include_directories block.
+# Everything after is install/export/packaging.
 set(_skip OFF)
 foreach(_line IN LISTS _lines)
-    if(_line MATCHES "^INSTALL\\(TARGETS Alembic")
+    if(_line MATCHES "^SET\\( ALEMBIC_LIB_INSTALL_DIR")
         set(_skip ON)
-    elseif(_line MATCHES "^SET\\( ALEMBIC_LIB_INSTALL_DIR")
-        set(_skip ON)
-    elseif(_line MATCHES "^EXPORT\\(TARGETS")
-        set(_skip ON)
-    elseif(_line MATCHES "^INSTALL\\(EXPORT")
-        set(_skip ON)
-    elseif(_line MATCHES "^INSTALL\\(FILES")
-        set(_skip ON)
-    elseif(_line MATCHES "^INCLUDE\\(CMakePackageConfigHelpers")
-        set(_skip ON)
-    elseif(_line MATCHES "^configure_package_config_file")
-        set(_skip ON)
-    elseif(_line MATCHES "^WRITE_BASIC_PACKAGE_VERSION_FILE")
-        set(_skip ON)
-    elseif(_skip)
-        if(_line MATCHES "^\\)")
-            set(_skip OFF)
-        endif()
-        continue()
     endif()
-    file(APPEND "${_tmp}" "${_line}\n")
+    if(NOT _skip)
+        file(APPEND "${_tmp}" "${_line}\n")
+    endif()
 endforeach()
 
 file(RENAME "${_tmp}" "${_file}")
