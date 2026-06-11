@@ -52,6 +52,10 @@ jobs:
           make -j$(nproc)
           make install
 
+      - name: Install Python tools
+        run: |
+          pip install mypy numpy tqdm
+
       - name: Cache FetchContent dependencies
         uses: actions/cache@v4
         with:
