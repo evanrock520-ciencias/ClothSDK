@@ -43,5 +43,8 @@ Issues = "https://github.com/evanrock520-ciencias/Tissu/issues"
 [tool.setuptools.packages.find]
 where = ["python"]
 
+[tool.setuptools]
+zip-safe = false
+
 [tool.setuptools.package-data]
 tissu = ["*.so", "*.pyd", "*.pyi", "shaders/*.vert", "shaders/*.frag"]
