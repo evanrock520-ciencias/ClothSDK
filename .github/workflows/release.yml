@@ -105,6 +105,7 @@ jobs:
         with:
           pattern: tissu-*
           merge-multiple: true
+          path: dist/
 
       - uses: pypa/gh-action-pypi-publish@v1.12.4
         with:
