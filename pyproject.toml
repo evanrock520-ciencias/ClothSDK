@@ -1,21 +1,46 @@
 [build-system]
 requires = ["setuptools>=61.0", "wheel"]
-build_backend = "setuptools.backends.legacy:build"
+build-backend = "setuptools.build_meta"
 
 [project]
 name = "tissu"
 version = "1.0.0"
-description = "A cloth simulation sdk for python"
+description = "A cloth simulation SDK for Python"
 readme = "README.md"
 requires-python = ">=3.8"
+license = "Apache-2.0"
+authors = [{ name = "Evan Miranda" }]
+keywords = ["cloth", "simulation", "physics", "3d"]
+
 dependencies = [
-	"mypy",
-	"tqdm",
 	"numpy",
-	"pytest"
+	"tqdm",
 ]
-authors = [{ name = "Evan Miranda"}]
-license = { text = "Apache-2.0"}
+
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Intended Audience :: Developers",
+    "Intended Audience :: Science/Research",
+    "Natural Language :: English",
+    "Operating System :: OS Independent",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.8",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Topic :: Artistic Software",
+    "Topic :: Multimedia :: Graphics :: 3D Modeling",
+    "Topic :: Scientific/Engineering",
+]
+
+[project.optional-dependencies]
+dev = ["mypy", "pytest"]
+
+[project.urls]
+Homepage = "https://github.com/evanrock520-ciencias/Tissu"
+Repository = "https://github.com/evanrock520-ciencias/Tissu.git"
+Issues = "https://github.com/evanrock520-ciencias/Tissu/issues"
 
 [tool.setuptools.packages.find]
 where = ["python"]
