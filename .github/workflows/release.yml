@@ -99,7 +99,6 @@ jobs:
     needs: [build-wheels]
     if: github.event_name == 'release'
     runs-on: ubuntu-latest
-
     steps:
       - uses: actions/download-artifact@v4
         with:
@@ -107,6 +106,10 @@ jobs:
           merge-multiple: true
           path: dist/
 
+      - name: Check dist contents  
+        run: ls -la dist/
+
       - uses: pypa/gh-action-pypi-publish@v1.12.4
         with:
           password: ${{ secrets.PYPI_API_TOKEN }}
+          packages-dir: dist/
