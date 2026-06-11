@@ -76,6 +76,23 @@ FetchContent_Declare(
     GIT_TAG v3.1.12
 )
 FetchContent_MakeAvailable(Imath)
+
+# Fetch Alembic statically, patching out install/export to avoid
+# export-set conflicts with fetched Imath
+set(ALEMBIC_SHARED_LIBS OFF)
+set(USE_HDF5 OFF)
+set(USE_TESTS OFF)
+set(USE_BINARIES OFF)
+set(USE_EXAMPLES OFF)
+FetchContent_Declare(
+    Alembic
+    GIT_REPOSITORY https://github.com/alembic/alembic.git
+    GIT_TAG 1.8.6
+    PATCH_COMMAND
+        sed -i '/^INSTALL.*EXPORT/,/)/d;/^EXPORT.*TARGETS/,/)/d;/^SET.*ALEMBIC_LIB_INSTALL_DIR/d;/^INSTALL.*FILES/,/)/d;/^INCLUDE.*CMakePackageConfigHelpers/d;/^configure_package_config_file/d;/^WRITE_BASIC_PACKAGE_VERSION_FILE/d'
+            <SOURCE_DIR>/lib/Alembic/CMakeLists.txt
+)
+FetchContent_MakeAvailable(Alembic)
 unset(BUILD_SHARED_LIBS)
 
 find_package(OpenMP REQUIRED)

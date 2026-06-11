@@ -28,8 +28,6 @@ set(CORE_SOURCES
     src/utils/Logger.cpp
 )
 
-find_package(Alembic REQUIRED)
-
 add_library(ClothCore STATIC ${CORE_SOURCES})
 
 if(MSVC)
