@@ -7,7 +7,7 @@ name = "pytissu"
 version = "1.0.1"
 description = "A cloth simulation SDK for Python"
 readme = "README.md"
-requires-python = ">=3.8"
+requires-python = ">=3.12"
 license = "Apache-2.0"
 authors = [{ name = "Evan Miranda" }]
 keywords = ["cloth", "simulation", "physics", "3d"]
@@ -24,11 +24,9 @@ classifiers = [
     "Natural Language :: English",
     "Operating System :: OS Independent",
     "Programming Language :: Python :: 3",
-    "Programming Language :: Python :: 3.8",
-    "Programming Language :: Python :: 3.9",
-    "Programming Language :: Python :: 3.10",
-    "Programming Language :: Python :: 3.11",
     "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Programming Language :: Python :: 3.14",
     "Topic :: Artistic Software",
     "Topic :: Multimedia :: Graphics :: 3D Modeling",
     "Topic :: Scientific/Engineering",
