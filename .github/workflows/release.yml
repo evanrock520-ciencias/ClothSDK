@@ -75,7 +75,7 @@ jobs:
 
       - name: Build wheel
         run: |
-          pip install build wheel auditwheel
+          pip install build wheel auditwheel setuptools
           python -m build --wheel --no-isolation
 
       - name: Repair wheel with auditwheel
