@@ -66,6 +66,18 @@ set(PYBIND11_TEST OFF CACHE BOOL "" FORCE)
 
 FetchContent_MakeAvailable(googletest eigen tinyobjloader json pybind11 googlebenchmark)
 
+# Fetch Imath statically (no more system libImath dependency)
+set(CMAKE_POLICY_DEFAULT_CMP0077 NEW)
+set(BUILD_SHARED_LIBS OFF)
+set(IMATH_INSTALL OFF)
+FetchContent_Declare(
+    Imath
+    GIT_REPOSITORY https://github.com/AcademySoftwareFoundation/Imath.git
+    GIT_TAG v3.1.12
+)
+FetchContent_MakeAvailable(Imath)
+unset(BUILD_SHARED_LIBS)
+
 find_package(OpenMP REQUIRED)
 
 # Viewer

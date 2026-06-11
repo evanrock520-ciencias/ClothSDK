@@ -29,7 +29,6 @@ set(CORE_SOURCES
 )
 
 find_package(Alembic REQUIRED)
-find_package(Imath REQUIRED)
 
 add_library(ClothCore STATIC ${CORE_SOURCES})
 
