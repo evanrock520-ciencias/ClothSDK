@@ -8,13 +8,24 @@ on:
 
 jobs:
   build-and-test:
-    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: ubuntu-latest
+            name: Linux
+          - os: macos-latest
+            name: macOS
+
+    name: ${{ matrix.name }}
+    runs-on: ${{ matrix.os }}
 
     steps:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Install dependencies
+      - name: Install dependencies (Linux)
+        if: runner.os == 'Linux'
         run: |
           sudo apt update
           sudo apt install -y \
@@ -28,6 +39,17 @@ jobs:
             libomp-dev \
             git
 
+      - name: Install dependencies (macOS)
+        if: runner.os == 'macOS'
+        run: |
+          brew install \
+            cmake \
+            openexr \
+            boost \
+            pybind11 \
+            libomp \
+            git
+
       - name: Cache Alembic
         uses: actions/cache@v4
         id: cache-alembic
@@ -38,6 +60,7 @@ jobs:
       - name: Install Alembic from source
         if: steps.cache-alembic.outputs.cache-hit != 'true'
         run: |
+          JOBS=$([ "$(uname)" = "Darwin" ] && sysctl -n hw.logicalcpu || nproc)
           git clone https://github.com/alembic/alembic.git
           cd alembic
           git checkout 1.8.6
@@ -46,7 +69,7 @@ jobs:
             -DCMAKE_BUILD_TYPE=Release \
             -DCMAKE_INSTALL_PREFIX=${{ github.workspace }}/alembic-install \
             -DUSE_TESTS=OFF
-          make -j$(nproc)
+          make -j$JOBS
           make install
 
       - name: Install Python tools
@@ -64,8 +87,8 @@ jobs:
           restore-keys: |
             fetchcontent-${{ runner.os }}-
 
-      - name: Configure
-        working-directory: ${{ github.workspace }}
+      - name: Configure (Linux)
+        if: runner.os == 'Linux'
         run: |
           mkdir -p build
           cmake -S . -B build \
@@ -73,18 +96,32 @@ jobs:
             -DTISSU_BUILD_VIEWER=OFF \
             -DCMAKE_PREFIX_PATH=${{ github.workspace }}/alembic-install
 
-      - name: Build
-        run: cmake --build build -j$(nproc)
+      - name: Configure (macOS)
+        if: runner.os == 'macOS'
+        run: |
+          mkdir -p build
+          cmake -S . -B build \
+            -DCMAKE_BUILD_TYPE=Release \
+            -DTISSU_BUILD_VIEWER=OFF \
+            -DCMAKE_PREFIX_PATH="${{ github.workspace }}/alembic-install;$(brew --prefix openexr);$(brew --prefix boost)"
 
-      - name: Test
+      - name: Build (Linux/macOS)
+        run: |
+          JOBS=$([ "$(uname)" = "Darwin" ] && sysctl -n hw.logicalcpu || nproc)
+          cmake --build build -j$JOBS
+
+      - name: Test (Linux/macOS)
         run: ./build/tests/unit_tests
 
       - name: API Test
         run: |
             pytest tests/python -v
 
-      - name: Build benchmarks
-        run: cmake --build build --target tissu_benchmarks -j$(nproc)
+      - name: Build benchmarks (Linux/macOS)
+        run: |
+          JOBS=$([ "$(uname)" = "Darwin" ] && sysctl -n hw.logicalcpu || nproc)
+          cmake --build build --target tissu_benchmarks -j$JOBS
 
-      - name: Smoke benchmarks
+      - name: Smoke benchmarks (Linux/macOS)
+        if: runner.os != 'Windows'
         run: ./build/benchmarks/tissu_benchmarks --benchmark_min_time=0.001s
