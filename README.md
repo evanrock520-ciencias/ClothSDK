@@ -6,6 +6,7 @@
 ![Physics](https://img.shields.io/badge/Physics-XPBD-green.svg)
 ![Platform](https://img.shields.io/badge/Platform-Linux-lightgrey)
 [![CI](https://github.com/evanrock520-ciencias/Tissu/actions/workflows/ci.yml/badge.svg)](https://github.com/evanrock520-ciencias/Tissu/actions/workflows/ci.yml)
+[![Release](https://github.com/evanrock520-ciencias/Tissu/actions/workflows/release.yml/badge.svg?event=release)](https://github.com/evanrock520-ciencias/Tissu/actions/workflows/release.yml)
 
 **Tissu** is a C++ cloth simulation SDK designed to integrate seamlessly into Digital Content Creation (DCC) tools such as Blender. It was developed to make high-fidelity cloth simulation as accessible as possible for technical artists and developers.
 
