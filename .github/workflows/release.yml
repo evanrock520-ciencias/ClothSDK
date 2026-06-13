@@ -14,7 +14,7 @@ jobs:
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
-        os: [ubuntu-latest]
+        os: [ubuntu-latest, macos-latest]
         python-version: ["3.12", "3.13", "3.14"]
 
     steps:
@@ -24,32 +24,40 @@ jobs:
         with:
           python-version: ${{ matrix.python-version }}
 
-      - name: Install system dependencies
+      - name: Install system dependencies (Linux)
+        if: runner.os == 'Linux'
         run: |
           sudo apt update
           sudo apt install -y \
             cmake build-essential libopenexr-dev libilmbase-dev \
             libboost-dev libpython3-dev pybind11-dev libomp-dev git
 
+      - name: Install system dependencies (macOS)
+        if: runner.os == 'macOS'
+        run: |
+          brew install \
+            cmake openexr boost pybind11 libomp git
+
       - name: Cache Alembic
         uses: actions/cache@v4
         id: cache-alembic
         with:
           path: ${{ github.workspace }}/alembic-install
-          key: alembic-1.8.6-${{ runner.os }}
+          key: alembic-1.8.11-${{ runner.os }}
 
       - name: Install Alembic from source
         if: steps.cache-alembic.outputs.cache-hit != 'true'
         run: |
+          JOBS=$([ "$(uname)" = "Darwin" ] && sysctl -n hw.logicalcpu || nproc)
           git clone https://github.com/alembic/alembic.git
           cd alembic
-          git checkout 1.8.6
+          git checkout 1.8.11
           mkdir build && cd build
           cmake .. \
             -DCMAKE_BUILD_TYPE=Release \
             -DCMAKE_INSTALL_PREFIX=${{ github.workspace }}/alembic-install \
             -DUSE_TESTS=OFF
-          make -j$(nproc)
+          make -j$JOBS
           make install
 
       - name: Install Python tools
@@ -62,7 +70,8 @@ jobs:
           path: build/_deps
           key: fetchcontent-${{ runner.os }}-${{ hashFiles('CMakeLists.txt') }}
 
-      - name: Configure
+      - name: Configure (Linux)
+        if: runner.os == 'Linux'
         run: |
           mkdir -p build
           cmake -S . -B build \
@@ -70,16 +79,36 @@ jobs:
             -DTISSU_BUILD_VIEWER=OFF \
             -DCMAKE_PREFIX_PATH=${{ github.workspace }}/alembic-install
 
+      - name: Configure (macOS)
+        if: runner.os == 'macOS'
+        run: |
+          mkdir -p build
+          cmake -S . -B build \
+            -DCMAKE_BUILD_TYPE=Release \
+            -DTISSU_BUILD_VIEWER=OFF \
+            -DCMAKE_PREFIX_PATH="${{ github.workspace }}/alembic-install;$(brew --prefix openexr);$(brew --prefix boost)"
+
       - name: Build native extension
-        run: cmake --build build -j$(nproc)
+        run: |
+          JOBS=$([ "$(uname)" = "Darwin" ] && sysctl -n hw.logicalcpu || nproc)
+          cmake --build build -j$JOBS
 
       - name: Build wheel
         run: |
-          pip install build wheel auditwheel setuptools
+          pip install build wheel setuptools
           python -m build --wheel --no-isolation --outdir /tmp/pre-repair/
 
-      - name: Repair wheel with auditwheel
-        run: auditwheel repair /tmp/pre-repair/*.whl -w dist/
+      - name: Repair wheel (Linux)
+        if: runner.os == 'Linux'
+        run: |
+          pip install auditwheel
+          auditwheel repair /tmp/pre-repair/*.whl -w dist/
+
+      - name: Repair wheel (macOS)
+        if: runner.os == 'macOS'
+        run: |
+          pip install delocate
+          delocate-wheel -w dist/ -v /tmp/pre-repair/*.whl
 
       - name: Build sdist
         if: matrix.python-version == '3.12'
