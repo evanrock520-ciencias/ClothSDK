@@ -332,9 +332,34 @@ PYBIND11_MODULE(_cloth_sdk_core, m) {
 
   py::class_<Tissu::AlembicExporter>(m, "AlembicExporter")
       .def(py::init<>())
-      .def("open", &Tissu::AlembicExporter::open, py::arg("path"),
-           py::arg("positions"), py::arg("indices"))
-      .def("write_frame", &Tissu::AlembicExporter::writeFrame,
+      .def("open",
+           [](Tissu::AlembicExporter& self, const std::string& path,
+              py::array_t<double> positions, py::array_t<int32_t> indices) {
+             auto p = positions.unchecked<2>();
+             if (p.shape(1) != 3)
+               throw std::runtime_error(
+                   "positions must have shape (N, 3)");
+             std::vector<Eigen::Vector3d> pos(p.shape(0));
+             for (ssize_t i = 0; i < p.shape(0); ++i)
+               pos[i] = Eigen::Vector3d(p(i, 0), p(i, 1), p(i, 2));
+             auto idx = indices.unchecked<1>();
+             std::vector<int> iv(idx.shape(0));
+             for (ssize_t i = 0; i < idx.shape(0); ++i) iv[i] = idx(i);
+             return self.open(path, pos, iv);
+           },
+           py::arg("path"), py::arg("positions"), py::arg("indices"))
+      .def("write_frame",
+           [](Tissu::AlembicExporter& self, py::array_t<double> positions,
+              double time) {
+             auto p = positions.unchecked<2>();
+             if (p.shape(1) != 3)
+               throw std::runtime_error(
+                   "positions must have shape (N, 3)");
+             std::vector<Eigen::Vector3d> pos(p.shape(0));
+             for (ssize_t i = 0; i < p.shape(0); ++i)
+               pos[i] = Eigen::Vector3d(p(i, 0), p(i, 1), p(i, 2));
+             self.writeFrame(pos, time);
+           },
            py::arg("positions"), py::arg("time"))
       .def("close", &Tissu::AlembicExporter::close);
 

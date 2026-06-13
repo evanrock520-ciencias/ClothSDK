@@ -1,9 +1,12 @@
 from __future__ import annotations
+from typing import Iterator
 from collections import defaultdict
 from . import _cloth_sdk_core as sdk
 import numpy as np
 import os
-from tqdm import tqdm
+from tqdm.auto import tqdm
+import matplotlib.pyplot as plt
+
 
 class Simulation:
     def __init__(self, substeps: int = 10, iterations: int = 2, gravity: float = -9.81, thickness: float = 0.02):
@@ -16,7 +19,6 @@ class Simulation:
         
         self.cloth_objects = {}  
         self._aero_forces = {}   
-        self._pins = {}
         self._colliders = {}
         
         self.substeps = substeps
@@ -24,9 +26,17 @@ class Simulation:
         self.gravity = gravity
         self.thickness = thickness
         self.wind = [0.0, 0.0, 0.0]
-        self.air_density = 0.1
+        self.air_density = 0.1 
+        self._collision_compliance = 0.0
         
         self.actions = defaultdict(list)
+        
+        # Energy
+        self._ke_history = np.array([])
+        self._pe_history = np.array([])
+        self._recording = False
+        self._last_dt = 1/60
+        self._frame_counter = 0
         
         self.app = None
 
@@ -108,6 +118,41 @@ class Simulation:
     def frame(self):
         return self.solver.get_frame()
     
+    def kinetic_energy(self, dt=None):
+        dt = dt or self._last_dt
+        ke = np.empty(0)
+        
+        for particle in self.solver.get_particles():
+            v = particle.get_velocity(dt)
+            m = 1.0 / particle.get_inverse_mass() if particle.get_inverse_mass() > 0 else float('inf')
+            k = 0.5 * m * np.dot(v, v) if m != float('inf') else 0.0
+            
+            ke = np.append(ke, k)
+            
+        return np.sum(ke)
+    
+    def potential_energy(self, dt=None):
+        pe = np.empty(0)
+        
+        for particle in self.solver.get_particles():
+            y = particle.get_position()[1]
+            m = 1.0 / particle.get_inverse_mass() if particle.get_inverse_mass() > 0 else float('inf')
+            p = m * abs(self.gravity) * y 
+            
+            pe = np.append(pe, p)
+        
+        return np.sum(pe)
+        
+    def start_recording(self):
+        self._recording = True
+        
+    def stop_recording(self):
+        self._recording = False
+        
+    def clear_history(self):
+        self._ke_history = np.array([])
+        self._pe_history = np.array([])
+    
     def get_fabric(self, name: str) -> Fabric:
         if name not in self.cloth_objects:
             raise KeyError(f"Fabric '{name}' not found.")
@@ -122,6 +167,11 @@ class Simulation:
         sim._aero_forces = {}
         sim.app = None
         sim.actions = defaultdict(list)
+        sim._ke_history = np.array([])
+        sim._pe_history = np.array([])
+        sim._recording = False
+        sim._last_dt = 1/60
+        sim._frame_counter = 0
 
         sdk.SceneLoader.load_scene(filepath, sim.solver, sim.world)
         sim._gravity_force = sdk.GravityForce(sim.world.get_gravity())
@@ -180,10 +230,7 @@ class Simulation:
         return decorator
     
     def simulate(self, frames: int, dt: float = 1/60):
-        for frame in tqdm(range(frames), desc="Simulating", unit="frame"):
-            if frame in self.actions:
-                for action in self.actions[frame]:
-                    action(self)
+        for _ in tqdm(range(frames), desc="Simulating", unit="frame"):
             self.step(dt)
     
     def add_fabric(self, fabric: Fabric) -> None:
@@ -272,8 +319,16 @@ class Simulation:
         sdk.Logger.info(f"Added capsule collider '{name}' from {start} to {end}")
         self._colliders[name] = len(self.world.get_colliders()) - 1
 
-    def step(self, dt: float = 1.0/60.0):
+    def step(self, dt: float = 1/60):
+        self._last_dt = dt
+        if self._frame_counter in self.actions:
+            for action in self.actions[self._frame_counter]:
+                action(self)
         self.solver.update(self.world, dt)
+        if self._recording:
+            self._ke_history = np.append(self._ke_history, self.kinetic_energy(dt))
+            self._pe_history = np.append(self._pe_history, self.potential_energy(dt))
+        self._frame_counter += 1
         
     def get_positions(self) -> np.ndarray:
         particles = self.solver.get_particles()
@@ -331,10 +386,6 @@ class Simulation:
         total_frames = end_frame - start_frame
         
         for frame_idx in tqdm(range(total_frames), desc="Baking Alembic", unit="frames"):
-            if frame_idx in self.actions:
-                for action in self.actions[frame_idx]:
-                    action(self)
-            
             self.step(dt)
             current_pos = [p.get_position() for p in self.solver.get_particles()] 
             current_time = frame_idx * dt
@@ -394,6 +445,63 @@ class Simulation:
 
         self.app.shutdown()
         sdk.Logger.info("Viewer closed.")
+        
+        
+    def plot(self, fabric_name: str):
+        fabric = self.get_fabric(fabric_name)
+        positions = fabric.get_positions()
+        triangles = fabric.get_triangles().reshape(-1, 3)
+
+        x = positions[:, 0]
+        y = positions[:, 1]
+        z = positions[:, 2]
+
+        fig = plt.figure()
+        ax = fig.add_subplot(projection="3d")
+        ax.plot_trisurf(
+            x, z, y,
+            triangles=triangles,
+            cmap="plasma",
+            vmin=float(y.min()),
+            vmax=float(y.max()),
+            edgecolor="none"
+        )
+
+        max_range = np.array([
+            x.max() - x.min(),
+            y.max() - y.min(),
+            z.max() - z.min()
+        ]).max() / 2.0
+
+        mid_x = (x.max() + x.min()) / 2
+        mid_y = (y.max() + y.min()) / 2
+        mid_z = (z.max() + z.min()) / 2
+
+        ax.set_xlim(mid_x - max_range, mid_x + max_range)
+        ax.set_ylim(mid_z - max_range, mid_z + max_range)
+        ax.set_zlim(mid_y - max_range, mid_y + max_range)
+
+        ax.set_xlabel("X")
+        ax.set_ylabel("Z")
+        ax.set_zlabel("Y (height)")
+        plt.tight_layout()
+        plt.show()
+        
+    def plot_energy(self):
+        frames = np.arange(len(self._ke_history))
+        fig, ax1 = plt.subplots()
+        ax1.plot(frames, self._ke_history, label="KE", color="tab:blue")
+        ax1.plot(frames, self._ke_history + self._pe_history, label="Total", color="tab:green")
+        ax1.set_xlabel("Frame")
+        ax1.set_ylabel("Kinetic / Total Energy")
+        ax1.tick_params(axis="y")
+        ax2 = ax1.twinx()
+        ax2.plot(frames, self._pe_history, label="PE", color="tab:orange")
+        ax2.set_ylabel("Potential Energy")
+        ax2.tick_params(axis="y")
+        fig.legend(loc="upper right")
+        plt.show()
+
         
     def load_material(self, filepath: str, cloth_name: str) -> None:
         """
@@ -456,7 +564,7 @@ class Simulation:
     def get_scene_status(filepath: str):
         return sdk.SceneLoader.get_scene_header(filepath)
         
-    def move_collider(self, name: str, new_position: np.array, new_rotation: np.array = None):
+    def move_collider(self, name: str, new_position: np.array, new_rotation: np.array = None) -> None:
         if new_rotation is None:
             new_rotation = np.array([0.0, 0.0, 0.0, 1.0])
         
@@ -466,7 +574,7 @@ class Simulation:
         
         self.world.move_collider(index, new_position, new_rotation)
         
-    def __repr__(self):
+    def __repr__(self) -> str:
         fabric_list = ", ".join(repr(fabric) for fabric in self.cloth_objects.values())
     
         return (
@@ -477,9 +585,19 @@ class Simulation:
             f"Fabrics: {fabric_list if fabric_list else 'none'}\n"
         )
         
-    def __getitem__(self, key):
+    def __getitem__(self, key) -> Fabric:
         return self.cloth_objects[key]
-        
+
+    def __len__(self) -> int:
+        return len(self.cloth_objects)
+
+    def __iter__(self) -> Iterator[Fabric]:
+        return iter(self.cloth_objects.values())
+
+    def __contains__(self, name: str) -> bool:
+        return name in self.cloth_objects
+
+
 class Fabric:
     def __init__(self, name: str, material: Material):
         self.name = name
@@ -488,6 +606,7 @@ class Fabric:
         self._solver = None
         self._rows = 0
         self._cols = 0
+        self._pins = np.empty(0, dtype=int)
 
     @classmethod
     def grid(cls, name: str, rows: int, cols: int, spacing: float, material: Material, solver: sdk.Solver) -> Fabric:
@@ -551,6 +670,10 @@ class Fabric:
         
         self.instance.set_rest_volume(rest_volume)
         return rest_volume
+
+    @property
+    def pins(self):
+        return self._pins
 
     def get_positions(self) -> np.ndarray:
         """
@@ -632,7 +755,7 @@ class Fabric:
         return self.instance.get_particle_id(row, col)
     
     def get_triangles(self):
-        return self.instance.get_triangles()
+        return np.array(self.instance.get_triangles())
     
     def get_pins(self):
         return self._pins
