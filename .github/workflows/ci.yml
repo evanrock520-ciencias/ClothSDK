@@ -77,6 +77,7 @@ jobs:
           pip install mypy
           pip install tqdm
           pip install numpy
+          pip install matplotlib
           pip install pytest
 
       - name: Cache FetchContent dependencies
