@@ -93,13 +93,13 @@ def test_resolve_material():
 def test_pin():
     sim = Simulation(substeps=15, iterations=3, gravity=-9.81, thickness=0.05)
     sim.wind = [0.0, 7.0, 0.0]
-    rows = 80
+    rows, cols = 80, 40
     
     sim.add_floor(name="floor", friction=0.5)
     curtain = sim.create_grid(
         name="curtain",
         rows=rows,
-        cols=40,
+        cols=cols,
         spacing=0.05,
         material="silk"
     )
@@ -110,7 +110,7 @@ def test_pin():
     
     curtain.pin_by_height()
     pins = curtain.get_pins() # The upper edge
-    assert len(pins) == rows 
+    assert len(pins) == cols
     
     curtain.unpin()
     pins = curtain.get_pins()
