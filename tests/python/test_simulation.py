@@ -141,3 +141,102 @@ def test_on_frame():
     pins = curtain.get_pins()
     assert len(pins) == 0
     
+def test_energy():
+    sim = Simulation()
+    curtain = sim.create_grid(
+        name="curtain",
+        rows=10,
+        cols=10,
+        spacing=0.05,
+        material="silk"
+    )
+    curtain.pin_top_corners()
+
+    sim.step()
+    ke = sim.kinetic_energy()
+    pe = sim.potential_energy()
+
+    assert ke >= 0
+    assert pe >= 0
+    assert isinstance(ke, float)
+    assert isinstance(pe, float)
+
+    ke_custom = sim.kinetic_energy(dt=1/30)
+    pe_custom = sim.potential_energy(dt=1/30)
+    assert ke_custom >= 0
+    assert pe_custom >= 0
+
+def test_step():
+    sim = Simulation()
+    sim.create_grid(
+        name="curtain",
+        rows=10,
+        cols=10,
+        spacing=0.05,
+        material="silk"
+    )
+
+    assert sim._frame_counter == 0
+
+    sim.step()
+    assert sim._frame_counter == 1
+
+    sim.step()
+    assert sim._frame_counter == 2
+
+    assert len(sim._ke_history) == 0
+
+    sim.start_recording()
+    sim.step()
+    assert sim._frame_counter == 3
+    assert len(sim._ke_history) == 1
+    assert len(sim._pe_history) == 1
+
+def test_step_dispatch():
+    sim = Simulation()
+    sim.create_grid(
+        name="curtain",
+        rows=10,
+        cols=10,
+        spacing=0.05,
+        material="silk"
+    )
+
+    triggered = []
+
+    @sim.on_frame(2)
+    def action(sim):
+        triggered.append(True)
+
+    sim.step()
+    assert len(triggered) == 0
+    assert sim._frame_counter == 1
+
+    sim.step()
+    assert len(triggered) == 0
+    assert sim._frame_counter == 2
+
+    sim.step()
+    assert len(triggered) == 1
+    assert sim._frame_counter == 3
+
+def test_recording():
+    sim = Simulation()
+    curtain = sim.create_grid(
+        name="curtain",
+        rows=20,
+        cols=20,
+        spacing=0.05,
+        material="silk"
+    )
+    
+    sim.simulate(10)
+    assert len(sim._ke_history) == 0
+    assert len(sim._pe_history) == 0
+    
+    sim.start_recording()
+    sim.simulate(20)
+    sim.stop_recording()
+    
+    assert len(sim._ke_history) == 20
+    assert len(sim._pe_history) == 20
