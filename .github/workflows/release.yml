@@ -108,7 +108,7 @@ jobs:
         if: runner.os == 'macOS'
         run: |
           pip install delocate
-          delocate-wheel -w dist/ -v /tmp/pre-repair/*.whl
+          delocate-wheel -w dist/ -v --require-archs arm64 /tmp/pre-repair/*.whl
 
       - name: Build sdist
         if: matrix.python-version == '3.12'
