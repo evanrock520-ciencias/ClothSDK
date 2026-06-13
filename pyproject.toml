@@ -15,6 +15,7 @@ keywords = ["cloth", "simulation", "physics", "3d"]
 dependencies = [
 	"numpy",
 	"tqdm",
+	"matplotlib",
 ]
 
 classifiers = [
