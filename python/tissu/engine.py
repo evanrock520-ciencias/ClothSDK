@@ -264,7 +264,7 @@ class Simulation:
             raise ValueError(f"Fabric '{name}' already exists in simulation.")
         
         resolved = self._resolve_material(material)
-        fabric = Fabric.grid(name, cols, rows, spacing, resolved, self.solver)
+        fabric = Fabric.grid(name, rows, cols, spacing, resolved, self.solver)
         self.add_fabric(fabric)
         
         return fabric
