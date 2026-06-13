@@ -125,9 +125,11 @@ PYBIND11_MODULE(_cloth_sdk_core, m) {
       .def(py::init<const Eigen::Vector3d&>(), py::arg("initial_pos"))
       .def("get_position", &Particle::getPosition)
       .def("set_position", &Particle::setPosition)
+      .def("get_old_position", &Particle::getOldPosition)
       .def("set_old_position", &Particle::setOldPosition)
       .def("get_inverse_mass", &Particle::getInverseMass)
       .def("set_inverse_mass", &Particle::setInverseMass)
+      .def("get_velocity", &Particle::getVelocity)
       .def("add_force", &Particle::addForce)
       .def("integrate", &Particle::integrate);
 
