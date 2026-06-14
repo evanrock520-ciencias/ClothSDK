@@ -596,7 +596,12 @@ class Simulation:
 
     def __contains__(self, name: str) -> bool:
         return name in self.cloth_objects
-
+    
+    def __enter__(self):
+        return self
+    
+    def __exit__(self, exc_type, exc, tb):
+        self.reset()
 
 class Fabric:
     def __init__(self, name: str, material: Material):
