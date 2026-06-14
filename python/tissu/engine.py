@@ -6,7 +6,7 @@ import numpy as np
 import os
 from tqdm.auto import tqdm
 import matplotlib.pyplot as plt
-
+import imageio
 
 class Simulation:
     def __init__(self, substeps: int = 10, iterations: int = 2, gravity: float = -9.81, thickness: float = 0.02):
@@ -342,9 +342,7 @@ class Simulation:
         self._aero_forces = {}
         sdk.Logger.info("Simulation world reset.")
         
-    def soft_reset(self, fabric_name: str = None):
-        if fabric_name:
-            pass
+    def soft_reset(self):
         self.solver.soft_reset()
         
     def bake_alembic(self, filepath: str, start_frame: int = 0, end_frame: int = 120, fps: float = 60.0) -> bool:
@@ -447,7 +445,7 @@ class Simulation:
         sdk.Logger.info("Viewer closed.")
         
         
-    def plot(self, fabric_name: str):
+    def plot(self, fabric_name: str) -> None:
         fabric = self.get_fabric(fabric_name)
         positions = fabric.get_positions()
         triangles = fabric.get_triangles().reshape(-1, 3)
@@ -486,8 +484,50 @@ class Simulation:
         ax.set_zlabel("Y (height)")
         plt.tight_layout()
         plt.show()
-        
-    def plot_energy(self):
+
+
+    def plot_gif(self, fabric_name: str, start: int = 0, end: int = 120, fps: int = 30, filename: str = "simulation.gif") -> None:
+        fabric = self.get_fabric(fabric_name)
+        init_pos = fabric.get_positions()
+        x0, y0, z0 = init_pos[:, 0], init_pos[:, 1], init_pos[:, 2]
+        max_range = np.array([x0.max()-x0.min(), y0.max()-y0.min(), z0.max()-z0.min()]).max() / 2.0
+        mid_x, mid_y, mid_z = (x0.max()+x0.min())/2, (y0.max()+y0.min())/2, (z0.max()+z0.min())/2
+
+        fig = plt.figure()
+        ax = fig.add_subplot(projection="3d")
+
+        sdk.Logger.info(f"Rendering GIF '{filename}' ({end - start} frames @ {fps} fps)...")
+
+        with imageio.get_writer(filename, mode="I", fps=fps) as writer:
+            for _ in tqdm(range(end - start), desc="Rendering GIF", unit="frame"):
+                self.step(self._last_dt)
+
+                ax.clear()
+                positions = fabric.get_positions()
+                triangles = fabric.get_triangles().reshape(-1, 3)
+                x, y, z = positions[:, 0], positions[:, 1], positions[:, 2]
+
+                ax.plot_trisurf(x, z, y, triangles=triangles, cmap="plasma",
+                                vmin=float(y.min()), vmax=float(y.max()), edgecolor="none")
+                ax.set_xlim(mid_x - max_range, mid_x + max_range)
+                ax.set_ylim(mid_z - max_range, mid_z + max_range)
+                ax.set_zlim(mid_y - max_range, mid_y + max_range)
+                ax.set_xlabel("X")
+                ax.set_ylabel("Z")
+                ax.set_zlabel("Y (height)")
+                ax.set_title(f"Frame {self.frame}")
+
+                fig.canvas.draw()
+                image = np.frombuffer(fig.canvas.buffer_rgba(), dtype=np.uint8)
+                image = image.reshape(fig.canvas.get_width_height()[::-1] + (4,))
+                image = image[:, :, :3]
+                writer.append_data(image)
+
+        plt.close(fig)
+        sdk.Logger.info(f"GIF saved: {filename}")
+
+
+    def plot_energy(self) -> None:
         frames = np.arange(len(self._ke_history))
         fig, ax1 = plt.subplots()
         ax1.plot(frames, self._ke_history, label="KE", color="tab:blue")
@@ -502,7 +542,7 @@ class Simulation:
         fig.legend(loc="upper right")
         plt.show()
 
-        
+
     def load_material(self, filepath: str, cloth_name: str) -> None:
         """
         Loads material properties from a JSON file and applies them to a fabric.
