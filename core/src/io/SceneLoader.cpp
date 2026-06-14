@@ -158,9 +158,21 @@ SceneHeader SceneLoader::getSceneHeader(const std::string& filepath) {
     throw std::invalid_argument("The given JSON is not a valid scene.");
 
   SceneHeader header;
-  header.version = data.value("version", 1.0f);
+  if (data.contains("version")) {
+    if (data["version"].is_number())
+      header.version = data["version"].get<float>();
+    else
+      header.version = std::stof(data["version"].get<std::string>());
+  } else
+    header.version = 1.0f;
   header.name = data.value("name", "Untitled Scene");
-  header.physics_preset = data.value("physics", "default");
+  if (data.contains("physics")) {
+    if (data["physics"].is_string())
+      header.physics_preset = data["physics"].get<std::string>();
+    else
+      header.physics_preset = "custom";
+  } else
+    header.physics_preset = "default";
   for (const auto& fabricData : data.at("fabrics")) {
     SceneHeader::FabricInfo info;
     info.name = fabricData.value("name", "cloth");
