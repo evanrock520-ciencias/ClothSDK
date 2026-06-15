@@ -243,11 +243,25 @@ PYBIND11_MODULE(_cloth_sdk_core, m) {
 
   py::class_<ClothMesh, std::shared_ptr<Tissu::ClothMesh>>(m, "ClothMesh")
       .def(py::init<>())
-      .def("init_grid", &ClothMesh::initGrid, py::arg("rows"), py::arg("cols"),
-           py::arg("spacing"), py::arg("out_cloth"), py::arg("solver"))
-      .def("build_from_mesh", &ClothMesh::buildFromMesh, py::arg("positions"),
-           py::arg("indices"), py::arg("out_cloth"), py::arg("solver"),
-           py::arg("mesh_path"));
+      .def("init_grid",
+           [](ClothMesh& self, int rows, int cols, double spacing, Cloth& out_cloth,
+              Solver& solver, Eigen::Vector3d translation, Eigen::Vector4d rotation) {
+             Eigen::Quaterniond quat(rotation[3], rotation[0], rotation[1], rotation[2]);
+             self.initGrid(rows, cols, spacing, out_cloth, solver, translation, quat);
+           },
+           py::arg("rows"), py::arg("cols"), py::arg("spacing"), py::arg("out_cloth"),
+           py::arg("solver"), py::arg("translation") = Eigen::Vector3d::Zero(),
+           py::arg("rotation") = Eigen::Vector4d(0.0, 0.0, 0.0, 1.0))
+      .def("build_from_mesh",
+           [](ClothMesh& self, const std::vector<Eigen::Vector3d>& positions,
+              const std::vector<int>& indices, Cloth& out_cloth, Solver& solver,
+              const std::string& mesh_path, Eigen::Vector3d translation, Eigen::Vector4d rotation) {
+             Eigen::Quaterniond quat(rotation[3], rotation[0], rotation[1], rotation[2]);
+             self.buildFromMesh(positions, indices, out_cloth, solver, mesh_path, translation, quat);
+           },
+           py::arg("positions"), py::arg("indices"), py::arg("out_cloth"), py::arg("solver"),
+           py::arg("mesh_path"), py::arg("translation") = Eigen::Vector3d::Zero(),
+           py::arg("rotation") = Eigen::Vector4d(0.0, 0.0, 0.0, 1.0));
 
   py::class_<Tissu::Cloth, std::shared_ptr<Tissu::Cloth>>(m, "Cloth")
       .def(py::init<const std::string&, std::shared_ptr<ClothMaterial>>(),
