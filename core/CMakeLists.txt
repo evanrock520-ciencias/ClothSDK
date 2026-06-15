@@ -15,6 +15,7 @@ set(CORE_SOURCES
     src/physics/GravityForce.cpp
     src/physics/AerodynamicForce.cpp
     src/data-structures/SpatialHash.cpp
+    src/data-structures/BVH.cpp
     src/engine/ClothMesh.cpp
     src/engine/Cloth.cpp
     src/engine/World.cpp
