@@ -50,28 +50,30 @@ bool Renderer::init() {
 
 void Renderer::render(const Tissu::Solver& solver, const Camera& camera) {
   const auto& particles = solver.getParticles();
-  if (particles.empty() || m_indices.empty()) return;
+  if (particles.empty() || m_clothMeshes.empty()) return;
 
   const size_t vertexCount = particles.size();
 
   m_normals.assign(vertexCount, Eigen::Vector3f::Zero());
 
-  for (size_t i = 0; i + 2 < m_indices.size(); i += 3) {
-    const unsigned int ia = m_indices[i];
-    const unsigned int ib = m_indices[i + 1];
-    const unsigned int ic = m_indices[i + 2];
+  for (const auto& mesh : m_clothMeshes) {
+    for (size_t i = 0; i + 2 < mesh.indices.size(); i += 3) {
+      const unsigned int ia = mesh.indices[i];
+      const unsigned int ib = mesh.indices[i + 1];
+      const unsigned int ic = mesh.indices[i + 2];
 
-    if (ia >= vertexCount || ib >= vertexCount || ic >= vertexCount) continue;
+      if (ia >= vertexCount || ib >= vertexCount || ic >= vertexCount) continue;
 
-    const Eigen::Vector3d& pa = particles[ia].getPosition();
-    const Eigen::Vector3d& pb = particles[ib].getPosition();
-    const Eigen::Vector3d& pc = particles[ic].getPosition();
+      const Eigen::Vector3d& pa = particles[ia].getPosition();
+      const Eigen::Vector3d& pb = particles[ib].getPosition();
+      const Eigen::Vector3d& pc = particles[ic].getPosition();
 
-    Eigen::Vector3f faceNormal = (pb - pa).cross(pc - pa).cast<float>();
+      Eigen::Vector3f faceNormal = (pb - pa).cross(pc - pa).cast<float>();
 
-    m_normals[ia] += faceNormal;
-    m_normals[ib] += faceNormal;
-    m_normals[ic] += faceNormal;
+      m_normals[ia] += faceNormal;
+      m_normals[ib] += faceNormal;
+      m_normals[ic] += faceNormal;
+    }
   }
 
   m_vertexBuffer.clear();
@@ -110,35 +112,96 @@ void Renderer::render(const Tissu::Solver& solver, const Camera& camera) {
       Eigen::Vector3f(1.0f, 2.0f, 1.5f).normalized();
   m_shader.setVec3("uLightDir", lightDir);
 
-  glBindVertexArray(m_vao);
   glEnable(GL_DEPTH_TEST);
 
-  glDrawElements(GL_TRIANGLES, static_cast<GLsizei>(m_indices.size()),
-                 GL_UNSIGNED_INT, 0);
+  for (const auto& mesh : m_clothMeshes) {
+    if (mesh.indices.empty()) continue;
+    m_shader.setVec3("COLOR_FRONT",
+                     Eigen::Vector3f(mesh.color[0], mesh.color[1], mesh.color[2]));
+    glBindVertexArray(mesh.vao);
+    glDrawElements(GL_TRIANGLES, static_cast<GLsizei>(mesh.indices.size()),
+                   GL_UNSIGNED_INT, 0);
+  }
 
   glBindVertexArray(0);
 }
 
 void Renderer::cleanup() {
+  clearClothMeshes();
   if (m_vao) glDeleteVertexArrays(1, &m_vao);
   if (m_vbo) glDeleteBuffers(1, &m_vbo);
   if (m_ebo) glDeleteBuffers(1, &m_ebo);
 }
 
 void Renderer::updateTopology() {
-  if (m_vao == 0 || m_ebo == 0) return;
+  if (m_clothMeshes.empty()) return;
 
-  glBindVertexArray(m_vao);
-  glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_ebo);
+  m_clothMeshes[0].indices = m_indices;
+  glBindVertexArray(m_clothMeshes[0].vao);
+  glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_clothMeshes[0].ebo);
   glBufferData(GL_ELEMENT_ARRAY_BUFFER, m_indices.size() * sizeof(unsigned int),
                m_indices.data(), GL_STATIC_DRAW);
   glBindVertexArray(0);
 }
 
 void Renderer::updateColor(float* color) {
-  m_shader.bind();
-  m_shader.setVec3("COLOR_FRONT",
-                   Eigen::Vector3f(color[0], color[1], color[2]));
+  if (!m_clothMeshes.empty()) {
+    updateColor(0, color);
+  }
+}
+
+void Renderer::updateColor(size_t index, float* color) {
+  if (index < m_clothMeshes.size()) {
+    m_clothMeshes[index].color[0] = color[0];
+    m_clothMeshes[index].color[1] = color[1];
+    m_clothMeshes[index].color[2] = color[2];
+    m_clothMeshes[index].color[3] = color[3];
+  }
+}
+
+void Renderer::clearClothMeshes() {
+  for (auto& mesh : m_clothMeshes) {
+    if (mesh.vao) glDeleteVertexArrays(1, &mesh.vao);
+    if (mesh.ebo) glDeleteBuffers(1, &mesh.ebo);
+  }
+  m_clothMeshes.clear();
+}
+
+void Renderer::addClothMesh(const std::string& name, const std::vector<unsigned int>& indices) {
+  RenderMesh mesh;
+  mesh.name = name;
+  mesh.indices = indices;
+
+  glGenVertexArrays(1, &mesh.vao);
+  glGenBuffers(1, &mesh.ebo);
+
+  glBindVertexArray(mesh.vao);
+  glBindBuffer(GL_ARRAY_BUFFER, m_vbo);
+  glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, mesh.ebo);
+
+  glBufferData(GL_ELEMENT_ARRAY_BUFFER, indices.size() * sizeof(unsigned int),
+               indices.data(), GL_STATIC_DRAW);
+
+  constexpr GLsizei stride = 6 * sizeof(float);
+
+  glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, stride, (void*)0);
+  glEnableVertexAttribArray(0);
+
+  glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, stride,
+                        (void*)(3 * sizeof(float)));
+  glEnableVertexAttribArray(1);
+
+  glBindVertexArray(0);
+  glBindBuffer(GL_ARRAY_BUFFER, 0);
+  glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
+
+  // Set a default color
+  mesh.color[0] = 0.7f;
+  mesh.color[1] = 0.5f;
+  mesh.color[2] = 0.5f;
+  mesh.color[3] = 1.0f;
+
+  m_clothMeshes.push_back(mesh);
 }
 
 void Renderer::updateAmbient(float ambient) {

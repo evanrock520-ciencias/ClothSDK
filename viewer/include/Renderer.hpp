@@ -26,6 +26,14 @@ class Solver;
 namespace Viewer {
 class Camera;
 
+struct RenderMesh {
+  unsigned int vao = 0;
+  unsigned int ebo = 0;
+  std::vector<unsigned int> indices;
+  std::string name;
+  float color[4] = {0.7f, 0.5f, 0.5f, 1.0f};
+};
+
 class Renderer {
  public:
   Renderer();
@@ -38,6 +46,7 @@ class Renderer {
   void updateTopology();
 
   void updateColor(float* color);
+  void updateColor(size_t index, float* color);
   void updateAmbient(float ambient);
   void updateDifusse(float difusse);
   void updateSheenAmount(float sheenAmount);
@@ -45,8 +54,15 @@ class Renderer {
   void updateAnisotropy(float anisotropy);
   void updateAnisotropyWidth(float anisotropyWidth);
 
+  void clearClothMeshes();
+  void addClothMesh(const std::string& name, const std::vector<unsigned int>& indices);
+  inline const std::vector<RenderMesh>& getClothMeshes() const { return m_clothMeshes; }
+  inline std::vector<RenderMesh>& getClothMeshes() { return m_clothMeshes; }
+
   inline void setIndices(const std::vector<unsigned int>& indices) {
     m_indices = indices;
+    clearClothMeshes();
+    addClothMesh("DefaultCloth", indices);
   }
   inline void setShaderPath(const std::string& path) { m_shaderPath = path; }
 
@@ -60,6 +76,8 @@ class Renderer {
   std::vector<unsigned int> m_indices;
   std::vector<Eigen::Vector3f> m_normals;
   std::string m_shaderPath = "../viewer/shaders/";
+
+  std::vector<RenderMesh> m_clothMeshes;
 };
 }  // namespace Viewer
 }  // namespace Tissu

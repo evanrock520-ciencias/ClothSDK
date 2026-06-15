@@ -423,10 +423,16 @@ void Application::drawUI() {
 
   ImGui::Separator();
 
-  if (ImGui::CollapsingHeader("Shader", ImGuiTreeNodeFlags_DefaultOpen)) {
-    if (ImGui::ColorPicker4("Color", m_color)) {
-      m_renderer->updateColor(m_color);
+  if (ImGui::CollapsingHeader("Shader & Materials", ImGuiTreeNodeFlags_DefaultOpen)) {
+    auto& meshes = m_renderer->getClothMeshes();
+    for (size_t i = 0; i < meshes.size(); ++i) {
+      float col[4] = { meshes[i].color[0], meshes[i].color[1], meshes[i].color[2], meshes[i].color[3] };
+      std::string label = "Color: " + meshes[i].name;
+      if (ImGui::ColorEdit4(label.c_str(), col)) {
+        m_renderer->updateColor(i, col);
+      }
     }
+    ImGui::Spacing();
 
     static float ambient = 0.4f;
     if (ImGui::SliderFloat("Ambient", &ambient, 0.0, 1.0))
@@ -536,20 +542,22 @@ void Application::resetSimulation() {
 }
 
 void Application::syncVisualTopology() {
-  if (!m_mesh || !m_renderer) {
-    Logger::warn("Cannot sync topology: Mesh or Renderer not initialized.");
+  if (!m_world || !m_renderer) {
+    Logger::warn("Cannot sync topology: World or Renderer not initialized.");
     return;
   }
 
-  std::vector<unsigned int> triangles;
-  for (const auto& tri : m_cloth->getTriangles()) {
-    triangles.push_back(tri.a);
-    triangles.push_back(tri.b);
-    triangles.push_back(tri.c);
-  }
+  m_renderer->clearClothMeshes();
 
-  m_renderer->setIndices(triangles);
-  m_renderer->updateTopology();
+  for (const auto& cloth : m_world->getCloths()) {
+    std::vector<unsigned int> triangles;
+    for (const auto& tri : cloth->getTriangles()) {
+      triangles.push_back(tri.a);
+      triangles.push_back(tri.b);
+      triangles.push_back(tri.c);
+    }
+    m_renderer->addClothMesh(cloth->getName(), triangles);
+  }
 }
 
 int Application::findClosestParticleToRay(
