@@ -240,3 +240,32 @@ def test_recording():
     
     assert len(sim._ke_history) == 20
     assert len(sim._pe_history) == 20
+
+def test_bake_alembic(tmp_path):
+    sim = Simulation()
+    sim.create_grid(
+        name="cloth1",
+        rows=5,
+        cols=5,
+        spacing=0.1,
+        material="silk"
+    )
+    sim.create_grid(
+        name="cloth2",
+        rows=5,
+        cols=5,
+        spacing=0.1,
+        material="cotton"
+    )
+    
+    abc_file = tmp_path / "multi_cloth.abc"
+    
+    success = sim.bake_alembic(
+        filepath=str(abc_file),
+        start_frame=0,
+        end_frame=5,
+        fps=60.0
+    )
+    
+    assert success
+    assert abc_file.exists()
