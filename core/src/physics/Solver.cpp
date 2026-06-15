@@ -15,6 +15,7 @@
 #include "physics/DistanceConstraint.hpp"
 #include "physics/Force.hpp"
 #include "physics/PinConstraint.hpp"
+#include "physics/StitchConstraint.hpp"
 #include "physics/VolumeConstraint.hpp"
 
 namespace Tissu {
@@ -122,6 +123,13 @@ void Solver::addBendingConstraint(int idA, int idB, int idC, int idD,
   m_adjacencies.insert(getAdjacencyKey(idB, idC));
   m_adjacencies.insert(getAdjacencyKey(idA, idD));
   m_adjacencies.insert(getAdjacencyKey(idB, idD));
+  m_graphBuilt = false;
+}
+
+void Solver::addStitch(int idA, int idB, double compliance) {
+  m_constraints.push_back(
+      std::make_unique<StitchConstraint>(idA, idB, compliance));
+  m_adjacencies.insert(getAdjacencyKey(idA, idB));
   m_graphBuilt = false;
 }
 

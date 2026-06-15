@@ -236,6 +236,7 @@ PYBIND11_MODULE(_cloth_sdk_core, m) {
       .def("add_volume_constraint", &Solver::addVolumeConstraint)
       .def("add_pin", &Solver::addPin)
       .def("unpin", &Solver::removePin)
+      .def("add_stitch", &Solver::addStitch, py::arg("idA"), py::arg("idB"), py::arg("compliance") = 0.0)
       .def("soft_reset", &Solver::softReset)
       .def("set_collision_compliance", &Solver::setCollisionCompliance);
 

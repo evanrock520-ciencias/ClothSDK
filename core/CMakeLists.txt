@@ -6,6 +6,7 @@ set(CORE_SOURCES
     src/physics/BendingConstraint.cpp
     src/physics/PinConstraint.cpp
     src/physics/VolumeConstraint.cpp
+    src/physics/StitchConstraint.cpp
     src/physics/ConstraintGraph.cpp
     src/physics/Collider.cpp
     src/physics/PlaneCollider.cpp

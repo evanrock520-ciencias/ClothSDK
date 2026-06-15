@@ -68,6 +68,7 @@ class Solver {
                              const std::vector<Particle>& particles,
                              double compliance);
   void addPin(int id, const Eigen::Vector3d& pos, double compliance = 0.0);
+  void addStitch(int idA, int idB, double compliance);
   void removePin(int id);
 
   void buildGraph(unsigned int seed);

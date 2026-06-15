@@ -158,6 +158,22 @@ class Simulation:
             raise KeyError(f"Fabric '{name}' not found.")
         return self.cloth_objects[name]
     
+    def stitch(self, fabricA: "Fabric", fabricB: "Fabric", 
+                local_ids_A: np.ndarray, local_ids_B: np.ndarray, 
+                compliance: float = 0.0) -> None:
+        
+        # TODO: Include variable lengths 
+        if len(local_ids_A) != len(local_ids_B):
+            raise ValueError("Local Id's Lenght Mistmatch.")
+        
+        mapA = np.array(fabricA.instance.get_particle_indices())
+        mapB = np.array(fabricB.instance.get_particle_indices())
+        global_ids_A = mapA[local_ids_A]
+        global_ids_B = mapB[local_ids_B]
+        
+        for gA, gB in zip(global_ids_A, global_ids_B):
+            self.solver.add_stitch(int(gA), int(gB), float(compliance))
+        
     @classmethod
     def load_scene(cls, filepath: str) -> Simulation:
         sim = cls.__new__(cls)
@@ -722,7 +738,7 @@ class Fabric:
         
         self.instance.set_rest_volume(rest_volume)
         return rest_volume
-
+    
     @property
     def pins(self):
         return self._pins
@@ -735,6 +751,24 @@ class Fabric:
         all_particles = self._solver.get_particles()
         my_indices = self.instance.get_particle_indices()
         return np.array([all_particles[idx].get_position() for idx in my_indices], dtype=np.float64)
+    
+    def upper_particles(self, threshold: float = 0.01):
+        pos = self.get_positions()
+        if len(pos) == 0:
+            return np.empty(0, dtype=int)
+            
+        max_y = np.max(pos[:, 1])
+        mask = pos[:, 1] >= (max_y - threshold)
+        return np.where(mask)[0]
+    
+    def lower_particles(self, threshold: float = 0.01):
+        pos = self.get_positions()
+        if len(pos) == 0:
+            return np.empty(0, dtype=int)
+            
+        min_y = np.min(pos[:, 1])
+        mask = pos[:, 1] <= (min_y + threshold)
+        return np.where(mask)[0]
 
     def pin_by_height(self, threshold: float = 0.01, compliance: float = 0.0):
         if self._solver is None:
@@ -742,20 +776,18 @@ class Fabric:
         
         pos = self.get_positions()
         my_ids = self.instance.get_particle_indices()
+        self._pins = self.upper_particles(threshold)
         
-        max_y = np.max(pos[:, 1])
-        
-        mask = pos[:, 1] >= (max_y - threshold)
-        self._pins = np.where(mask)[0]
-        
+        if len(self._pins) == 0:
+            sdk.Logger.warn(f"Fabric '{self.name}': No particles found at top to pin.")
+            return
+
         for idx in self._pins:
             global_id = my_ids[idx]
             target_pos = pos[idx]
             self._solver.add_pin(global_id, target_pos, compliance)
         
-            
-        self.instance.set_pin(sdk.Pin(sdk.PinMode.BY_HEIGHT, compliance, threshold));
-            
+        self.instance.set_pin(sdk.Pin(sdk.PinMode.BY_HEIGHT, compliance, threshold))
         sdk.Logger.info(f"Fabric '{self.name}': Pinned {len(self._pins)} vertices by height.")
         
     def pin_top_corners(self, threshold: float = 0.01, compliance: float = 0.0):
@@ -764,24 +796,16 @@ class Fabric:
         
         pos = self.get_positions()
         my_ids = self.instance.get_particle_indices()
-        
-        max_y = np.max(pos[:, 1])
-        top_mask = pos[:, 1] >= (max_y - threshold)
-        
-        top_indices = np.where(top_mask)[0]
-        
+        top_indices = self.upper_particles(threshold)
         if len(top_indices) == 0:
             sdk.Logger.warn(f"Fabric '{self.name}': No particles found at top to pin.")
             return
 
         top_x_coords = pos[top_indices, 0]
-        
         local_min_idx = np.argmin(top_x_coords) 
         local_max_idx = np.argmax(top_x_coords)
-        
         idx_left = top_indices[local_min_idx]
         idx_right = top_indices[local_max_idx]
-        
         self._pins = np.array([idx_left, idx_right])
         
         for idx in self._pins:
@@ -789,8 +813,7 @@ class Fabric:
             target_pos = pos[idx]
             self._solver.add_pin(global_id, target_pos, compliance)
             
-        self.instance.set_pin(sdk.Pin(sdk.PinMode.TOP_CORNERS, compliance, threshold));
-            
+        self.instance.set_pin(sdk.Pin(sdk.PinMode.TOP_CORNERS, compliance, threshold))
         sdk.Logger.info(f"Fabric '{self.name}': Pinned top corners (IDs: {list(self._pins)})")
         
     def unpin(self):
