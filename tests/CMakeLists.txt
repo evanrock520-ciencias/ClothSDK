@@ -4,10 +4,11 @@ add_executable(unit_tests
     physics/test_pin_constraint.cpp
     physics/test_volume_constraint.cpp
     physics/test_constraint_graph.cpp
-    physics/test_plane_collider.cpp
-    physics/test_sphere_collider.cpp
     data-structures/test_spatial_hash.cpp
     data-structures/test_bvh.cpp
+    physics/test_plane_collider.cpp
+    physics/test_sphere_collider.cpp
+    physics/test_mesh_collider.cpp
     io/test_config_loader.cpp
     io/test_state_serializer.cpp
     math/test_geometry.cpp
