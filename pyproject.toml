@@ -16,6 +16,7 @@ dependencies = [
 	"numpy",
 	"tqdm",
 	"matplotlib",
+    "imageio"
 ]
 
 classifiers = [
