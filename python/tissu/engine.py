@@ -468,35 +468,54 @@ class Simulation:
         sdk.Logger.info("Viewer closed.")
         
         
-    def plot(self, fabric_name: str) -> None:
-        fabric = self.get_fabric(fabric_name)
-        positions = fabric.get_positions()
-        triangles = fabric.get_triangles().reshape(-1, 3)
+    def plot(self, fabric_name: str | None = None) -> None:
+        if fabric_name is not None:
+            fabrics = [self.get_fabric(fabric_name)]
+        else:
+            fabrics = list(self.cloth_objects.values())
 
-        x = positions[:, 0]
-        y = positions[:, 1]
-        z = positions[:, 2]
+        if not fabrics:
+            sdk.Logger.warn("No fabrics to plot.")
+            return
 
         fig = plt.figure()
         ax = fig.add_subplot(projection="3d")
-        ax.plot_trisurf(
-            x, z, y,
-            triangles=triangles,
-            cmap="plasma",
-            vmin=float(y.min()),
-            vmax=float(y.max()),
-            edgecolor="none"
-        )
+
+        all_x, all_y, all_z = [], [], []
+        for fabric in fabrics:
+            positions = fabric.get_positions()
+            triangles_global = fabric.get_triangles().reshape(-1, 3)
+            local_ids = fabric.instance.get_particle_indices()
+            mapper = np.full(max(local_ids) + 1, -1, dtype=np.int32)
+            mapper[local_ids] = np.arange(len(local_ids))
+            triangles = mapper[triangles_global]
+            x, y, z = positions[:, 0], positions[:, 1], positions[:, 2]
+            all_x.append(x)
+            all_y.append(y)
+            all_z.append(z)
+
+            ax.plot_trisurf(
+                x, z, y,
+                triangles=triangles,
+                cmap="plasma",
+                vmin=float(y.min()),
+                vmax=float(y.max()),
+                edgecolor="none"
+            )
+
+        all_x = np.concatenate(all_x)
+        all_y = np.concatenate(all_y)
+        all_z = np.concatenate(all_z)
 
         max_range = np.array([
-            x.max() - x.min(),
-            y.max() - y.min(),
-            z.max() - z.min()
+            all_x.max() - all_x.min(),
+            all_y.max() - all_y.min(),
+            all_z.max() - all_z.min()
         ]).max() / 2.0
 
-        mid_x = (x.max() + x.min()) / 2
-        mid_y = (y.max() + y.min()) / 2
-        mid_z = (z.max() + z.min()) / 2
+        mid_x = (all_x.max() + all_x.min()) / 2
+        mid_y = (all_y.max() + all_y.min()) / 2
+        mid_z = (all_z.max() + all_z.min()) / 2
 
         ax.set_xlim(mid_x - max_range, mid_x + max_range)
         ax.set_ylim(mid_z - max_range, mid_z + max_range)
@@ -509,9 +528,17 @@ class Simulation:
         plt.show()
 
 
-    def plot_gif(self, fabric_name: str, start: int = 0, end: int = 120, fps: int = 30, filename: str = "simulation.gif") -> None:
-        fabric = self.get_fabric(fabric_name)
-        init_pos = fabric.get_positions()
+    def plot_gif(self, fabric_name: str | None = None, start: int = 0, end: int = 120, fps: int = 30, filename: str = "simulation.gif") -> None:
+        if fabric_name is not None:
+            fabrics = [self.get_fabric(fabric_name)]
+        else:
+            fabrics = list(self.cloth_objects.values())
+
+        if not fabrics:
+            sdk.Logger.warn("No fabrics to plot.")
+            return
+
+        init_pos = np.concatenate([f.get_positions() for f in fabrics])
         x0, y0, z0 = init_pos[:, 0], init_pos[:, 1], init_pos[:, 2]
         max_range = np.array([x0.max()-x0.min(), y0.max()-y0.min(), z0.max()-z0.min()]).max() / 2.0
         mid_x, mid_y, mid_z = (x0.max()+x0.min())/2, (y0.max()+y0.min())/2, (z0.max()+z0.min())/2
@@ -526,12 +553,17 @@ class Simulation:
                 self.step(self._last_dt)
 
                 ax.clear()
-                positions = fabric.get_positions()
-                triangles = fabric.get_triangles().reshape(-1, 3)
-                x, y, z = positions[:, 0], positions[:, 1], positions[:, 2]
+                for fabric in fabrics:
+                    positions = fabric.get_positions()
+                    triangles_global = fabric.get_triangles().reshape(-1, 3)
+                    local_ids = fabric.instance.get_particle_indices()
+                    mapper = np.full(max(local_ids) + 1, -1, dtype=np.int32)
+                    mapper[local_ids] = np.arange(len(local_ids))
+                    triangles = mapper[triangles_global]
+                    x, y, z = positions[:, 0], positions[:, 1], positions[:, 2]
 
-                ax.plot_trisurf(x, z, y, triangles=triangles, cmap="plasma",
-                                vmin=float(y.min()), vmax=float(y.max()), edgecolor="none")
+                    ax.plot_trisurf(x, z, y, triangles=triangles, cmap="plasma",
+                                    vmin=float(y.min()), vmax=float(y.max()), edgecolor="none")
                 ax.set_xlim(mid_x - max_range, mid_x + max_range)
                 ax.set_ylim(mid_z - max_range, mid_z + max_range)
                 ax.set_zlim(mid_y - max_range, mid_y + max_range)
