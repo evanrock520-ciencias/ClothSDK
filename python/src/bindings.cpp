@@ -336,33 +336,62 @@ PYBIND11_MODULE(_cloth_sdk_core, m) {
       .def(py::init<>())
       .def("open",
            [](Tissu::AlembicExporter& self, const std::string& path,
-              py::array_t<double> positions, py::array_t<int32_t> indices) {
-             auto p = positions.unchecked<2>();
-             if (p.shape(1) != 3)
-               throw std::runtime_error(
-                   "positions must have shape (N, 3)");
-             std::vector<Eigen::Vector3d> pos(p.shape(0));
-             for (ssize_t i = 0; i < p.shape(0); ++i)
-               pos[i] = Eigen::Vector3d(p(i, 0), p(i, 1), p(i, 2));
-             auto idx = indices.unchecked<1>();
-             std::vector<int> iv(idx.shape(0));
-             for (ssize_t i = 0; i < idx.shape(0); ++i) iv[i] = idx(i);
-             return self.open(path, pos, iv);
+              const std::vector<std::string>& names,
+              py::array_t<double> global_positions,
+              py::list global_indices_list,
+              py::list particle_indices_list) {
+             if (names.size() != global_indices_list.size() || names.size() != particle_indices_list.size()) {
+               throw std::runtime_error("names, global_indices_list, and particle_indices_list must have the same length");
+             }
+             auto gp = global_positions.unchecked<2>();
+             if (gp.shape(1) != 3) {
+               throw std::runtime_error("global_positions must have shape (N, 3)");
+             }
+             std::vector<Eigen::Vector3d> all_positions(gp.shape(0));
+             for (ssize_t j = 0; j < gp.shape(0); ++j) {
+               all_positions[j] = Eigen::Vector3d(gp(j, 0), gp(j, 1), gp(j, 2));
+             }
+
+             std::vector<std::vector<int>> all_global_indices;
+             std::vector<std::vector<int>> all_particle_indices;
+             all_global_indices.reserve(names.size());
+             all_particle_indices.reserve(names.size());
+
+             for (size_t i = 0; i < names.size(); ++i) {
+               auto indices = global_indices_list[i].cast<py::array_t<int32_t>>();
+               auto idx = indices.unchecked<1>();
+               std::vector<int> iv(idx.shape(0));
+               for (ssize_t j = 0; j < idx.shape(0); ++j) {
+                 iv[j] = idx(j);
+               }
+               all_global_indices.push_back(std::move(iv));
+
+               auto part_indices = particle_indices_list[i].cast<py::array_t<int32_t>>();
+               auto pi = part_indices.unchecked<1>();
+               std::vector<int> pv(pi.shape(0));
+               for (ssize_t j = 0; j < pi.shape(0); ++j) {
+                 pv[j] = pi(j);
+               }
+               all_particle_indices.push_back(std::move(pv));
+             }
+             return self.open(path, names, all_positions, all_global_indices, all_particle_indices);
            },
-           py::arg("path"), py::arg("positions"), py::arg("indices"))
+           py::arg("path"), py::arg("names"), py::arg("global_positions"),
+           py::arg("global_indices"), py::arg("particle_indices"))
       .def("write_frame",
-           [](Tissu::AlembicExporter& self, py::array_t<double> positions,
+           [](Tissu::AlembicExporter& self, py::array_t<double> global_positions,
               double time) {
-             auto p = positions.unchecked<2>();
-             if (p.shape(1) != 3)
-               throw std::runtime_error(
-                   "positions must have shape (N, 3)");
-             std::vector<Eigen::Vector3d> pos(p.shape(0));
-             for (ssize_t i = 0; i < p.shape(0); ++i)
-               pos[i] = Eigen::Vector3d(p(i, 0), p(i, 1), p(i, 2));
-             self.writeFrame(pos, time);
+             auto gp = global_positions.unchecked<2>();
+             if (gp.shape(1) != 3) {
+               throw std::runtime_error("global_positions must have shape (N, 3)");
+             }
+             std::vector<Eigen::Vector3d> all_positions(gp.shape(0));
+             for (ssize_t j = 0; j < gp.shape(0); ++j) {
+               all_positions[j] = Eigen::Vector3d(gp(j, 0), gp(j, 1), gp(j, 2));
+             }
+             self.writeFrame(all_positions, time);
            },
-           py::arg("positions"), py::arg("time"))
+           py::arg("global_positions"), py::arg("time"))
       .def("close", &Tissu::AlembicExporter::close);
 
   py::class_<OBJExporter>(m, "OBJExporter")

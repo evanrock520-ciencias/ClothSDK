@@ -368,16 +368,19 @@ class Simulation:
         exporter = sdk.AlembicExporter()
         dt = 1.0 / fps
         
-        first_cloth_name = list(self.cloth_objects.keys())[0]
-        cloth_obj = self.cloth_objects[first_cloth_name]
-        
-        indices = cloth_obj.get_triangles() 
-        particles = self.solver.get_particles()
-        initial_pos = [p.get_position() for p in particles]
+        names = list(self.cloth_objects.keys())
+        global_indices_list = []
+        particle_indices_list = []
+        for name in names:
+            cloth_obj = self.cloth_objects[name]
+            global_indices_list.append(cloth_obj.get_triangles())
+            particle_ids = cloth_obj.instance.get_particle_indices()
+            particle_indices_list.append(np.array(particle_ids, dtype=np.int32))
 
         sdk.Logger.info(f"Baking simulation to {filepath}...")
         
-        if not exporter.open(filepath, initial_pos, indices):
+        if not exporter.open(filepath, names, self.get_positions(),
+                             global_indices_list, particle_indices_list):
             sdk.Logger.error(f"Failed to create Alembic file: {filepath}")
             return False
 
@@ -385,9 +388,8 @@ class Simulation:
         
         for frame_idx in tqdm(range(total_frames), desc="Baking Alembic", unit="frames"):
             self.step(dt)
-            current_pos = [p.get_position() for p in self.solver.get_particles()] 
             current_time = frame_idx * dt
-            exporter.write_frame(current_pos, current_time)
+            exporter.write_frame(self.get_positions(), current_time)
 
         self.actions.clear()
         exporter.close()
