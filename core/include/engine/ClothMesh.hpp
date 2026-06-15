@@ -33,11 +33,15 @@ class ClothMesh {
   ClothMesh() = default;
 
   void initGrid(int rows, int cols, double spacing, Cloth& outCloth,
-                Solver& solver);
+                Solver& solver,
+                const Eigen::Vector3d& translation = Eigen::Vector3d::Zero(),
+                const Eigen::Quaterniond& rotation = Eigen::Quaterniond::Identity());
 
   void buildFromMesh(const std::vector<Eigen::Vector3d>& positions,
                      const std::vector<int>& indices, Cloth& outCloth,
-                     Solver& solver, const std::string& meshPath);
+                     Solver& solver, const std::string& meshPath,
+                     const Eigen::Vector3d& translation = Eigen::Vector3d::Zero(),
+                     const Eigen::Quaterniond& rotation = Eigen::Quaterniond::Identity());
 
  private:
   bool isClosed() const;

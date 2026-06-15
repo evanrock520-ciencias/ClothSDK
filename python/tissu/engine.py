@@ -259,22 +259,22 @@ class Simulation:
         self.cloth_objects[fabric.name] = fabric
         sdk.Logger.info(f"Successfully added fabric: {fabric.name}")
         
-    def create_grid(self, name: str, rows: int, cols: int, spacing: float, material=None) -> "Fabric":        
+    def create_grid(self, name: str, rows: int, cols: int, spacing: float, material=None, translation=(0.0, 0.0, 0.0), rotation=(0.0, 0.0, 0.0, 1.0)) -> "Fabric":        
         if name in self.cloth_objects:
             raise ValueError(f"Fabric '{name}' already exists in simulation.")
         
         resolved = self._resolve_material(material)
-        fabric = Fabric.grid(name, rows, cols, spacing, resolved, self.solver)
+        fabric = Fabric.grid(name, rows, cols, spacing, resolved, self.solver, translation, rotation)
         self.add_fabric(fabric)
         
         return fabric
     
-    def create_from_obj(self, name: str, path: str, material=None):
+    def create_from_obj(self, name: str, path: str, material=None, translation=(0.0, 0.0, 0.0), rotation=(0.0, 0.0, 0.0, 1.0)):
         if name in self.cloth_objects:
             raise ValueError(f"Fabric '{name}' already exists in simulation.")
         
         resolved = self._resolve_material(material)
-        fabric = Fabric.from_obj(name, path, resolved, self.solver)
+        fabric = Fabric.from_obj(name, path, resolved, self.solver, translation, rotation)
         self.add_fabric(fabric)
         
         return fabric
@@ -656,24 +656,24 @@ class Fabric:
         self._pins = np.empty(0, dtype=int)
 
     @classmethod
-    def grid(cls, name: str, rows: int, cols: int, spacing: float, material: Material, solver: sdk.Solver) -> Fabric:
+    def grid(cls, name: str, rows: int, cols: int, spacing: float, material: Material, solver: sdk.Solver, translation=(0.0, 0.0, 0.0), rotation=(0.0, 0.0, 0.0, 1.0)) -> Fabric:
         fabric = cls(name, material)
         fabric._rows = rows
         fabric._cols = cols
         
         factory = sdk.ClothMesh()
-        factory.init_grid(rows, cols, spacing, fabric.instance, solver)
+        factory.init_grid(rows, cols, spacing, fabric.instance, solver, translation, rotation)
         return fabric
 
     @classmethod
-    def from_obj(cls, name: str, path: str, material: Material, solver: sdk.Solver):
+    def from_obj(cls, name: str, path: str, material: Material, solver: sdk.Solver, translation=(0.0, 0.0, 0.0), rotation=(0.0, 0.0, 0.0, 1.0)):
         fabric = cls(name, material)
         success, pos, indices = sdk.OBJLoader.load(path)
         if not success:
             raise FileNotFoundError(f"Could not load OBJ: {path}")
             
         factory = sdk.ClothMesh()
-        factory.build_from_mesh(pos, indices, fabric.instance, solver, path)
+        factory.build_from_mesh(pos, indices, fabric.instance, solver, path, translation, rotation)
         return fabric
     
     def update_material(self, density: float = None, structural: float = None, shear: float = None, bending: float = None):
