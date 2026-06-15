@@ -61,8 +61,8 @@ TEST(StitchConstraint, LowerComplianceConvergesFaster) {
     constraintGC.solve(particles, 0.016);
   }
 
-  double distanciaRigida = (particles[0].getPosition() - particles[1].getPosition()).norm();
-  double distanciaElastica = (particles[2].getPosition() - particles[3].getPosition()).norm();
+  double distanceLC = (particles[0].getPosition() - particles[1].getPosition()).norm();
+  double distanceGC = (particles[2].getPosition() - particles[3].getPosition()).norm();
 
-  EXPECT_LT(distanciaRigida, distanciaElastica);
+  EXPECT_LT(distanceLC, distanceGC);
 }
