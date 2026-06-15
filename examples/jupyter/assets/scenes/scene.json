@@ -1,0 +1,58 @@
+{
+    "version": "2.0",
+    "type": "scene",
+    "name": "test",
+    "physics": {
+        "substeps": 10,
+        "iterations": 2,
+        "gravity": [
+            0.0,
+            -9.81,
+            0.0
+        ],
+        "collision": {
+            "thickness": 0.05
+        },
+        "environment": {
+            "wind": [
+                0.0,
+                0.0,
+                0.0
+            ],
+            "air_density": 0.1
+        }
+    },
+    "fabrics": [
+        {
+            "name": "curtain",
+            "type": "grid",
+            "rows": 80,
+            "cols": 80,
+            "spacing": 0.05,
+            "material": {
+                "density": 0.1,
+                "compliance": {
+                    "structural": 1e-09,
+                    "shear": 1e-08,
+                    "bending": 0.1
+                }
+            }
+        }
+    ],
+    "colliders": [
+        {
+            "type": "plane",
+            "origin": [
+                0.0,
+                0.0,
+                0.0
+            ],
+            "normal": [
+                0.0,
+                1.0,
+                0.0
+            ],
+            "friction": 0.5
+        }
+    ]
+}
