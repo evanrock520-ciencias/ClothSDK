@@ -46,6 +46,8 @@ class World {
                           const Eigen::Vector3d end, double radius,
                           double friction);
 
+  void addMeshCollider(const std::string& path, double friction);
+
   void moveCollider(size_t index, const Eigen::Vector3d& position,
                     const Eigen::Quaterniond& rotation);
 

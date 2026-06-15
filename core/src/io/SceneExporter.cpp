@@ -11,6 +11,7 @@
 #include "io/ConfigLoader.hpp"
 #include "math/Types.hpp"
 #include "physics/CapsuleCollider.hpp"
+#include "physics/MeshCollider.hpp"
 #include "physics/PlaneCollider.hpp"
 #include "physics/SphereCollider.hpp"
 #include "utils/Logger.hpp"
@@ -117,6 +118,11 @@ void SceneExporter::saveColliders(
       cld["start"] = capsule->getStart();
       cld["end"] = capsule->getEnd();
       cld["radius"] = capsule->getRadius();
+    }
+
+    else if (auto* mesh = dynamic_cast<MeshCollider*>(collider.get())) {
+        cld["type"] = "mesh";
+        cld["path"] = mesh->getMeshPath();
     }
 
     cld["friction"] = collider->getFriction();

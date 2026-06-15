@@ -318,6 +318,11 @@ class Simulation:
         self.world.add_capsule_collider(start, end, float(radius), float(friction))
         sdk.Logger.info(f"Added capsule collider '{name}' from {start} to {end}")
         self._colliders[name] = len(self.world.get_colliders()) - 1
+        
+    
+    def add_mesh(self, name: str, path: str, friction: float = 0.5):
+        self.world.add_mesh_collider(path, friction)
+        self._colliders[name] = len(self.world.get_colliders()) - 1
 
     def step(self, dt: float = 1/60):
         self._last_dt = dt

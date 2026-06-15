@@ -138,6 +138,11 @@ void SceneLoader::loadCollider(const nlohmann::json& collider, World& world) {
     world.addCapsuleCollider(start, end, radius, friction);
   }
 
+  else if (type == "mesh") {
+    std::string path = collider.value("path", "");
+    world.addMeshCollider(path, friction);
+  }
+
   else
     throw std::invalid_argument("Unknown collider " + type);
 }

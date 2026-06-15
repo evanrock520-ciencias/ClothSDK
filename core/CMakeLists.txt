@@ -11,6 +11,7 @@ set(CORE_SOURCES
     src/physics/PlaneCollider.cpp
     src/physics/SphereCollider.cpp
     src/physics/CapsuleCollider.cpp
+    src/physics/MeshCollider.cpp
     src/physics/Force.cpp
     src/physics/GravityForce.cpp
     src/physics/AerodynamicForce.cpp

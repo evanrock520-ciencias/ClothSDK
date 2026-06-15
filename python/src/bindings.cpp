@@ -29,6 +29,7 @@
 #include "physics/BendingConstraint.hpp"
 #include "physics/CapsuleCollider.hpp"
 #include "physics/Collider.hpp"
+#include "physics/MeshCollider.hpp"
 #include "physics/Constraint.hpp"
 #include "physics/DistanceConstraint.hpp"
 #include "physics/Force.hpp"
@@ -181,6 +182,15 @@ PYBIND11_MODULE(_cloth_sdk_core, m) {
            py::arg("radius"), py::arg("start"), py::arg("end"),
            py::arg("friction"));
 
+  py::class_<MeshCollider, Collider, std::shared_ptr<MeshCollider>>(
+      m, "MeshCollider")
+      .def(py::init<const std::string&, double>(),
+           py::arg("mesh_path"), py::arg("friction"))
+      .def(py::init<const std::vector<Eigen::Vector3d>&,
+                    const std::vector<std::array<int, 3>>&, double>(),
+           py::arg("vertices"), py::arg("triangles"), py::arg("friction"))
+      .def("get_mesh_path", &MeshCollider::getMeshPath);
+
   py::class_<SpatialHash>(m, "SpatialHash")
       .def(py::init<int, double>(), py::arg("table_size"), py::arg("cell_size"))
       .def("build", &SpatialHash::build, py::arg("particles"))
@@ -196,6 +206,7 @@ PYBIND11_MODULE(_cloth_sdk_core, m) {
       .def("add_plane_collider", &World::addPlaneCollider)
       .def("add_sphere_collider", &World::addSphereCollider)
       .def("add_capsule_collider", &World::addCapsuleCollider)
+      .def("add_mesh_collider", &World::addMeshCollider)
       .def("set_gravity", &World::setGravity)
       .def("set_wind", &World::setWind)
       .def("set_air_density", &World::setAirDensity)

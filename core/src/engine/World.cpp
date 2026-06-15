@@ -6,8 +6,10 @@
 #include <memory>
 
 #include "physics/CapsuleCollider.hpp"
+#include "physics/MeshCollider.hpp"
 #include "physics/PlaneCollider.hpp"
 #include "physics/SphereCollider.hpp"
+#include "io/OBJLoader.hpp"
 
 namespace Tissu {
 
@@ -49,6 +51,22 @@ void World::addCapsuleCollider(const Eigen::Vector3d start,
                                double friction) {
   m_colliders.push_back(
       std::make_unique<CapsuleCollider>(radius, start, end, friction));
+}
+
+void World::addMeshCollider(const std::string& path, double friction) {
+    std::vector<Eigen::Vector3d> positions;
+    std::vector<int> indices;
+
+    if (!OBJLoader::load(path, positions, indices))
+        throw std::runtime_error("Could not load mesh: " + path);
+
+    std::vector<std::array<int, 3>> triangles;
+    for (size_t i = 0; i + 2 < indices.size(); i += 3)
+        triangles.push_back({indices[i], indices[i+1], indices[i+2]});
+
+    m_colliders.push_back(
+        std::make_shared<MeshCollider>(positions, triangles, friction)
+    );
 }
 
 void World::moveCollider(size_t index, const Eigen::Vector3d& newPosition, const Eigen::Quaterniond& newRotation) {
