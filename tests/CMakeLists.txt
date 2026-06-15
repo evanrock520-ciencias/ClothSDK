@@ -3,6 +3,7 @@ add_executable(unit_tests
     physics/test_distance_constraint.cpp
     physics/test_pin_constraint.cpp
     physics/test_volume_constraint.cpp
+    physics/test_stitch_constraint.cpp
     physics/test_constraint_graph.cpp
     data-structures/test_spatial_hash.cpp
     data-structures/test_bvh.cpp
