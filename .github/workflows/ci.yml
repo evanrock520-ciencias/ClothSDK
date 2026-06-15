@@ -79,6 +79,7 @@ jobs:
           pip install numpy
           pip install matplotlib
           pip install pytest
+          pip install imageio
 
       - name: Cache FetchContent dependencies
         uses: actions/cache@v4
