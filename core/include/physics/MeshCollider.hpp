@@ -25,6 +25,13 @@ class MeshCollider : public Collider {
 
   const std::string& getMeshPath() const { return m_meshPath; }
 
+  /** @brief World-space transformed vertices (updated by transform()). */
+  const std::vector<Eigen::Vector3d>& getWorldVertices() const {
+    return m_worldVertices;
+  }
+  /** @brief Triangle index list matching getWorldVertices(). */
+  const std::vector<Triangle>& getTriangles() const { return m_triangles; }
+
  private:
   std::string m_meshPath;
   std::vector<Eigen::Vector3d> m_localVertices;

@@ -340,6 +340,7 @@ void Application::render() {
   glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
   m_renderer->render(*m_solver, *m_camera);
+  m_renderer->renderColliders(*m_world, *m_camera);
 }
 
 void Application::shutdown() {
@@ -469,6 +470,10 @@ void Application::drawUI() {
         glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
       else
         glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+    }
+
+    if (ImGui::Checkbox("Show Colliders", &m_showColliders)) {
+      m_renderer->setShowColliders(m_showColliders);
     }
   }
 
