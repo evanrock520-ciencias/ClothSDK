@@ -294,6 +294,16 @@ class Simulation:
         self.add_fabric(fabric)
         
         return fabric
+
+    def create_from_arrays(self, name: str, vertices: np.ndarray, triangles: np.ndarray, material=None, translation=(0.0, 0.0, 0.0), rotation=(0.0, 0.0, 0.0, 1.0)):
+        if name in self.cloth_objects:
+            raise ValueError(f"Fabric '{name}' already exists in simulation.")
+
+        resolved = self._resolve_material(material)
+        fabric = Fabric.from_arrays(name, vertices, triangles, resolved, self.solver, translation, rotation)
+        self.add_fabric(fabric)
+
+        return fabric
     
     @staticmethod
     def _resolve_material(material) -> Material:
@@ -338,6 +348,11 @@ class Simulation:
     
     def add_mesh(self, name: str, path: str, friction: float = 0.5):
         self.world.add_mesh_collider(path, friction)
+        self._colliders[name] = len(self.world.get_colliders()) - 1
+
+    def add_mesh_from_arrays(self, name: str, vertices: np.ndarray, triangles: np.ndarray, friction: float = 0.5):
+        collider = sdk.MeshCollider(vertices, triangles, float(friction))
+        self.world.add_collider(collider)
         self._colliders[name] = len(self.world.get_colliders()) - 1
 
     def step(self, dt: float = 1/60):
@@ -727,6 +742,13 @@ class Fabric:
             
         factory = sdk.ClothMesh()
         factory.build_from_mesh(pos, indices, fabric.instance, solver, path, translation, rotation)
+        return fabric
+
+    @classmethod
+    def from_arrays(cls, name: str, vertices: np.ndarray, triangles: np.ndarray, material: Material, solver: sdk.Solver, translation=(0.0, 0.0, 0.0), rotation=(0.0, 0.0, 0.0, 1.0)):
+        fabric = cls(name, material)
+        factory = sdk.ClothMesh()
+        factory.build_from_mesh(vertices, triangles.flatten(), fabric.instance, solver, "", translation, rotation)
         return fabric
     
     def update_material(self, density: float = None, structural: float = None, shear: float = None, bending: float = None):
