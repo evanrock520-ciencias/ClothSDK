@@ -103,6 +103,10 @@ def register():
     bpy.types.Scene.solver_props = bpy.props.PointerProperty(type=SolverProperties)
     bpy.types.Scene.world_props = bpy.props.PointerProperty(type=WorldProperties)
     bpy.types.Scene.material_props = bpy.props.PointerProperty(type=MaterialProperties)
+    bpy.types.Object.tissu_is_collider = bpy.props.BoolProperty(
+        name="Is Collider",
+        default=False
+    )
 
 
 def unregister():
@@ -117,3 +121,5 @@ def unregister():
         del bpy.types.Scene.world_props
     if hasattr(bpy.types.Scene, "material_props"):
         del bpy.types.Scene.material_props
+    if hasattr(bpy.types.Object, "tissu_is_collider"):
+        del bpy.types.Object.tissu_is_collider
