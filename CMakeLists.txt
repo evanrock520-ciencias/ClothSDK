@@ -157,6 +157,14 @@ add_custom_command(
     COMMENT "Copying _cloth_sdk_core to python/tissu/"
 )
 
+add_custom_command(
+    TARGET _cloth_sdk_core POST_BUILD
+    COMMAND ${CMAKE_COMMAND} -E copy
+        $<TARGET_FILE:_cloth_sdk_core>
+        ${CMAKE_SOURCE_DIR}/blender/libs/$<TARGET_FILE_NAME:_cloth_sdk_core>
+    COMMENT "Copying _cloth_sdk_core to blender/libs/"
+)
+
 # Moving stubs 
 add_custom_command(
     TARGET _cloth_sdk_core_stubs POST_BUILD
