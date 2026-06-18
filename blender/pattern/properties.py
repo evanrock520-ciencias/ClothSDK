@@ -9,24 +9,60 @@ MATERIAL_PRESETS = {
     'SPANDEX': {'density': 0.15,  'structural': 0.005, 'shear': 0.005, 'bending': 0.1},
 }
 
+# UPDATES
+
+def update_substeps(self, context):
+    from ..simulation.bridge import get_simulation
+    sim = get_simulation()
+    sim.substeps = self.substeps
+    
+def update_iterations(self, context):
+    from ..simulation.bridge import get_simulation
+    sim = get_simulation()
+    sim.iterations = self.iterations
+    
+def update_thickness(self, context):
+    from ..simulation.bridge import get_simulation
+    sim = get_simulation()
+    sim.thickness = self.thickness
+
+def update_gravity(self, context):
+    from ..simulation.bridge import get_simulation
+    sim = get_simulation()
+    sim.gravity = self.gravity
+    
+def update_wind(self, context):
+    from ..simulation.bridge import get_simulation
+    sim = get_simulation()
+    sim.wind = self.wind
+    
+def update_air_thickness(self, context):
+    from ..simulation.bridge import get_simulation
+    sim = get_simulation()
+    sim.air_thickness = self.air_thickness
+
+
 class SolverProperties(bpy.types.PropertyGroup):
     substeps: bpy.props.IntProperty(
         name="Substeps",
         default=10,
         min=1,
-        max=80
+        max=80,
+        update=update_substeps
     )
     iterations: bpy.props.IntProperty(
         name="Iterations",
         default=3,
         min=1,
-        max=40
+        max=40,
+        update=update_iterations
     )
     thickness: bpy.props.FloatProperty(
         name="Thickness",
         default=0.05,
         min=0.00001,
-        max=1
+        max=1,
+        update=update_thickness
     )
 
 
@@ -35,11 +71,13 @@ class WorldProperties(bpy.types.PropertyGroup):
         name="Gravity",
         default=-9.81,
         min=-100.0,
-        max=0.0
+        max=0.0,
+        update=update_gravity
     )
     wind: bpy.props.FloatVectorProperty(
         name="Wind",
-        default=[0.0, 0.0, 0.0]
+        default=[0.0, 0.0, 0.0],
+        update=update_wind
     )
     air_thickness: bpy.props.FloatProperty(
         name="Air Thickness",
@@ -47,6 +85,17 @@ class WorldProperties(bpy.types.PropertyGroup):
         min=0.0,
         max=1.0
     )
+
+
+def _update_preset(self, context):
+    if self.preset == 'CUSTOM':
+        return
+    values = MATERIAL_PRESETS.get(self.preset)
+    if values:
+        self.density = values['density']
+        self.structural = values['structural']
+        self.shear = values['shear']
+        self.bending = values['bending']
 
 
 class MaterialProperties(bpy.types.PropertyGroup):
@@ -61,6 +110,7 @@ class MaterialProperties(bpy.types.PropertyGroup):
             ('SPANDEX', 'Spandex', ''),
         ],
         default='CUSTOM',
+        update=_update_preset,
     )
     density: bpy.props.FloatProperty(
         name="Density",
@@ -107,7 +157,20 @@ def register():
         name="Is Collider",
         default=False
     )
-
+    bpy.types.Object.tissu_collider_type = bpy.props.EnumProperty(
+        name="Collider Type",
+        items=[
+            ('MESH',    'Mesh',    'Triangle mesh collider'),
+            ('PLANE',   'Plane',   'Infinite plane collider'),
+            ('SPHERE',  'Sphere',  'Sphere collider'),
+            ('CAPSULE', 'Capsule', 'Capsule collider'),
+        ],
+        default='MESH',
+    )
+    bpy.types.Object.tissu_is_fabric = bpy.props.BoolProperty(
+        name="Is Fabric",
+        default=False
+    )
 
 def unregister():
     for cls in reversed(classes):
@@ -123,3 +186,7 @@ def unregister():
         del bpy.types.Scene.material_props
     if hasattr(bpy.types.Object, "tissu_is_collider"):
         del bpy.types.Object.tissu_is_collider
+    if hasattr(bpy.types.Object, "tissu_is_fabric"):
+        del bpy.types.Object.tissu_is_fabric
+    if hasattr(bpy.types.Object, "tissu_collider_type"):
+        del bpy.types.Object.tissu_collider_type

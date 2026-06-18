@@ -1,6 +1,10 @@
+import sys
+from pathlib import Path
+
 import bpy
 from .pattern import properties, operators
 from .panels import UI
+from .simulation import bridge, session
 
 bl_info = {
     "name": "Tissu",
@@ -12,9 +16,22 @@ bl_info = {
     "category": "Physics",
 }
 
+ADDON_PATH = Path(__file__).parent
+LIBS_PATH = str(ADDON_PATH / "libs")
+if LIBS_PATH not in sys.path:
+    sys.path.insert(0, LIBS_PATH)
+
+try:
+    import _cloth_sdk_core as sdk
+except ImportError as e:
+    print(f"[Tissu] Failed to load native core: {e}")
+    sdk = None
+
 modules = [
     properties,
     operators,
+    bridge,
+    session,
     UI,
 ]
 

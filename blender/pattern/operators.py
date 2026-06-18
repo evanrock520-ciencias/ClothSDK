@@ -47,7 +47,8 @@ class TISSU_OT_MarkAsCollider(bpy.types.Operator):
         for obj in context.selected_objects:
             if obj.type == 'MESH':
                 obj.tissu_is_collider = True
-                print(str(obj) + " is a collider.")
+                obj.tissu_collider_type = 'MESH'
+                print(f"{obj.name} marked as collider.")
         return {'FINISHED'}
 
 
@@ -78,6 +79,21 @@ class TISSU_OT_AddPin(bpy.types.Operator):
     bl_idname = "tissu.add_pin"
     bl_label = "Pin Selected"
     bl_options = {"REGISTER"}
+
+
+    @classmethod
+    def poll(cls, context):
+        if context.mode != 'EDIT_MESH':
+            return False
+        
+        for obj in context.selected_objects:
+            if obj.type == 'MESH' and obj.mode == 'EDIT':
+                bm = bmesh.from_edit_mesh(obj.data)
+                for v in bm.verts:
+                    if v.select:
+                        return True
+            
+        return False
     
     def get_selected_vertices(self, obj):
         bm = bmesh.from_edit_mesh(obj.data)
@@ -102,6 +118,20 @@ class TISSU_OT_Unpin(bpy.types.Operator):
         return [v.index for v in bm.verts if v.select]
 
 
+    @classmethod
+    def poll(cls, context):
+        if context.mode != 'EDIT_MESH':
+            return False
+        
+        for obj in context.selected_objects:
+            if obj.type == 'MESH' and obj.mode == 'EDIT':
+                bm = bmesh.from_edit_mesh(obj.data)
+                for v in bm.verts:
+                    if v.select:
+                        return True
+            
+        return False
+
     def execute(self, context):
         for obj in context.selected_objects:
             if obj and obj.type == 'MESH':
@@ -117,11 +147,82 @@ class TISSU_OT_AddSeam(bpy.types.Operator):
     bl_options = {"REGISTER"}
 
 
+    @classmethod
+    def poll(cls, context):
+        if context.mode != "EDIT_MESH":
+            return False
+        
+        vertices = []
+        
+        for obj in context.selected_objects:
+            if obj.type == 'MESH' and obj.mode == 'EDIT':
+                bm = bmesh.from_edit_mesh(obj.data)
+                for v in bm.verts:
+                    if v.select:
+                        vertices.append(v)
+        
+        return len(vertices) == 2
+
+
 class TISSU_OT_RemoveSeam(bpy.types.Operator):
     bl_idname = "tissu.remove_seam"
     bl_label = "Remove Seam"
     bl_options = {"REGISTER"}
 
+
+    @classmethod
+    def poll(cls, context):
+        if context.mode != "EDIT_MESH":
+            return False
+        
+        vertices = []
+        
+        for obj in context.selected_objects:
+            if obj.type == 'MESH' and obj.mode == 'EDIT':
+                bm = bmesh.from_edit_mesh(obj.data)
+                for v in bm.verts:
+                    if v.select:
+                        vertices.append(v)
+        
+        return len(vertices) == 2
+
+
+class TISSU_OT_MarkAsFabric(bpy.types.Operator):
+    bl_idname = "tissu.mark_as_fabric"
+    bl_label = "Mark as Fabric"
+    bl_options = {"REGISTER"}
+    
+    @classmethod
+    def poll(cls, context):
+        return any(obj.type == 'MESH' for obj in context.selected_objects)
+    
+    def execute(self, context):
+        for obj in context.selected_objects:
+            if obj.type == "MESH":
+                obj.tissu_is_fabric = True
+                print(f"{obj.name} marked as fabric.")
+        return {"FINISHED"}
+
+
+class TISSU_OT_UnmarkAsFabric(bpy.types.Operator):
+    bl_idname = "tissu.unmark_as_fabric"
+    bl_label = "Unmark as Fabric"
+    bl_options = {"REGISTER"}
+    
+    @classmethod
+    def poll(cls, context):
+        if not context.selected_objects:
+            return False
+        return all(
+            obj.type == "MESH" and obj.tissu_is_fabric
+            for obj in context.selected_objects
+        )
+    
+    def execute(self, context):
+        for obj in context.selected_objects:
+            obj.tissu_is_fabric = False
+            print(f"{obj.name} unmarked as fabric.")
+        return {'FINISHED'}
 
 class TISSU_OT_NewPattern(bpy.types.Operator):
     bl_idname = "tissu.new_pattern"
@@ -148,6 +249,8 @@ classes = [
     TISSU_OT_LoadMaterial, 
     TISSU_OT_MarkAsCollider, 
     TISSU_OT_RemoveCollider, 
+    TISSU_OT_MarkAsFabric,
+    TISSU_OT_UnmarkAsFabric,
     TISSU_OT_AddPin, 
     TISSU_OT_AddSeam, 
     TISSU_OT_Unpin, 

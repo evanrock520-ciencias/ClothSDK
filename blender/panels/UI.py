@@ -1,6 +1,18 @@
 import bpy
 
 
+class VIEW3D_PT_Tissu(bpy.types.Panel):
+    bl_idname = "VIEW3D_PT_Tissu"
+    bl_label = "Tissus"
+    bl_space_type = "VIEW_3D"
+    bl_region_type = "UI"
+    bl_category = "Tissu"
+    
+    
+    def draw(self, context):
+        layout = self.layout
+
+
 class VIEW3D_PT_Simulation(bpy.types.Panel):
     bl_idname = "VIEW3D_PT_Simulation"
     bl_label = "Simulation"
@@ -58,13 +70,13 @@ class VIEW3D_PT_Material(bpy.types.Panel):
     def draw(self, context):
         layout = self.layout
         materialProps = context.scene.material_props
+        layout.prop(materialProps, "preset")
         col = layout.column()
         col.enabled = (materialProps.preset == 'CUSTOM')
         col.prop(materialProps, "density")
         col.prop(materialProps, "structural")
         col.prop(materialProps, "shear")
         col.prop(materialProps, "bending")
-        layout.prop(materialProps, "preset")
         row = layout.row(align=True)
         row.operator("tissu.load_material", text="Load", icon="IMPORT")
         row.operator("tissu.save_material", text="Save", icon="EXPORT")
@@ -80,8 +92,15 @@ class VIEW3D_PT_Colliders(bpy.types.Panel):
     
     def draw(self, context):
         layout = self.layout
+        obj = context.active_object
+
         layout.operator("tissu.mark_as_collider", text="Mark as Collider", icon="MESH_ICOSPHERE")
         layout.operator("tissu.remove_collider", text="Remove Collider", icon="X")
+
+        if obj and obj.type == 'MESH' and obj.tissu_is_collider:
+            box = layout.box()
+            box.label(text=f"Collider: {obj.name}", icon="OBJECT_DATA")
+            box.prop(obj, "tissu_collider_type")
 
 
 class VIEW3D_PT_Stitches(bpy.types.Panel):
@@ -127,6 +146,19 @@ class VIEW3D_PT_Patterns(bpy.types.Panel):
         layout.label(text="A panel for patterns")
 
 
+class VIEW3D_PT_Fabrics(bpy.types.Panel):
+    bl_idname = "VIEW3D_PT_Fabrics"
+    bl_label = "Fabrics"
+    bl_space_type = "VIEW_3D"
+    bl_region_type = "UI"
+    bl_category = "Tissu"
+    bl_icon = "MESH_DATA"
+    
+    def draw(self, context):
+        layout = self.layout
+        layout.operator("tissu.mark_as_fabric", text="Mark as Fabric", icon="ADD")
+        layout.operator("tissu.unmark_as_fabric", text="Unmark as Fabric", icon="REMOVE")
+
 class VIEW3D_PT_NewPattern(bpy.types.Panel):
     bl_idname = "VIEW3D_PT_NewPattern"
     bl_label = "Create Pattern"
@@ -155,6 +187,7 @@ class VIEW3D_PT_Remesh(bpy.types.Panel):
         layout = self.layout
         layout.operator("tissu.remesh", text="Remesh", icon="MOD_REMESH")
 
+
 classes = [
     VIEW3D_PT_Simulation,
     VIEW3D_PT_Solver,
@@ -162,6 +195,7 @@ classes = [
     VIEW3D_PT_Material,
     VIEW3D_PT_Colliders,
     VIEW3D_PT_Patterns, 
+    VIEW3D_PT_Fabrics,
     VIEW3D_PT_NewPattern,
     VIEW3D_PT_Remesh,
     VIEW3D_PT_Pins,
