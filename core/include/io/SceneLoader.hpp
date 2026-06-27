@@ -35,12 +35,15 @@ struct SceneHeader {
     std::string type;
     int rows = 0, cols = 0;
     float spacing = 0.0f;
+    Eigen::Vector3d translation;
+    Eigen::Quaterniond rotation;
     std::string source;
     std::string material;
     std::string pin_mode;
   };
 
   struct ColliderInfo {
+    std::string name;
     std::string type;
     std::string summary;
   };

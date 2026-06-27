@@ -93,6 +93,7 @@ PYBIND11_MODULE(_cloth_sdk_core, m) {
       .def_readonly("pin_mode", &SceneHeader::FabricInfo::pin_mode);
 
   py::class_<SceneHeader::ColliderInfo>(m, "ColliderInfo")
+      .def_readonly("name", &SceneHeader::ColliderInfo::name)
       .def_readonly("type", &SceneHeader::ColliderInfo::type)
       .def_readonly("summary", &SceneHeader::ColliderInfo::summary);
 
@@ -150,7 +151,9 @@ PYBIND11_MODULE(_cloth_sdk_core, m) {
 
   py::class_<Collider, std::shared_ptr<Collider>>(m, "Collider")
       .def("get_friction", &Collider::getFriction)
-      .def("set_friction", &Collider::setFriction);
+      .def("set_friction", &Collider::setFriction)
+      .def("get_name", &Collider::getName)
+      .def("set_name", &Collider::setName);
 
   py::class_<PlaneCollider, Collider, std::shared_ptr<PlaneCollider>>(
       m, "PlaneCollider")

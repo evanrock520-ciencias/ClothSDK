@@ -331,27 +331,28 @@ class Simulation:
             friction: Surface friction in the range [0.0, 1.0].
                     0.0 is completely slippery, 1.0 is fully grippy.
         """
-        self.world.add_plane_collider([0.0, float(height), 0.0], [0.0, 1.0, 0.0], float(friction))
+        self.world.add_plane_collider([0.0, float(height), 0.0], [0.0, 1.0, 0.0], float(friction), name)
         sdk.Logger.info(f"Added collision floor '{name}' at Y={height}")
         self._colliders[name] = len(self.world.get_colliders()) - 1
 
     def add_sphere(self, name: str, center: np.array, radius: float, friction: float = 0.5):
-        self.world.add_sphere_collider(center, float(radius), float(friction))
+        self.world.add_sphere_collider(center, float(radius), float(friction), name)
         sdk.Logger.info(f"Added sphere collider '{name}' at {center}")
         self._colliders[name] = len(self.world.get_colliders()) - 1
 
     def add_capsule(self, name: str, start: np.array, end: np.array, radius: float = 1.0, friction: float = 0.5):
-        self.world.add_capsule_collider(start, end, float(radius), float(friction))
+        self.world.add_capsule_collider(start, end, float(radius), float(friction), name)
         sdk.Logger.info(f"Added capsule collider '{name}' from {start} to {end}")
         self._colliders[name] = len(self.world.get_colliders()) - 1
         
     
     def add_mesh(self, name: str, path: str, friction: float = 0.5):
-        self.world.add_mesh_collider(path, friction)
+        self.world.add_mesh_collider(path, friction, name)
         self._colliders[name] = len(self.world.get_colliders()) - 1
 
     def add_mesh_from_arrays(self, name: str, vertices: np.ndarray, triangles: np.ndarray, friction: float = 0.5):
         collider = sdk.MeshCollider(vertices, triangles, float(friction))
+        collider.set_name(name)
         self.world.add_collider(collider)
         self._colliders[name] = len(self.world.get_colliders()) - 1
 
@@ -543,7 +544,7 @@ class Simulation:
         plt.show()
 
 
-    def plot_gif(self, fabric_name: str | None = None, start: int = 0, end: int = 120, fps: int = 30, filename: str = "simulation.gif") -> None:
+    def plot_gif(self, fabric_name: str | None = None, start: int = 0, end: int = 120, fps: float = 30, filename: str = "simulation.gif") -> None:
         if fabric_name is not None:
             fabrics = [self.get_fabric(fabric_name)]
         else:

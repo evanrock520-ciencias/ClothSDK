@@ -3,6 +3,8 @@
 
 #include "io/SceneLoader.hpp"
 
+#include <iomanip>
+#include <sstream>
 #include <stdexcept>
 #include <string>
 
@@ -74,6 +76,17 @@ void SceneLoader::loadFabric(const nlohmann::json& fabric, Cloth& outCloth,
 
   outCloth.setName(name);
 
+  Eigen::Vector3d translation = Eigen::Vector3d::Zero();
+  Eigen::Quaterniond rotation = Eigen::Quaterniond::Identity();
+
+  if (fabric.contains("translation"))
+    translation = ConfigLoader::jsonToVector(fabric.at("translation"));
+  if (fabric.contains("rotation")) {
+    auto r = fabric.at("rotation");
+    rotation = Eigen::Quaterniond(r[3].get<double>(), r[0].get<double>(),
+                                  r[1].get<double>(), r[2].get<double>());
+  }
+
   ClothMesh mesh;
 
   if (type == "grid") {
@@ -81,7 +94,7 @@ void SceneLoader::loadFabric(const nlohmann::json& fabric, Cloth& outCloth,
     int cols = fabric.value("cols", 10);
     double spacing = fabric.value("spacing", 0.1);
 
-    mesh.initGrid(rows, cols, spacing, outCloth, solver);
+    mesh.initGrid(rows, cols, spacing, outCloth, solver, translation, rotation);
   } else if (type == "mesh") {
     std::string path = fabric.value("path", "");
 
@@ -91,7 +104,8 @@ void SceneLoader::loadFabric(const nlohmann::json& fabric, Cloth& outCloth,
     if (!OBJLoader::load(path, positions, indices))
       throw std::runtime_error("SceneLoader: could not load OBJ: " + path);
 
-    mesh.buildFromMesh(positions, indices, outCloth, solver, path);
+    mesh.buildFromMesh(positions, indices, outCloth, solver, path, translation,
+                       rotation);
   }
 
   if (fabric.contains("pins")) {
@@ -110,6 +124,7 @@ void SceneLoader::loadFabric(const nlohmann::json& fabric, Cloth& outCloth,
 void SceneLoader::loadCollider(const nlohmann::json& collider, World& world) {
   std::string type = collider.value("type", "plane");
   double friction = collider.value("friction", 0.2);
+  std::string name = collider.value("name", "");
 
   if (type == "plane") {
     Eigen::Vector3d origin = ConfigLoader::jsonToVector(
@@ -117,7 +132,7 @@ void SceneLoader::loadCollider(const nlohmann::json& collider, World& world) {
     Eigen::Vector3d normal = ConfigLoader::jsonToVector(
         collider.value("normal", nlohmann::json{0.0, 1.0, 0.0}));
 
-    world.addPlaneCollider(origin, normal, friction);
+    world.addPlaneCollider(origin, normal, friction, name);
   }
 
   else if (type == "sphere") {
@@ -125,7 +140,7 @@ void SceneLoader::loadCollider(const nlohmann::json& collider, World& world) {
         collider.value("center", nlohmann::json{0.0, 0.0, 0.0}));
     double radius = collider.value("radius", 1.0);
 
-    world.addSphereCollider(center, radius, friction);
+    world.addSphereCollider(center, radius, friction, name);
   }
 
   else if (type == "capsule") {
@@ -135,12 +150,12 @@ void SceneLoader::loadCollider(const nlohmann::json& collider, World& world) {
         collider.value("end", nlohmann::json{0.0, 4.0, 0.0}));
     double radius = collider.value("radius", 1.0);
 
-    world.addCapsuleCollider(start, end, radius, friction);
+    world.addCapsuleCollider(start, end, radius, friction, name);
   }
 
   else if (type == "mesh") {
     std::string path = collider.value("path", "");
-    world.addMeshCollider(path, friction);
+    world.addMeshCollider(path, friction, name);
   }
 
   else
@@ -202,31 +217,62 @@ SceneHeader SceneLoader::getSceneHeader(const std::string& filepath) {
       auto pins = fabricData.at("pins");
       info.pin_mode = pins.value("mode", "none");
     }
+    info.translation = fabricData.contains("translation")
+        ? ConfigLoader::jsonToVector(fabricData.at("translation"))
+        : Eigen::Vector3d::Zero();
+    if (fabricData.contains("rotation")) {
+      auto r = fabricData.at("rotation");
+      info.rotation =
+          Eigen::Quaterniond(r[3].get<double>(), r[0].get<double>(),
+                             r[1].get<double>(), r[2].get<double>());
+    }
     header.fabrics.push_back(info);
   }
 
   for (const auto& colliderData :
        data.value("colliders", nlohmann::json::array())) {
     SceneHeader::ColliderInfo info;
+    info.name = colliderData.value("name", "unknown");
     info.type = colliderData.value("type", "unknown");
 
     if (info.type == "sphere") {
-      auto pos =
-          colliderData.value("position", nlohmann::json::array({0, 0, 0}));
+      auto center =
+          colliderData.value("center", nlohmann::json::array({0, 0, 0}));
       double radius = colliderData.value("radius", 0.0);
-      info.summary = "pos: (" + std::to_string(pos[0].get<double>()) + ", " +
-                     std::to_string(pos[1].get<double>()) + ", " +
-                     std::to_string(pos[2].get<double>()) + ")  " +
-                     "r: " + std::to_string(radius);
+      std::ostringstream ss;
+      ss << std::fixed << std::setprecision(2);
+      ss << "center: (" << center[0].get<double>() << ", "
+         << center[1].get<double>() << ", " << center[2].get<double>() << ")";
+      ss << "  radius: " << radius;
+      info.summary = ss.str();
     } else if (info.type == "plane") {
+      auto origin =
+          colliderData.value("origin", nlohmann::json::array({0, 0, 0}));
       auto normal =
           colliderData.value("normal", nlohmann::json::array({0, 1, 0}));
-      info.summary = "normal: (" + std::to_string(normal[0].get<double>()) +
-                     ", " + std::to_string(normal[1].get<double>()) + ", " +
-                     std::to_string(normal[2].get<double>()) + ")";
+      std::ostringstream ss;
+      ss << std::fixed << std::setprecision(2);
+      ss << "origin: (" << origin[0].get<double>() << ", "
+         << origin[1].get<double>() << ", " << origin[2].get<double>() << ")";
+      ss << "  normal: (" << normal[0].get<double>() << ", "
+         << normal[1].get<double>() << ", " << normal[2].get<double>() << ")";
+      info.summary = ss.str();
     } else if (info.type == "capsule") {
+      auto start =
+          colliderData.value("start", nlohmann::json::array({0, 0, 0}));
+      auto end =
+          colliderData.value("end", nlohmann::json::array({0, 4, 0}));
       double radius = colliderData.value("radius", 0.0);
-      info.summary = "r: " + std::to_string(radius);
+      std::ostringstream ss;
+      ss << std::fixed << std::setprecision(2);
+      ss << "start: (" << start[0].get<double>() << ", "
+         << start[1].get<double>() << ", " << start[2].get<double>() << ")";
+      ss << "  end: (" << end[0].get<double>() << ", "
+         << end[1].get<double>() << ", " << end[2].get<double>() << ")";
+      ss << "  radius: " << radius;
+      info.summary = ss.str();
+    } else if (info.type == "mesh") {
+      info.summary = "path: " + colliderData.value("path", "");
     }
 
     header.colliders.push_back(info);
