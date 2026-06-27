@@ -79,6 +79,9 @@ void ClothMesh::initGrid(int rows, int cols, double spacing, Cloth& outCloth,
     }
   }
 
+  outCloth.setTranslation(translation);
+  outCloth.setRotation(rotation);
+
   computePhysicalAttributes(outCloth, solver);
 }
 
@@ -142,6 +145,9 @@ void ClothMesh::buildFromMesh(const std::vector<Eigen::Vector3d>& positions,
       solver.addBendingConstraint(v1, v2, v3, v4, initialAngle, beComp);
     }
   }
+
+  outCloth.setTranslation(translation);
+  outCloth.setRotation(rotation);
 
   computePhysicalAttributes(outCloth, solver);
 }
