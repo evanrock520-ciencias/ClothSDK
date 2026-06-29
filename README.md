@@ -1,7 +1,7 @@
 # Tissu
 
-![Language](https://img.shields.io/badge/Language-C%2B%2B17-blue.svg)
-![Language](https://img.shields.io/badge/Programming%20Language-Python-red)
+![Language](https://img.shields.io/badge/C++-00599C?style=flat-square&logo=C%2B%2B&logoColor=white)
+![Language](https://img.shields.io/badge/-Python-3776AB?style=flat-square&logo=python&logoColor=white)
 ![License](https://img.shields.io/badge/License-Apache%202.0-orange.svg)
 ![Physics](https://img.shields.io/badge/Physics-XPBD-green.svg)
 ![Platform](https://img.shields.io/badge/Platform-Linux-lightgrey)
