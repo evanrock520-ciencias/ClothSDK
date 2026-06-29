@@ -167,9 +167,19 @@ def register():
         ],
         default='MESH',
     )
+    bpy.types.Object.tissu_collider_friction = bpy.props.FloatProperty(
+        name="Friction",
+        default=0.5,
+        min=0.0,
+        max=1.0
+    )
     bpy.types.Object.tissu_is_fabric = bpy.props.BoolProperty(
         name="Is Fabric",
         default=False
+    )
+    bpy.types.Scene.tissu_seams = bpy.props.StringProperty(
+        name="Tissu Seams",
+        default="[]"
     )
 
 def unregister():
@@ -190,3 +200,7 @@ def unregister():
         del bpy.types.Object.tissu_is_fabric
     if hasattr(bpy.types.Object, "tissu_collider_type"):
         del bpy.types.Object.tissu_collider_type
+    if hasattr(bpy.types.Object, "tissu_collider_friction"):
+        del bpy.types.Object.tissu_collider_friction
+    if hasattr(bpy.types.Scene, "tissu_seams"):
+        del bpy.types.Scene.tissu_seams

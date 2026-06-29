@@ -58,6 +58,26 @@ class VIEW3D_PT_Environment(bpy.types.Panel):
         layout.prop(worldProps, "wind")
         layout.prop(worldProps, "air_thickness")
 
+class VIEW3D_PT_State(bpy.types.Panel):
+    bl_idname = "VIEW3D_PT_State"
+    bl_label = "State"
+    bl_space_type = "VIEW_3D"
+    bl_region_type = "UI"
+    bl_category = "Tissu"
+    bl_parent_id = "VIEW3D_PT_Simulation"
+
+    def draw(self, context):
+        layout = self.layout
+        from ..simulation import session
+        
+        row = layout.row(align=True)
+        if session.is_simulating_live:
+            row.operator("tissu.simulate", text="Stop Live", icon="CANCEL")
+        else:
+            row.operator("tissu.simulate", text="Simulate Live", icon="PLAY")
+        row.operator("tissu.reset_simulation", text="Reset", icon="FILE_REFRESH")
+            
+        layout.operator("tissu.bake", text="Bake Alembic Cache...")
 
 class VIEW3D_PT_Material(bpy.types.Panel):
     bl_idname = "VIEW3D_PT_Material"
@@ -97,10 +117,11 @@ class VIEW3D_PT_Colliders(bpy.types.Panel):
         layout.operator("tissu.mark_as_collider", text="Mark as Collider", icon="MESH_ICOSPHERE")
         layout.operator("tissu.remove_collider", text="Remove Collider", icon="X")
 
-        if obj and obj.type == 'MESH' and obj.tissu_is_collider:
+        if obj and obj.tissu_is_collider:
             box = layout.box()
             box.label(text=f"Collider: {obj.name}", icon="OBJECT_DATA")
             box.prop(obj, "tissu_collider_type")
+            box.prop(obj, "tissu_collider_friction")
 
 
 class VIEW3D_PT_Stitches(bpy.types.Panel):
@@ -192,6 +213,7 @@ classes = [
     VIEW3D_PT_Simulation,
     VIEW3D_PT_Solver,
     VIEW3D_PT_Environment,
+    VIEW3D_PT_State,
     VIEW3D_PT_Material,
     VIEW3D_PT_Colliders,
     VIEW3D_PT_Patterns, 
