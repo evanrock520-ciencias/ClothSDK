@@ -17,6 +17,7 @@
 #include "physics/PlaneCollider.hpp"
 #include "physics/SphereCollider.hpp"
 #include "physics/CapsuleCollider.hpp"
+#include "physics/MeshCollider.hpp"
 
 using namespace Tissu;
 namespace fs = std::filesystem;
@@ -210,11 +211,23 @@ TEST_F(StateSerializerTest, RoundTripColliders) {
                                                  0.5, 0.3);
   auto capsule = std::make_shared<CapsuleCollider>(0.25, Eigen::Vector3d(2.0, 2.0, 2.0), Eigen::Vector3d(3.0, 3.0, 3.0), 0.2);
 
+  std::vector<Eigen::Vector3d> vertices = {
+      {0.0, 0.0, 0.0}, {1.0, 0.0, 0.0}, {0.0, 1.0, 0.0}};
+  std::vector<std::array<int, 3>> triangles = {{{0, 1, 2}}};
+  auto mesh = std::make_shared<MeshCollider>(vertices, triangles, 0.4);
+
+  plane->setName("Suelo");
+  sphere->setName("Esfera");
+  capsule->setName("Capsula");
+  mesh->setName("Malla");
+
   world.addCollider(plane);
   world.addCollider(sphere);
   world.addCollider(capsule);
+  world.addCollider(mesh);
 
   world.moveCollider(2, Eigen::Vector3d(4.0, 4.0, 4.0), Eigen::Quaterniond::Identity());
+  world.moveCollider(3, Eigen::Vector3d(1.0, 2.0, 3.0), Eigen::Quaterniond(0.707, 0.0, 0.707, 0.0).normalized());
 
   StateSerializer::save(m_tempFile.string(), solver, world);
 
@@ -226,9 +239,12 @@ TEST_F(StateSerializerTest, RoundTripColliders) {
   auto loadedSphere = std::make_shared<SphereCollider>(Eigen::Vector3d(1.0, 1.0, 1.0),
                                                       0.5, 0.3);
   auto loadedCapsule = std::make_shared<CapsuleCollider>(0.25, Eigen::Vector3d(2.0, 2.0, 2.0), Eigen::Vector3d(3.0, 3.0, 3.0), 0.2);
+  auto loadedMesh = std::make_shared<MeshCollider>(vertices, triangles, 0.4);
+
   loadedWorld.addCollider(loadedPlane);
   loadedWorld.addCollider(loadedSphere);
   loadedWorld.addCollider(loadedCapsule);
+  loadedWorld.addCollider(loadedMesh);
 
   StateSerializer::load(m_tempFile.string(), loadedSolver, loadedWorld);
 
@@ -238,22 +254,29 @@ TEST_F(StateSerializerTest, RoundTripColliders) {
   EXPECT_EQ(colliders.size(), loadedColliders.size());
   for (size_t idx = 0; idx < colliders.size(); idx++) {
     EXPECT_EQ(typeid(*colliders[idx]), typeid(*loadedColliders[idx]));
+    EXPECT_EQ(colliders[idx]->getName(), loadedColliders[idx]->getName());
+    EXPECT_NEAR(colliders[idx]->getFriction(), loadedColliders[idx]->getFriction(), 1e-9);
+
     if (auto* p = dynamic_cast<PlaneCollider*>(colliders[idx].get())) {
       auto* loadedP = dynamic_cast<PlaneCollider*>(loadedColliders[idx].get());
       EXPECT_TRUE(p->getOrigin().isApprox(loadedP->getOrigin()));
       EXPECT_TRUE(p->getNormal().isApprox(loadedP->getNormal()));
-      EXPECT_NEAR(p->getFriction(), loadedP->getFriction(), 1e-9);
     } else if (auto* s = dynamic_cast<SphereCollider*>(colliders[idx].get())) {
       auto* loadedS = dynamic_cast<SphereCollider*>(loadedColliders[idx].get());
       EXPECT_TRUE(s->getCenter().isApprox(loadedS->getCenter()));
       EXPECT_NEAR(s->getRadius(), loadedS->getRadius(), 1e-9);
-      EXPECT_NEAR(s->getFriction(), loadedS->getFriction(), 1e-9);
     } else if (auto* c = dynamic_cast<CapsuleCollider*>(colliders[idx].get())) {
       auto* loadedC = dynamic_cast<CapsuleCollider*>(loadedColliders[idx].get());
       EXPECT_TRUE(c->getStart().isApprox(loadedC->getStart()));
       EXPECT_TRUE(c->getEnd().isApprox(loadedC->getEnd()));
       EXPECT_NEAR(c->getRadius(), loadedC->getRadius(), 1e-9);
-      EXPECT_NEAR(c->getFriction(), loadedC->getFriction(), 1e-9);
+    } else if (auto* m = dynamic_cast<MeshCollider*>(colliders[idx].get())) {
+      auto* loadedM = dynamic_cast<MeshCollider*>(loadedColliders[idx].get());
+      EXPECT_TRUE(m->getPosition().isApprox(loadedM->getPosition()));
+      EXPECT_TRUE(m->getRotation().isApprox(loadedM->getRotation()));
+      for (size_t v = 0; v < m->getWorldVertices().size(); ++v) {
+        EXPECT_TRUE(m->getWorldVertices()[v].isApprox(loadedM->getWorldVertices()[v]));
+      }
     }
   }
 }
