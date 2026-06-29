@@ -40,11 +40,11 @@ void SpatialHash::build(const std::vector<Particle>& particles) {
   }
   m_cellStart[m_tableSize] = sum;
 
-  std::vector<int> cellOffset = m_cellStart;
+  m_cellOffset = m_cellStart;
 
   for (size_t i = 0; i < particles.size(); ++i) {
     int hash = m_particleHashes[i];
-    int index = cellOffset[hash]++;
+    int index = m_cellOffset[hash]++;
     m_particleIndices[index] = i;
   }
 }
@@ -63,6 +63,8 @@ void SpatialHash::query(const std::vector<Particle>& particles,
   posToGrid(pMin, mingx, mingy, mingz);
   posToGrid(pMax, maxgx, maxgy, maxgz);
 
+  double radiusSq = radius * radius;
+
   for (int x = mingx; x <= maxgx; ++x) {
     for (int y = mingy; y <= maxgy; ++y) {
       for (int z = mingz; z <= maxgz; ++z) {
@@ -73,7 +75,7 @@ void SpatialHash::query(const std::vector<Particle>& particles,
           int pIndex = m_particleIndices[m];
           double distance =
               (particles[pIndex].getPosition() - pos).squaredNorm();
-          if (distance < radius * radius) outNeighbors.push_back(pIndex);
+          if (distance < radiusSq) outNeighbors.push_back(pIndex);
         }
       }
     }

@@ -20,6 +20,9 @@ void CapsuleCollider::resolve(std::vector<Particle>& particles, double dt,
   double collisionRadius = m_radius + thickness;
   double collisionRadiusSq = collisionRadius * collisionRadius;
 
+  Eigen::Vector3d linearVel = getLinearVelocity(dt);
+  Eigen::Vector3d omega = getAngularVelocity(dt);
+
   Eigen::Vector3d segment = m_end - m_start;
   double segmentLenSq = segment.squaredNorm();
 
@@ -49,7 +52,7 @@ void CapsuleCollider::resolve(std::vector<Particle>& particles, double dt,
       Eigen::Vector3d targetPos = closestPoint + (normal * collisionRadius);
       particle.setPosition(targetPos);
 
-      Eigen::Vector3d colliderVelocity = getVelocityAtPoint(targetPos, dt);
+      Eigen::Vector3d colliderVelocity = linearVel + omega.cross(targetPos - m_position);
       Eigen::Vector3d colliderDisplacement = colliderVelocity * dt;
       Eigen::Vector3d particleDisplacement = particle.getPosition() - particle.getOldPosition();
       Eigen::Vector3d relDisplacement = particleDisplacement - colliderDisplacement;

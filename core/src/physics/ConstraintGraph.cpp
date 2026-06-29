@@ -52,7 +52,7 @@ std::vector<std::vector<int>> ConstraintGraph::colorBatches() {
   if (m_nodeCount == 0) return {{}};
 
   std::vector<int> color(m_nodeCount, -1);
-  std::vector<bool> done(m_nodeCount, false);
+  std::vector<char> done(m_nodeCount, 0);
   std::vector<std::vector<int>> batches;
   int processedNodes = 0;
 
@@ -82,7 +82,7 @@ std::vector<std::vector<int>> ConstraintGraph::colorBatches() {
       {
         for (int idx : localBatch) {
           if (!done[idx]) {
-            done[idx] = true;
+            done[idx] = 1;
             color[idx] = (int)batches.size();
             currentBatch.push_back(idx);
             processedNodes++;

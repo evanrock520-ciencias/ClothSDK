@@ -137,12 +137,19 @@ int BVH::closestRecursive(int nodeIdx, const Eigen::Vector3d& point,
   int first = node.left;
   int second = node.right;
 
-  double dLeft = m_nodes[node.left].bbox.squaredExteriorDistance(point);
-  double dRight = m_nodes[node.right].bbox.squaredExteriorDistance(point);
+  double dFirst = m_nodes[node.left].bbox.squaredExteriorDistance(point);
+  double dSecond = m_nodes[node.right].bbox.squaredExteriorDistance(point);
 
-  if (dLeft > dRight) std::swap(first, second);
+  if (dFirst > dSecond) {
+    std::swap(first, second);
+    std::swap(dFirst, dSecond);
+  }
 
   int result = closestRecursive(first, point, vertices, bestDistSq);
+  if (dSecond > bestDistSq) {
+    return result;
+  }
+
   int result2 = closestRecursive(second, point, vertices, bestDistSq);
   return result2 != -1 ? result2 : result;
 }

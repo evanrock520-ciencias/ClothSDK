@@ -52,6 +52,9 @@ void MeshCollider::transform(const Eigen::Vector3d& position,
 
 void MeshCollider::resolve(std::vector<Particle>& particles, double dt,
                            double thickness) {
+  Eigen::Vector3d linearVel = getLinearVelocity(dt);
+  Eigen::Vector3d omega = getAngularVelocity(dt);
+
   for (auto& particle : particles) {
     int triIdx = m_bvh.closestTriangle(particle.getPosition(), m_worldVertices);
     if (triIdx == -1) continue;
@@ -74,7 +77,7 @@ void MeshCollider::resolve(std::vector<Particle>& particles, double dt,
       Eigen::Vector3d newPosition = cp + normal * thickness;
       particle.setPosition(newPosition);
 
-      Eigen::Vector3d colliderVelocity = getVelocityAtPoint(newPosition, dt);
+      Eigen::Vector3d colliderVelocity = linearVel + omega.cross(newPosition - m_position);
       Eigen::Vector3d colliderDisplacement = colliderVelocity * dt;
       Eigen::Vector3d particleDisplacement =
           particle.getPosition() - particle.getOldPosition();

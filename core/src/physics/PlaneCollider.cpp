@@ -15,6 +15,9 @@ PlaneCollider::PlaneCollider(const Eigen::Vector3d& origin,
 
 void PlaneCollider::resolve(std::vector<Particle>& particles, double dt,
                             double thickness) {
+  Eigen::Vector3d linearVel = getLinearVelocity(dt);
+  Eigen::Vector3d omega = getAngularVelocity(dt);
+
   for (auto& particle : particles) {
     Eigen::Vector3d vec = particle.getPosition() - m_origin;
     double distance = vec.dot(m_normal);
@@ -25,7 +28,7 @@ void PlaneCollider::resolve(std::vector<Particle>& particles, double dt,
           particle.getPosition() + m_normal * penetration;
       particle.setPosition(newPosition);
 
-      Eigen::Vector3d colliderVelocity = getVelocityAtPoint(newPosition, dt);
+      Eigen::Vector3d colliderVelocity = linearVel + omega.cross(newPosition - m_position);
       Eigen::Vector3d colliderDisplacement = colliderVelocity * dt;
       Eigen::Vector3d particleDisplacement = particle.getPosition() - particle.getOldPosition();
       Eigen::Vector3d relDisplacement = particleDisplacement - colliderDisplacement;
