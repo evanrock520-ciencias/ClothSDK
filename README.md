@@ -12,8 +12,7 @@
 
 By combining a high-performance **C++ core** with a flexible **Python API**. Tissu lets you script complex simulations with the simplicity of Python and the velocity of C++.
 
-<!-- HERO GIF: falling cloth on sphere render (pending) -->
-![On Sphere](docs/videos/blender/OnSphere.gif)
+[![On Sphere](https://img.youtube.com/vi/xuBVJSoyOHI/maxresdefault.jpg)](https://youtu.be/xuBVJSoyOHI)
 
 ## Table of Contents
 
