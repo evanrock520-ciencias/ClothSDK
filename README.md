@@ -12,7 +12,7 @@
 
 By combining a high-performance **C++ core** with a flexible **Python API**. Tissu lets you script complex simulations with the simplicity of Python and the velocity of C++.
 
-[![On Sphere](https://img.youtube.com/vi/xuBVJSoyOHI/maxresdefault.jpg)](https://youtu.be/xuBVJSoyOHI)
+![Hero](docs/videos/blender/Hero.gif)
 
 ## Table of Contents
 
@@ -257,3 +257,8 @@ Technical documentation is currently a work in progress. It is expected to inclu
 ## License
 
 This project is licensed under the Apache 2.0 License - see the [LICENSE](LICENSE) file for details.
+
+## Gallery
+
+![On Sphere](docs/videos/blender/OnSphere.gif)
+
