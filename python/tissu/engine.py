@@ -164,7 +164,7 @@ class Simulation:
         
         # TODO: Include variable lengths 
         if len(local_ids_A) != len(local_ids_B):
-            raise ValueError("Local Id's Lenght Mistmatch.")
+            raise ValueError("Local Id's Length Mismatch.")
         
         mapA = np.array(fabricA.instance.get_particle_indices())
         mapB = np.array(fabricB.instance.get_particle_indices())
@@ -446,9 +446,9 @@ class Simulation:
     def save_scene(self, path: str = "data/configs/scenes/default.json", name: str = "default"):
         sdk.SceneExporter.save_scene(path, name, self.solver, self.world)
     
-    def view(self, width: int = 1280, height: int = 720, title: str = "Tissu | Live Simulation"):
+    def view(self, width: int = 1280, height: int = 720, title: str = " Tissu | Live Simulation"):
         if not self.cloth_objects:
-            sdk.Logger.warn("No cloth objects to visualize.")
+            sdk.Logger.warn("No fabrics in simulation.")
             
         if self.app is None:
             self.app = sdk.Application()
@@ -765,7 +765,7 @@ class Fabric:
         
     def enable_volume_preservation(self, compliance=1e-4) -> float:
         """
-        Adds internal pressure to a closed mesh to maintain it's volume.
+        Adds internal pressure to a closed mesh to maintain its volume.
         For instance, this function could be used to simulate a pillow or puffy jackets.
         
         Args: 
@@ -931,7 +931,7 @@ class Material:
 
         Args:
             name:         Preset name. Built-in options: silk, cotton, denim, leather, spandex.
-            presets_path: Optional path to the materials directory.
+            presets_path: Optional path to the material's directory.
 
         Raises:
             ValueError: If the preset name is not found in built-in presets.
