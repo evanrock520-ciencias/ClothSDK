@@ -25,6 +25,7 @@
 #include "math/Types.hpp"
 #include "physics/GravityForce.hpp"
 #include "physics/Particle.hpp"
+#include "physics/MeshCollider.hpp"
 #include "physics/Solver.hpp"
 #include "utils/Logger.hpp"
 
@@ -101,13 +102,7 @@ bool Application::init(int width, int height, const std::string& title,
 
   float fontSize = 24.0f;
   float scale = 2.0f;
-#ifdef _WIN32
   io.Fonts->AddFontDefault();
-#else
-  io.Fonts->AddFontFromFileTTF(
-      "/usr/share/fonts/liberation-sans-fonts/LiberationSans-Regular.ttf",
-      fontSize);
-#endif
   ImGui::GetStyle().ScaleAllSizes(scale);
   io.FontGlobalScale = 1.0f;
 
@@ -328,6 +323,21 @@ void Application::processInput() {
     m_isGrabbing = false;
   }
 
+  // Hover detection for vertex info overlay
+  if (!m_isGrabbing) {
+    int bufferWidth, bufferHeight;
+    glfwGetFramebufferSize(m_window, &bufferWidth, &bufferHeight);
+
+    Ray hoverRay = m_camera->screenToWorldRay(static_cast<float>(m_lastX),
+                                              static_cast<float>(m_lastY),
+                                              bufferWidth, bufferHeight);
+
+    m_hoveredParticleIndex =
+        findClosestParticleToRay(hoverRay, m_solver->getParticles());
+    m_hoveredColliderVertexIndex =
+        findClosestColliderVertex(hoverRay, *m_world);
+  }
+
   m_leftMouseWasPressed = leftMousePressed;
 }
 
@@ -341,6 +351,76 @@ void Application::render() {
 
   m_renderer->render(*m_solver, *m_camera);
   m_renderer->renderColliders(*m_world, *m_camera);
+
+  if (!m_showVertexInfo) return;
+
+  int bufferWidth, bufferHeight;
+  glfwGetFramebufferSize(m_window, &bufferWidth, &bufferHeight);
+  ImDrawList* drawList = ImGui::GetForegroundDrawList();
+
+  // Draw hovered particle info
+  if (m_hoveredParticleIndex != -1) {
+    const auto& p =
+        m_solver->getParticles()[m_hoveredParticleIndex];
+    ImVec2 screenPos =
+        worldToScreen(p.getPosition(), bufferWidth, bufferHeight);
+
+    if (screenPos.x >= 0) {
+      drawList->AddCircleFilled(screenPos, 6.0f, IM_COL32(255, 60, 60, 255));
+      drawList->AddCircle(screenPos, 8.0f, IM_COL32(255, 255, 255, 200), 0,
+                          2.0f);
+
+      char label[128];
+      snprintf(label, sizeof(label), "Particle %d",
+               m_hoveredParticleIndex);
+      drawList->AddText(ImVec2(screenPos.x + 14, screenPos.y - 10),
+                        IM_COL32(255, 255, 80, 255), label);
+
+      snprintf(label, sizeof(label), "(%.3f, %.3f, %.3f)",
+               p.getPosition().x(), p.getPosition().y(),
+               p.getPosition().z());
+      drawList->AddText(ImVec2(screenPos.x + 14, screenPos.y + 6),
+                        IM_COL32(200, 200, 200, 220), label);
+    }
+  }
+
+  // Draw hovered collider vertex info
+  if (m_hoveredColliderVertexIndex != -1 && m_hoveredColliderIndex != -1) {
+    const auto& colliders = m_world->getColliders();
+    if (m_hoveredColliderIndex < static_cast<int>(colliders.size())) {
+      auto* mc = dynamic_cast<const MeshCollider*>(
+          colliders[m_hoveredColliderIndex].get());
+      if (mc) {
+        const auto& wv = mc->getWorldVertices();
+        if (m_hoveredColliderVertexIndex < static_cast<int>(wv.size())) {
+          const Eigen::Vector3d& vtxPos =
+              wv[m_hoveredColliderVertexIndex];
+          ImVec2 screenPos =
+              worldToScreen(vtxPos, bufferWidth, bufferHeight);
+
+          if (screenPos.x >= 0) {
+            drawList->AddCircleFilled(screenPos, 6.0f,
+                                     IM_COL32(60, 220, 60, 255));
+            drawList->AddCircle(screenPos, 8.0f,
+                                IM_COL32(255, 255, 255, 200), 0, 2.0f);
+
+            char label[128];
+            snprintf(label, sizeof(label), "Collider Vertex %d",
+                     m_hoveredColliderVertexIndex);
+            drawList->AddText(
+                ImVec2(screenPos.x + 14, screenPos.y - 10),
+                IM_COL32(80, 255, 120, 255), label);
+
+            snprintf(label, sizeof(label), "(%.3f, %.3f, %.3f)",
+                     vtxPos.x(), vtxPos.y(), vtxPos.z());
+            drawList->AddText(
+                ImVec2(screenPos.x + 14, screenPos.y + 6),
+                IM_COL32(200, 200, 200, 220), label);
+          }
+        }
+      }
+    }
+  }
 }
 
 void Application::shutdown() {
@@ -475,6 +555,7 @@ void Application::drawUI() {
     if (ImGui::Checkbox("Show Colliders", &m_showColliders)) {
       m_renderer->setShowColliders(m_showColliders);
     }
+    ImGui::Checkbox("Show Vertex Info", &m_showVertexInfo);
   }
 
   ImGui::Separator();
@@ -482,6 +563,35 @@ void Application::drawUI() {
   if (ImGui::CollapsingHeader("Statistics", ImGuiTreeNodeFlags_DefaultOpen)) {
     ImGui::Text("Application FPS: %.1f", ImGui::GetIO().Framerate);
     ImGui::Text("Particles: %d", (int)m_solver->getParticles().size());
+  }
+
+  ImGui::Separator();
+
+  if (ImGui::CollapsingHeader("Selection Info", ImGuiTreeNodeFlags_DefaultOpen)) {
+    if (m_hoveredParticleIndex != -1) {
+      const auto& p = m_solver->getParticles()[m_hoveredParticleIndex];
+      ImGui::Text("Particle ID: %d", m_hoveredParticleIndex);
+      ImGui::Text("Position: (%.4f, %.4f, %.4f)", p.getPosition().x(),
+                  p.getPosition().y(), p.getPosition().z());
+      ImGui::Text("Inv Mass: %.6f", p.getInverseMass());
+    } else if (m_hoveredColliderVertexIndex != -1) {
+      ImGui::Text("Collider #%d  Vertex: %d", m_hoveredColliderIndex,
+                  m_hoveredColliderVertexIndex);
+      const auto& colliders = m_world->getColliders();
+      if (m_hoveredColliderIndex < static_cast<int>(colliders.size())) {
+        auto* mc = dynamic_cast<const MeshCollider*>(
+            colliders[m_hoveredColliderIndex].get());
+        if (mc && m_hoveredColliderVertexIndex <
+                      static_cast<int>(mc->getWorldVertices().size())) {
+          const auto& vtx =
+              mc->getWorldVertices()[m_hoveredColliderVertexIndex];
+          ImGui::Text("Position: (%.4f, %.4f, %.4f)", vtx.x(), vtx.y(),
+                      vtx.z());
+        }
+      }
+    } else {
+      ImGui::TextDisabled("Hover over a vertex to inspect.");
+    }
   }
 
   ImGui::SeparatorText("Playback");
@@ -563,6 +673,57 @@ void Application::syncVisualTopology() {
     }
     m_renderer->addClothMesh(cloth->getName(), triangles);
   }
+}
+
+ImVec2 Application::worldToScreen(const Eigen::Vector3d& worldPos, int width,
+                                  int height) {
+  Eigen::Matrix4f viewProj =
+      m_camera->getProjectionMatrix() * m_camera->getViewMatrix();
+  Eigen::Vector4f pos4(static_cast<float>(worldPos.x()),
+                       static_cast<float>(worldPos.y()),
+                       static_cast<float>(worldPos.z()), 1.0f);
+  Eigen::Vector4f clip = viewProj * pos4;
+
+  if (clip.w() <= 0.0f) return ImVec2(-1, -1);
+
+  Eigen::Vector3f ndc = clip.head<3>() / clip.w();
+  float screenX = (ndc.x() + 1.0f) * 0.5f * static_cast<float>(width);
+  float screenY = (1.0f - ndc.y()) * 0.5f * static_cast<float>(height);
+
+  return ImVec2(screenX, screenY);
+}
+
+int Application::findClosestColliderVertex(const Ray& ray,
+                                           const World& world) {
+  const auto& colliders = world.getColliders();
+  double minDist = 0.1;
+  int bestVertex = -1;
+  m_hoveredColliderIndex = -1;
+
+  for (int ci = 0; ci < static_cast<int>(colliders.size()); ++ci) {
+    auto* mc = dynamic_cast<const MeshCollider*>(colliders[ci].get());
+    if (!mc) continue;
+
+    const auto& worldVerts = mc->getWorldVertices();
+    Eigen::Vector3d rayOrigin = ray.getOrigin();
+    Eigen::Vector3d rayDir = ray.getDirection();
+
+    for (int vi = 0; vi < static_cast<int>(worldVerts.size()); ++vi) {
+      Eigen::Vector3d toVert = worldVerts[vi] - rayOrigin;
+      double t = toVert.dot(rayDir);
+      if (t < 0) continue;
+      double distSq = toVert.squaredNorm() - t * t;
+      if (distSq < 0) distSq = 0;
+      double dist = std::sqrt(distSq);
+      if (dist < minDist) {
+        minDist = dist;
+        bestVertex = vi;
+        m_hoveredColliderIndex = ci;
+      }
+    }
+  }
+
+  return bestVertex;
 }
 
 int Application::findClosestParticleToRay(
