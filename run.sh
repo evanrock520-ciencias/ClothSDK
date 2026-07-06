@@ -5,14 +5,12 @@ COMPILE=true
 BUILD=true
 TEST=true
 INTEGRATION=true
-RUN=true
 BENCH=false
 
 for arg in "$@"; do
 	case $arg in
 	--no-build) BUILD=false ;;
 	--no-test) TEST=false ;;
-	--no-run) RUN=false ;;
 	--no-compile) COMPILE=false ;;
 	--no-integration) INTEGRATION=false ;;
 	--bench) BENCH=true ;;
@@ -56,12 +54,5 @@ if $BENCH; then
 	echo "Running Benchmarks..."
 	echo ""
 	./benchmarks/run_benchmarks.sh
-	echo ""
-fi
-
-if $RUN; then
-	echo "Running..."
-	echo ""
-	python3 -m examples.simulation
 	echo ""
 fi
