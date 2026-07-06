@@ -13,6 +13,9 @@ CapsuleCollider::CapsuleCollider(double radius, const Eigen::Vector3d& start,
                                  const Eigen::Vector3d& end, double friction)
     : m_radius(radius), m_start(start), m_end(end) {
   m_friction = friction;
+  Eigen::Vector3d center = 0.5 * (start + end);
+  setPosition(center);
+  setPrevPosition(center);
 }
 
 void CapsuleCollider::resolve(std::vector<Particle>& particles, double dt,

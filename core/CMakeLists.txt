@@ -5,6 +5,7 @@ set(CORE_SOURCES
     src/physics/DistanceConstraint.cpp
     src/physics/BendingConstraint.cpp
     src/physics/PinConstraint.cpp
+    src/physics/AttachmentConstraint.cpp
     src/physics/VolumeConstraint.cpp
     src/physics/StitchConstraint.cpp
     src/physics/ConstraintGraph.cpp

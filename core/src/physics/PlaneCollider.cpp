@@ -11,6 +11,8 @@ PlaneCollider::PlaneCollider(const Eigen::Vector3d& origin,
                              const Eigen::Vector3d& normal, double friction)
     : m_origin(origin), m_normal(normal.normalized()) {
   m_friction = friction;
+  setPosition(origin);
+  setPrevPosition(origin);
 }
 
 void PlaneCollider::resolve(std::vector<Particle>& particles, double dt,

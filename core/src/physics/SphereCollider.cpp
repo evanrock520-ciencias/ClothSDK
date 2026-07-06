@@ -11,6 +11,8 @@ SphereCollider::SphereCollider(const Eigen::Vector3d& center, double radius,
                                double friction)
     : m_center(center), m_radius(radius) {
   m_friction = friction;
+  setPosition(center);
+  setPrevPosition(center);
 }
 
 void SphereCollider::resolve(std::vector<Particle>& particles, double dt,
