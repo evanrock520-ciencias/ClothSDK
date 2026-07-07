@@ -35,3 +35,7 @@ main.cpp
 pyrightconfig.json
 
 .pytest_cache/
+*.egg-info/
+data/states/*.tissu
+dist/
+docs/notes/

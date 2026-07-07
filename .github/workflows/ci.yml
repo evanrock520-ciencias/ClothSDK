@@ -8,27 +8,13 @@ on:
 
 jobs:
   build-and-test:
-    strategy:
-      fail-fast: false
-      matrix:
-        include:
-          - os: ubuntu-latest
-            name: Linux
-          - os: macos-latest
-            name: macOS
-          - os: windows-latest
-            name: Windows
-
-    name: ${{ matrix.name }}
-    runs-on: ${{ matrix.os }}
+    runs-on: ubuntu-latest
 
     steps:
       - name: Checkout
         uses: actions/checkout@v4
 
-      # ── Linux dependencies ──────────────────────────────────────────────────
-      - name: Install dependencies (Linux)
-        if: runner.os == 'Linux'
+      - name: Install dependencies
         run: |
           sudo apt update
           sudo apt install -y \
@@ -42,25 +28,6 @@ jobs:
             libomp-dev \
             git
 
-      # ── macOS dependencies ──────────────────────────────────────────────────
-      - name: Install dependencies (macOS)
-        if: runner.os == 'macOS'
-        run: |
-          brew install \
-            cmake \
-            openexr \
-            boost \
-            pybind11 \
-            libomp \
-            git
-
-      # ── Windows dependencies (vcpkg) ────────────────────────────────────────
-      - name: Install dependencies (Windows)
-        if: runner.os == 'Windows'
-        run: |
-          vcpkg install openexr:x64-windows imath:x64-windows boost-headers:x64-windows pybind11:x64-windows
-
-      # ── Alembic cache ───────────────────────────────────────────────────────
       - name: Cache Alembic
         uses: actions/cache@v4
         id: cache-alembic
@@ -73,6 +40,7 @@ jobs:
           runner.os != 'Windows' &&
           steps.cache-alembic.outputs.cache-hit != 'true'
         run: |
+          JOBS=$([ "$(uname)" = "Darwin" ] && sysctl -n hw.logicalcpu || nproc)
           git clone https://github.com/alembic/alembic.git
           cd alembic
           git checkout 1.8.11
@@ -81,7 +49,7 @@ jobs:
             -DCMAKE_BUILD_TYPE=Release \
             -DCMAKE_INSTALL_PREFIX=${{ github.workspace }}/alembic-install \
             -DUSE_TESTS=OFF
-          make -j$([ "$(uname)" = "Darwin" ] && sysctl -n hw.logicalcpu || nproc)
+          make -j$(nproc)
           make install
 
       - name: Install Alembic from source (Windows)
@@ -104,7 +72,10 @@ jobs:
         
       - name: Install Python tools
         run: |
-          pip install mypy tqdm numpy pytest
+          pip install mypy
+          pip install tqdm
+          pip install numpy
+          pip install pytest
 
       - name: Cache FetchContent dependencies
         uses: actions/cache@v4
@@ -114,9 +85,8 @@ jobs:
           restore-keys: |
             fetchcontent-${{ runner.os }}-
 
-      # ── Configure (Linux) ───────────────────────────────────────────────────
-      - name: Configure (Linux)
-        if: runner.os == 'Linux'
+      - name: Configure
+        working-directory: ${{ github.workspace }}
         run: |
           mkdir -p build
           cmake -S . -B build \
@@ -124,40 +94,10 @@ jobs:
             -DTISSU_BUILD_VIEWER=OFF \
             -DCMAKE_PREFIX_PATH=${{ github.workspace }}/alembic-install
 
-      # ── Configure (macOS) ───────────────────────────────────────────────────
-      - name: Configure (macOS)
-        if: runner.os == 'macOS'
-        run: |
-          mkdir -p build
-          cmake -S . -B build \
-            -DCMAKE_BUILD_TYPE=Release \
-            -DTISSU_BUILD_VIEWER=OFF \
-            -DCMAKE_PREFIX_PATH="${{ github.workspace }}/alembic-install;$(brew --prefix openexr);$(brew --prefix boost)"
+      - name: Build
+        run: cmake --build build -j$(nproc)
 
-      # ── Configure (Windows) ─────────────────────────────────────────────────
-      - name: Configure (Windows)
-        if: runner.os == 'Windows'
-        shell: pwsh
-        run: |
-          cmake -S . -B build `
-            -DCMAKE_BUILD_TYPE=Release `
-            -DTISSU_BUILD_VIEWER=OFF `
-            -DCMAKE_PREFIX_PATH="${{ github.workspace }}/alembic-install" `
-            -DCMAKE_TOOLCHAIN_FILE="C:/vcpkg/scripts/buildsystems/vcpkg.cmake"
-
-      - name: Build (Linux/macOS)
-        if: runner.os != 'Windows'
-        run: |
-          JOBS=$([ "$(uname)" = "Darwin" ] && sysctl -n hw.logicalcpu || nproc)
-          cmake --build build -j$JOBS
-
-      - name: Build (Windows)
-        if: runner.os == 'Windows'
-        shell: pwsh
-        run: cmake --build build --config Release --parallel $env:NUMBER_OF_PROCESSORS
-
-      - name: Test (Linux/macOS)
-        if: runner.os != 'Windows'
+      - name: Test
         run: ./build/tests/unit_tests
 
       - name: Test (Windows)
@@ -174,10 +114,8 @@ jobs:
           JOBS=$([ "$(uname)" = "Darwin" ] && sysctl -n hw.logicalcpu || nproc)
           cmake --build build --target tissu_benchmarks -j$JOBS
 
-      - name: Build benchmarks (Windows)
-        if: runner.os == 'Windows'
-        shell: pwsh
-        run: cmake --build build --config Release --target tissu_benchmarks --parallel $env:NUMBER_OF_PROCESSORS
+      - name: Build benchmarks
+        run: cmake --build build --target tissu_benchmarks -j$(nproc)
 
       - name: Smoke benchmarks (Linux/macOS)
         if: runner.os != 'Windows'

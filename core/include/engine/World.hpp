@@ -39,12 +39,16 @@ class World {
   void clear();
 
   void addPlaneCollider(const Eigen::Vector3d& origin,
-                        const Eigen::Vector3d& normal, double friction);
+                         const Eigen::Vector3d& normal, double friction,
+                         const std::string& name = "");
   void addSphereCollider(const Eigen::Vector3d& center, double radius,
-                         double friction);
+                         double friction, const std::string& name = "");
   void addCapsuleCollider(const Eigen::Vector3d start,
-                          const Eigen::Vector3d end, double radius,
-                          double friction);
+                           const Eigen::Vector3d end, double radius,
+                           double friction, const std::string& name = "");
+
+  void addMeshCollider(const std::string& path, double friction,
+                       const std::string& name = "");
 
   void moveCollider(size_t index, const Eigen::Vector3d& position,
                     const Eigen::Quaterniond& rotation);

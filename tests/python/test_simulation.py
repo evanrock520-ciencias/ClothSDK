@@ -93,13 +93,13 @@ def test_resolve_material():
 def test_pin():
     sim = Simulation(substeps=15, iterations=3, gravity=-9.81, thickness=0.05)
     sim.wind = [0.0, 7.0, 0.0]
-    rows = 80
+    rows, cols = 80, 40
     
     sim.add_floor(name="floor", friction=0.5)
     curtain = sim.create_grid(
         name="curtain",
         rows=rows,
-        cols=40,
+        cols=cols,
         spacing=0.05,
         material="silk"
     )
@@ -110,7 +110,7 @@ def test_pin():
     
     curtain.pin_by_height()
     pins = curtain.get_pins() # The upper edge
-    assert len(pins) == rows 
+    assert len(pins) == cols
     
     curtain.unpin()
     pins = curtain.get_pins()
@@ -141,3 +141,131 @@ def test_on_frame():
     pins = curtain.get_pins()
     assert len(pins) == 0
     
+def test_energy():
+    sim = Simulation()
+    curtain = sim.create_grid(
+        name="curtain",
+        rows=10,
+        cols=10,
+        spacing=0.05,
+        material="silk"
+    )
+    curtain.pin_top_corners()
+
+    sim.step()
+    ke = sim.kinetic_energy()
+    pe = sim.potential_energy()
+
+    assert ke >= 0
+    assert pe >= 0
+    assert isinstance(ke, float)
+    assert isinstance(pe, float)
+
+    ke_custom = sim.kinetic_energy(dt=1/30)
+    pe_custom = sim.potential_energy(dt=1/30)
+    assert ke_custom >= 0
+    assert pe_custom >= 0
+
+def test_step():
+    sim = Simulation()
+    sim.create_grid(
+        name="curtain",
+        rows=10,
+        cols=10,
+        spacing=0.05,
+        material="silk"
+    )
+
+    assert sim._frame_counter == 0
+
+    sim.step()
+    assert sim._frame_counter == 1
+
+    sim.step()
+    assert sim._frame_counter == 2
+
+    assert len(sim._ke_history) == 0
+
+    sim.start_recording()
+    sim.step()
+    assert sim._frame_counter == 3
+    assert len(sim._ke_history) == 1
+    assert len(sim._pe_history) == 1
+
+def test_step_dispatch():
+    sim = Simulation()
+    sim.create_grid(
+        name="curtain",
+        rows=10,
+        cols=10,
+        spacing=0.05,
+        material="silk"
+    )
+
+    triggered = []
+
+    @sim.on_frame(2)
+    def action(sim):
+        triggered.append(True)
+
+    sim.step()
+    assert len(triggered) == 0
+    assert sim._frame_counter == 1
+
+    sim.step()
+    assert len(triggered) == 0
+    assert sim._frame_counter == 2
+
+    sim.step()
+    assert len(triggered) == 1
+    assert sim._frame_counter == 3
+
+def test_recording():
+    sim = Simulation()
+    curtain = sim.create_grid(
+        name="curtain",
+        rows=20,
+        cols=20,
+        spacing=0.05,
+        material="silk"
+    )
+    
+    sim.simulate(10)
+    assert len(sim._ke_history) == 0
+    assert len(sim._pe_history) == 0
+    
+    sim.start_recording()
+    sim.simulate(20)
+    sim.stop_recording()
+    
+    assert len(sim._ke_history) == 20
+    assert len(sim._pe_history) == 20
+
+def test_bake_alembic(tmp_path):
+    sim = Simulation()
+    sim.create_grid(
+        name="cloth1",
+        rows=5,
+        cols=5,
+        spacing=0.1,
+        material="silk"
+    )
+    sim.create_grid(
+        name="cloth2",
+        rows=5,
+        cols=5,
+        spacing=0.1,
+        material="cotton"
+    )
+    
+    abc_file = tmp_path / "multi_cloth.abc"
+    
+    success = sim.bake_alembic(
+        filepath=str(abc_file),
+        start_frame=0,
+        end_frame=5,
+        fps=60.0
+    )
+    
+    assert success
+    assert abc_file.exists()

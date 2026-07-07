@@ -18,9 +18,11 @@
 
 #include <memory>
 #include <string>
+#include <imgui.h>
 #include <vector>
 
 #include "engine/Cloth.hpp"
+#include "engine/World.hpp"
 #include "math/Types.hpp"
 
 struct GLFWwindow;
@@ -70,6 +72,8 @@ class Application {
   void render();
   void drawUI();
   void resetSimulation();
+  ImVec2 worldToScreen(const Eigen::Vector3d& worldPos, int width, int height);
+  int findClosestColliderVertex(const Ray& ray, const World& world);
 
   GLFWwindow* m_window;
   std::shared_ptr<World> m_world;
@@ -107,6 +111,11 @@ class Application {
   double m_grabDistance = 0.0;
 
   float m_color[4] = {0.0f, 0.0f, 0.0f, 1.0f};
+  bool m_showColliders = true;
+  int m_hoveredParticleIndex = -1;
+  int m_hoveredColliderIndex = -1;
+  int m_hoveredColliderVertexIndex = -1;
+  bool m_showVertexInfo = true;
 };
 
 }  // namespace Viewer

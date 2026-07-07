@@ -11,6 +11,7 @@
 #include "io/ConfigLoader.hpp"
 #include "math/Types.hpp"
 #include "physics/CapsuleCollider.hpp"
+#include "physics/MeshCollider.hpp"
 #include "physics/PlaneCollider.hpp"
 #include "physics/SphereCollider.hpp"
 #include "utils/Logger.hpp"
@@ -30,7 +31,6 @@ void SceneExporter::saveScene(const std::string& filepath,
   data["type"] = "scene";
   data["name"] = name;
 
-  // TODO: Export physics into his own file?
   data["physics"] = nlohmann::ordered_json::object();
   data["physics"]["substeps"] = solver.getSubsteps();
   data["physics"]["iterations"] = solver.getIterations();
@@ -88,6 +88,11 @@ void SceneExporter::saveFabrics(
         fabric["pins"]["mode"] = "by_height";
     }
 
+    const auto& t = cloth->getTranslation();
+    fabric["translation"] = {t.x(), t.y(), t.z()};
+    const auto& q = cloth->getRotation();
+    fabric["rotation"] = {q.x(), q.y(), q.z(), q.w()};
+
     data["fabrics"].push_back(fabric);
   }
 }
@@ -119,7 +124,13 @@ void SceneExporter::saveColliders(
       cld["radius"] = capsule->getRadius();
     }
 
+    else if (auto* mesh = dynamic_cast<MeshCollider*>(collider.get())) {
+      cld["type"] = "mesh";
+      cld["path"] = mesh->getMeshPath();
+    }
+
     cld["friction"] = collider->getFriction();
+    cld["name"] = collider->getName();
 
     data["colliders"].push_back(cld);
   }

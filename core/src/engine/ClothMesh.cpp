@@ -17,7 +17,8 @@
 namespace Tissu {
 
 void ClothMesh::initGrid(int rows, int cols, double spacing, Cloth& outCloth,
-                         Solver& solver) {
+                         Solver& solver, const Eigen::Vector3d& translation,
+                         const Eigen::Quaterniond& rotation) {
   std::vector<int> gridIndices;
   gridIndices.reserve(rows * cols);
   auto mat = outCloth.getMaterial();
@@ -35,7 +36,8 @@ void ClothMesh::initGrid(int rows, int cols, double spacing, Cloth& outCloth,
 
   for (int r = 0; r < rows; r++) {
     for (int c = 0; c < cols; c++) {
-      Eigen::Vector3d pos(c * spacing, r * spacing, 0.0);
+      Eigen::Vector3d localPos(c * spacing, r * spacing, 0.0);
+      Eigen::Vector3d pos = rotation * localPos + translation;
       int id = solver.addParticle(Particle(pos));
       gridIndices.push_back(id);
       outCloth.addParticleId(id);
@@ -77,12 +79,17 @@ void ClothMesh::initGrid(int rows, int cols, double spacing, Cloth& outCloth,
     }
   }
 
+  outCloth.setTranslation(translation);
+  outCloth.setRotation(rotation);
+
   computePhysicalAttributes(outCloth, solver);
 }
 
 void ClothMesh::buildFromMesh(const std::vector<Eigen::Vector3d>& positions,
                               const std::vector<int>& indices, Cloth& outCloth,
-                              Solver& solver, const std::string& meshPath) {
+                              Solver& solver, const std::string& meshPath,
+                              const Eigen::Vector3d& translation,
+                              const Eigen::Quaterniond& rotation) {
   std::map<Edge, std::vector<int>> edgeToTriangles;
   std::vector<int> localToGlobal;
   localToGlobal.reserve(positions.size());
@@ -96,10 +103,9 @@ void ClothMesh::buildFromMesh(const std::vector<Eigen::Vector3d>& positions,
   double beComp = mat->getBendingCompliance();
   double dens = mat->getDensity();
 
-  Logger::info("Mesh Path: " + meshPath);
-
   for (auto& position : positions) {
-    auto id = solver.addParticle(Particle(position));
+    Eigen::Vector3d pos = rotation * position + translation;
+    auto id = solver.addParticle(Particle(pos));
     outCloth.addParticleId(id);
     localToGlobal.push_back(id);
   }
@@ -139,6 +145,9 @@ void ClothMesh::buildFromMesh(const std::vector<Eigen::Vector3d>& positions,
       solver.addBendingConstraint(v1, v2, v3, v4, initialAngle, beComp);
     }
   }
+
+  outCloth.setTranslation(translation);
+  outCloth.setRotation(rotation);
 
   computePhysicalAttributes(outCloth, solver);
 }

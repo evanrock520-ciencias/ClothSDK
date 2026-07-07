@@ -1,0 +1,13 @@
+include LICENSE
+include README.md
+include CMakeLists.txt
+recursive-include core *.cpp *.h *.hpp *.cmake
+recursive-include python/src *.cpp *.h
+recursive-include tests *.cpp *.h CMakeLists.txt
+recursive-include benchmarks *.cpp *.h CMakeLists.txt
+prune build
+recursive-exclude python/tissu *.so
+recursive-exclude python/tissu *.pyd
+recursive-exclude python/tissu __pycache__
+recursive-exclude python/tissu *.egg-info
+recursive-exclude python/__pycache__

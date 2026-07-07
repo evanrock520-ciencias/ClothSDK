@@ -139,6 +139,7 @@ class SpatialHash {
                                        ///< hash slot, built during @ref build.
   std::vector<int> m_particleHashes;   ///< Hash slot assigned to each particle,
                                        ///< indexed by particle ID.
+  std::vector<int> m_cellOffset;       ///< Reused offset vector to avoid allocations.
 };
 
 }  // namespace Tissu

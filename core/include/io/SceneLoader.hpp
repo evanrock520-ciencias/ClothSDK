@@ -25,10 +25,39 @@
 
 namespace Tissu {
 
+struct SceneHeader {
+  float version;
+  std::string name;
+  std::string physics_preset;
+
+  struct FabricInfo {
+    std::string name;
+    std::string type;
+    int rows = 0, cols = 0;
+    float spacing = 0.0f;
+    Eigen::Vector3d translation;
+    Eigen::Quaterniond rotation;
+    std::string source;
+    std::string material;
+    std::string pin_mode;
+  };
+
+  struct ColliderInfo {
+    std::string name;
+    std::string type;
+    std::string summary;
+  };
+
+  std::vector<FabricInfo> fabrics;
+  std::vector<ColliderInfo> colliders;
+};
+
 class SceneLoader {
  public:
   static void loadScene(const std::string& filepath, Solver& solver,
                         World& world);
+
+  static SceneHeader getSceneHeader(const std::string& filepath);
 
  private:
   static void loadFabric(const nlohmann::json& fabricData, Cloth& outCloth,

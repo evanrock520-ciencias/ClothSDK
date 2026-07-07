@@ -9,12 +9,11 @@
 
 namespace Tissu {
 
-struct SimulationState {
+struct StateInfo {
+  uint8_t version;
   uint32_t frame;
   double timestamp;
-  std::vector<double> pos_x, pos_y, pos_z;
-  std::vector<double> old_x, old_y, old_z;
-  std::vector<double> inverse_mass;
+  int particleCount;
 };
 
 class StateSerializer {
@@ -25,9 +24,11 @@ class StateSerializer {
 
   static bool validate(const std::string& path);
 
+  static StateInfo getStateInfo(const std::string& path);
+
  private:
   static constexpr uint8_t MAGIC[6] = {'T', 'I', 'S', 'S', 'U', '\0'};
-  static constexpr uint8_t VERSION = 1;
+  static constexpr uint8_t VERSION = 2;
   static constexpr uint8_t FLAGS = 0;
   static constexpr size_t HEADER_SIZE = 32;
   static constexpr uint32_t CRC32_POLY = 0xEDB88320;

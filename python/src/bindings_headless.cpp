@@ -6,6 +6,11 @@
 #include <pybind11/pybind11.h>
 #include <pybind11/stl.h>
 
+#ifdef _MSC_VER
+#include <cstddef>
+using ssize_t = std::ptrdiff_t;
+#endif
+
 #include <tuple>
 
 #include "data-structures/SpatialHash.hpp"
@@ -24,6 +29,8 @@
 #include "physics/BendingConstraint.hpp"
 #include "physics/CapsuleCollider.hpp"
 #include "physics/Collider.hpp"
+#include "physics/AttachmentConstraint.hpp"
+#include "physics/MeshCollider.hpp"
 #include "physics/Constraint.hpp"
 #include "physics/DistanceConstraint.hpp"
 #include "physics/Force.hpp"
@@ -81,6 +88,34 @@ PYBIND11_MODULE(_cloth_sdk_core, m) {
       .def_readwrite("b", &AeroFace::b)
       .def_readwrite("c", &AeroFace::c);
 
+  py::class_<SceneHeader::FabricInfo>(m, "FabricInfo")
+      .def_readonly("name", &SceneHeader::FabricInfo::name)
+      .def_readonly("type", &SceneHeader::FabricInfo::type)
+      .def_readonly("rows", &SceneHeader::FabricInfo::rows)
+      .def_readonly("cols", &SceneHeader::FabricInfo::cols)
+      .def_readonly("spacing", &SceneHeader::FabricInfo::spacing)
+      .def_readonly("source", &SceneHeader::FabricInfo::source)
+      .def_readonly("material", &SceneHeader::FabricInfo::material)
+      .def_readonly("pin_mode", &SceneHeader::FabricInfo::pin_mode);
+
+  py::class_<SceneHeader::ColliderInfo>(m, "ColliderInfo")
+      .def_readonly("name", &SceneHeader::ColliderInfo::name)
+      .def_readonly("type", &SceneHeader::ColliderInfo::type)
+      .def_readonly("summary", &SceneHeader::ColliderInfo::summary);
+
+  py::class_<SceneHeader>(m, "SceneHeader")
+      .def_readonly("version", &SceneHeader::version)
+      .def_readonly("name", &SceneHeader::name)
+      .def_readonly("physics_preset", &SceneHeader::physics_preset)
+      .def_readonly("fabrics", &SceneHeader::fabrics)
+      .def_readonly("colliders", &SceneHeader::colliders);
+
+  py::class_<Tissu::StateInfo>(m, "StateInfo")
+      .def_property_readonly("version", [](const StateInfo &si) { return static_cast<int>(si.version); })
+      .def_readonly("frame", &StateInfo::frame)
+      .def_readonly("timestamp", &StateInfo::timestamp)
+      .def_readonly("particle_count", &StateInfo::particleCount);
+
   py::class_<Tissu::Force, std::shared_ptr<Tissu::Force>>(m, "Force");
 
   py::class_<Tissu::GravityForce, Tissu::Force,
@@ -98,9 +133,11 @@ PYBIND11_MODULE(_cloth_sdk_core, m) {
       .def(py::init<const Eigen::Vector3d&>(), py::arg("initial_pos"))
       .def("get_position", &Particle::getPosition)
       .def("set_position", &Particle::setPosition)
+      .def("get_old_position", &Particle::getOldPosition)
       .def("set_old_position", &Particle::setOldPosition)
       .def("get_inverse_mass", &Particle::getInverseMass)
       .def("set_inverse_mass", &Particle::setInverseMass)
+      .def("get_velocity", &Particle::getVelocity)
       .def("add_force", &Particle::addForce)
       .def("integrate", &Particle::integrate);
 
@@ -118,9 +155,26 @@ PYBIND11_MODULE(_cloth_sdk_core, m) {
            py::arg("idB"), py::arg("idC"), py::arg("idD"), py::arg("restAngle"),
            py::arg("compliance"));
 
+  py::class_<AttachmentConstraint, Constraint,
+             std::unique_ptr<AttachmentConstraint>>(m, "AttachmentConstraint")
+      .def(py::init<int, std::shared_ptr<Collider>, int, double, double>(),
+           py::arg("particle_id"), py::arg("collider"),
+           py::arg("target_vertex_id"), py::arg("compliance") = 0.0,
+           py::arg("rest_length") = 0.0)
+      .def(py::init<int, std::shared_ptr<Collider>, const Eigen::Vector3d&,
+                    double, double>(),
+           py::arg("particle_id"), py::arg("collider"),
+           py::arg("local_anchor"), py::arg("compliance") = 0.0,
+           py::arg("rest_length") = 0.0)
+      .def("get_particle_id", &AttachmentConstraint::getParticleId);
+
   py::class_<Collider, std::shared_ptr<Collider>>(m, "Collider")
       .def("get_friction", &Collider::getFriction)
-      .def("set_friction", &Collider::setFriction);
+      .def("set_friction", &Collider::setFriction)
+      .def("get_name", &Collider::getName)
+      .def("set_name", &Collider::setName)
+      .def("get_position", &Collider::getPosition)
+      .def("get_rotation", &Collider::getRotation);
 
   py::class_<PlaneCollider, Collider, std::shared_ptr<PlaneCollider>>(
       m, "PlaneCollider")
@@ -139,6 +193,16 @@ PYBIND11_MODULE(_cloth_sdk_core, m) {
            py::arg("radius"), py::arg("start"), py::arg("end"),
            py::arg("friction"));
 
+  py::class_<MeshCollider, Collider, std::shared_ptr<MeshCollider>>(
+      m, "MeshCollider")
+      .def(py::init<const std::string&, double>(),
+           py::arg("mesh_path"), py::arg("friction"))
+      .def(py::init<const std::vector<Eigen::Vector3d>&,
+                    const std::vector<std::array<int, 3>>&, double>(),
+           py::arg("vertices"), py::arg("triangles"), py::arg("friction"))
+      .def("get_mesh_path", &MeshCollider::getMeshPath)
+      .def("get_world_vertices", &MeshCollider::getWorldVertices);
+
   py::class_<SpatialHash>(m, "SpatialHash")
       .def(py::init<int, double>(), py::arg("table_size"), py::arg("cell_size"))
       .def("build", &SpatialHash::build, py::arg("particles"))
@@ -154,6 +218,7 @@ PYBIND11_MODULE(_cloth_sdk_core, m) {
       .def("add_plane_collider", &World::addPlaneCollider)
       .def("add_sphere_collider", &World::addSphereCollider)
       .def("add_capsule_collider", &World::addCapsuleCollider)
+      .def("add_mesh_collider", &World::addMeshCollider)
       .def("set_gravity", &World::setGravity)
       .def("set_wind", &World::setWind)
       .def("set_air_density", &World::setAirDensity)
@@ -196,16 +261,40 @@ PYBIND11_MODULE(_cloth_sdk_core, m) {
       .def("add_volume_constraint", &Solver::addVolumeConstraint)
       .def("add_pin", &Solver::addPin)
       .def("unpin", &Solver::removePin)
+      .def("add_stitch", &Solver::addStitch, py::arg("idA"), py::arg("idB"), py::arg("compliance") = 0.0)
+      .def("add_attachment", &Solver::addAttachment, py::arg("particle_id"),
+           py::arg("collider"), py::arg("target_vertex_id"),
+           py::arg("compliance") = 0.0, py::arg("rest_length") = 0.0)
+      .def("add_attachment_local", &Solver::addAttachmentLocal,
+           py::arg("particle_id"), py::arg("collider"),
+           py::arg("local_anchor"), py::arg("compliance") = 0.0,
+           py::arg("rest_length") = 0.0)
+      .def("remove_attachment", &Solver::removeAttachment,
+           py::arg("particle_id"))
       .def("soft_reset", &Solver::softReset)
       .def("set_collision_compliance", &Solver::setCollisionCompliance);
 
   py::class_<ClothMesh, std::shared_ptr<Tissu::ClothMesh>>(m, "ClothMesh")
       .def(py::init<>())
-      .def("init_grid", &ClothMesh::initGrid, py::arg("rows"), py::arg("cols"),
-           py::arg("spacing"), py::arg("out_cloth"), py::arg("solver"))
-      .def("build_from_mesh", &ClothMesh::buildFromMesh, py::arg("positions"),
-           py::arg("indices"), py::arg("out_cloth"), py::arg("solver"),
-           py::arg("mesh_path"));
+      .def("init_grid",
+           [](ClothMesh& self, int rows, int cols, double spacing, Cloth& out_cloth,
+              Solver& solver, Eigen::Vector3d translation, Eigen::Vector4d rotation) {
+             Eigen::Quaterniond quat(rotation[3], rotation[0], rotation[1], rotation[2]);
+             self.initGrid(rows, cols, spacing, out_cloth, solver, translation, quat);
+           },
+           py::arg("rows"), py::arg("cols"), py::arg("spacing"), py::arg("out_cloth"),
+           py::arg("solver"), py::arg("translation") = Eigen::Vector3d::Zero(),
+           py::arg("rotation") = Eigen::Vector4d(0.0, 0.0, 0.0, 1.0))
+      .def("build_from_mesh",
+           [](ClothMesh& self, const std::vector<Eigen::Vector3d>& positions,
+              const std::vector<int>& indices, Cloth& out_cloth, Solver& solver,
+              const std::string& mesh_path, Eigen::Vector3d translation, Eigen::Vector4d rotation) {
+             Eigen::Quaterniond quat(rotation[3], rotation[0], rotation[1], rotation[2]);
+             self.buildFromMesh(positions, indices, out_cloth, solver, mesh_path, translation, quat);
+           },
+           py::arg("positions"), py::arg("indices"), py::arg("out_cloth"), py::arg("solver"),
+           py::arg("mesh_path"), py::arg("translation") = Eigen::Vector3d::Zero(),
+           py::arg("rotation") = Eigen::Vector4d(0.0, 0.0, 0.0, 1.0));
 
   py::class_<Tissu::Cloth, std::shared_ptr<Tissu::Cloth>>(m, "Cloth")
       .def(py::init<const std::string&, std::shared_ptr<ClothMaterial>>(),
@@ -251,14 +340,16 @@ PYBIND11_MODULE(_cloth_sdk_core, m) {
       .def_static("save_physics", &ConfigLoader::savePhysics);
 
   py::class_<SceneLoader>(m, "SceneLoader")
-      .def_static("load_scene", &SceneLoader::loadScene);
+      .def_static("load_scene", &SceneLoader::loadScene)
+      .def_static("get_scene_header", &SceneLoader::getSceneHeader);
 
   py::class_<SceneExporter>(m, "SceneExporter")
       .def_static("save_scene", &SceneExporter::saveScene);
 
   py::class_<StateSerializer>(m, "StateSerializer")
       .def_static("load", &StateSerializer::load)
-      .def_static("save", &StateSerializer::save);
+      .def_static("save", &StateSerializer::save)
+      .def_static("get_state_info", &StateSerializer::getStateInfo);
 
   py::class_<Logger>(m, "Logger")
       .def_static("info", &Logger::info, py::arg("message"))
@@ -267,10 +358,64 @@ PYBIND11_MODULE(_cloth_sdk_core, m) {
 
   py::class_<Tissu::AlembicExporter>(m, "AlembicExporter")
       .def(py::init<>())
-      .def("open", &Tissu::AlembicExporter::open, py::arg("path"),
-           py::arg("positions"), py::arg("indices"))
-      .def("write_frame", &Tissu::AlembicExporter::writeFrame,
-           py::arg("positions"), py::arg("time"))
+      .def("open",
+           [](Tissu::AlembicExporter& self, const std::string& path,
+              const std::vector<std::string>& names,
+              py::array_t<double> global_positions,
+              py::list global_indices_list,
+              py::list particle_indices_list) {
+             if (names.size() != global_indices_list.size() || names.size() != particle_indices_list.size()) {
+               throw std::runtime_error("names, global_indices_list, and particle_indices_list must have the same length");
+             }
+             auto gp = global_positions.unchecked<2>();
+             if (gp.shape(1) != 3) {
+               throw std::runtime_error("global_positions must have shape (N, 3)");
+             }
+             std::vector<Eigen::Vector3d> all_positions(gp.shape(0));
+             for (ssize_t j = 0; j < gp.shape(0); ++j) {
+               all_positions[j] = Eigen::Vector3d(gp(j, 0), gp(j, 1), gp(j, 2));
+             }
+
+             std::vector<std::vector<int>> all_global_indices;
+             std::vector<std::vector<int>> all_particle_indices;
+             all_global_indices.reserve(names.size());
+             all_particle_indices.reserve(names.size());
+
+             for (size_t i = 0; i < names.size(); ++i) {
+               auto indices = global_indices_list[i].cast<py::array_t<int32_t>>();
+               auto idx = indices.unchecked<1>();
+               std::vector<int> iv(idx.shape(0));
+               for (ssize_t j = 0; j < idx.shape(0); ++j) {
+                 iv[j] = idx(j);
+               }
+               all_global_indices.push_back(std::move(iv));
+
+               auto part_indices = particle_indices_list[i].cast<py::array_t<int32_t>>();
+               auto pi = part_indices.unchecked<1>();
+               std::vector<int> pv(pi.shape(0));
+               for (ssize_t j = 0; j < pi.shape(0); ++j) {
+                 pv[j] = pi(j);
+               }
+               all_particle_indices.push_back(std::move(pv));
+             }
+             return self.open(path, names, all_positions, all_global_indices, all_particle_indices);
+           },
+           py::arg("path"), py::arg("names"), py::arg("global_positions"),
+           py::arg("global_indices"), py::arg("particle_indices"))
+      .def("write_frame",
+           [](Tissu::AlembicExporter& self, py::array_t<double> global_positions,
+              double time) {
+             auto gp = global_positions.unchecked<2>();
+             if (gp.shape(1) != 3) {
+               throw std::runtime_error("global_positions must have shape (N, 3)");
+             }
+             std::vector<Eigen::Vector3d> all_positions(gp.shape(0));
+             for (ssize_t j = 0; j < gp.shape(0); ++j) {
+               all_positions[j] = Eigen::Vector3d(gp(j, 0), gp(j, 1), gp(j, 2));
+             }
+             self.writeFrame(all_positions, time);
+           },
+           py::arg("global_positions"), py::arg("time"))
       .def("close", &Tissu::AlembicExporter::close);
 
   py::class_<OBJExporter>(m, "OBJExporter")

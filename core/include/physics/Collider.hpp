@@ -16,7 +16,9 @@
 
 #pragma once
 
+#include <string>
 #include <vector>
+
 #include "Eigen/Dense"
 #include "Eigen/src/Core/Matrix.h"
 
@@ -60,13 +62,15 @@ class Collider {
    * @param position New position of the collider.
    * @param rotation New rotation of the collider.
    */
-  virtual void transform(const Eigen::Vector3d& position, const Eigen::Quaterniond& rotation);
+  virtual void transform(const Eigen::Vector3d& position,
+                         const Eigen::Quaterniond& rotation);
 
   Eigen::Vector3d getLinearVelocity(double dt) const;
 
   Eigen::Vector3d getAngularVelocity(double dt) const;
 
-  Eigen::Vector3d getVelocityAtPoint(const Eigen::Vector3d& point, double dt) const;
+  Eigen::Vector3d getVelocityAtPoint(const Eigen::Vector3d& point,
+                                     double dt) const;
 
   /**
    * @brief Configures the surface friction coefficient.
@@ -75,11 +79,21 @@ class Collider {
    */
   void setFriction(double friction) { m_friction = friction; }
 
-  inline void setPosition(const Eigen::Vector3d& position) { m_position = position; }
-  inline void setRotation(const Eigen::Quaterniond& rotation) { m_rotation = rotation; }
+  inline void setPosition(const Eigen::Vector3d& position) {
+    m_position = position;
+  }
+  inline void setRotation(const Eigen::Quaterniond& rotation) {
+    m_rotation = rotation;
+  }
 
-  inline void setPrevPosition(const Eigen::Vector3d& prevPosition) { m_prevPosition = prevPosition; }
-  inline void setPrevRotation(const Eigen::Quaterniond& prevRotation) { m_prevRotation = prevRotation; }
+  inline void setPrevPosition(const Eigen::Vector3d& prevPosition) {
+    m_prevPosition = prevPosition;
+  }
+  inline void setPrevRotation(const Eigen::Quaterniond& prevRotation) {
+    m_prevRotation = prevRotation;
+  }
+
+  inline void setName(const std::string& name) { m_name = name; }
 
   /** @return The current surface friction coefficient. */
   inline double getFriction() const { return m_friction; }
@@ -87,8 +101,14 @@ class Collider {
   inline const Eigen::Vector3d& getPosition() const { return m_position; }
   inline const Eigen::Quaterniond& getRotation() const { return m_rotation; }
 
-  inline const Eigen::Vector3d& getPrevPosition() const { return m_prevPosition; }
-  inline const Eigen::Quaterniond& getPrevRotation() const { return m_prevRotation; }
+  inline const Eigen::Vector3d& getPrevPosition() const {
+    return m_prevPosition;
+  }
+  inline const Eigen::Quaterniond& getPrevRotation() const {
+    return m_prevRotation;
+  }
+
+  inline const std::string& getName() const { return m_name; }
 
  protected:
   /**
@@ -101,6 +121,8 @@ class Collider {
   Eigen::Quaterniond m_rotation = Eigen::Quaterniond::Identity();
   Eigen::Vector3d m_prevPosition = Eigen::Vector3d::Zero();
   Eigen::Quaterniond m_prevRotation = Eigen::Quaterniond::Identity();
+
+  std::string m_name;
 };
 
 }  // namespace Tissu
