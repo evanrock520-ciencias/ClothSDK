@@ -5,6 +5,7 @@ set(CORE_SOURCES
     src/physics/DistanceConstraint.cpp
     src/physics/BendingConstraint.cpp
     src/physics/PinConstraint.cpp
+    src/physics/AttachmentConstraint.cpp
     src/physics/VolumeConstraint.cpp
     src/physics/StitchConstraint.cpp
     src/physics/ConstraintGraph.cpp
@@ -31,8 +32,12 @@ set(CORE_SOURCES
     src/utils/Logger.cpp
 )
 
-find_package(Alembic REQUIRED)
-find_package(Imath REQUIRED)
+if(NOT TARGET Alembic::Alembic)
+    find_package(Alembic REQUIRED)
+endif()
+if(NOT TARGET Imath::Imath)
+    find_package(Imath REQUIRED)
+endif()
 
 add_library(ClothCore STATIC ${CORE_SOURCES})
 

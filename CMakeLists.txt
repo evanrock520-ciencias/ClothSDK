@@ -15,6 +15,15 @@ set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
+# Redirect all outputs so executables and DLLs are placed in the same folder
+set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
+set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
+set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
+
+if(MSVC)
+    add_compile_definitions(_USE_MATH_DEFINES)
+endif()
+
 include(FetchContent)
 
 # Tissu Dependencies
@@ -54,6 +63,18 @@ FetchContent_Declare(
 	GIT_TAG v2.13.6
 )
 
+FetchContent_Declare(
+	imath 
+	GIT_REPOSITORY https://github.com/AcademySoftwareFoundation/Imath.git 
+	GIT_TAG v3.1.11
+)
+
+FetchContent_Declare(
+	alembic 
+	GIT_REPOSITORY https://github.com/alembic/alembic.git 
+	GIT_TAG 1.8.6
+)
+
 set(TINYOBJLOADER_INSTALL OFF CACHE BOOL "" FORCE)
 set(EIGEN_BUILD_PKGCONFIG OFF CACHE BOOL "" FORCE)
 set(JSON_BuildTests OFF CACHE BOOL "" FORCE)
@@ -64,7 +85,16 @@ set(BENCHMARK_ENABLE_GTEST_TESTS OFF CACHE BOOL "" FORCE)
 set(PYBIND11_INSTALL OFF CACHE BOOL "" FORCE)
 set(PYBIND11_TEST OFF CACHE BOOL "" FORCE)
 
-FetchContent_MakeAvailable(googletest eigen tinyobjloader json pybind11 googlebenchmark)
+# Imath & Alembic configuration
+set(IMATH_INSTALL OFF CACHE BOOL "" FORCE)
+set(IMATH_HALF_USE_LOOKUP_TABLE OFF CACHE BOOL "" FORCE)
+set(ALEMBIC_SHARED_LIBS OFF CACHE BOOL "" FORCE)
+set(USE_TESTS OFF CACHE BOOL "" FORCE)
+set(USE_PYALEMBIC OFF CACHE BOOL "" FORCE)
+set(USE_BINARIES OFF CACHE BOOL "" FORCE)
+set(USE_EXAMPLES OFF CACHE BOOL "" FORCE)
+
+FetchContent_MakeAvailable(googletest eigen tinyobjloader json pybind11 googlebenchmark imath alembic)
 
 if(APPLE)
     execute_process(
@@ -128,25 +158,32 @@ else()
     target_link_libraries(_cloth_sdk_core PRIVATE ClothCore)
 endif()
 
-set(STUB_OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/_cloth_sdk_core.pyi)
-
-# Python stubs
-find_program(STUBGEN_EXECUTABLE stubgen REQUIRED)
-
-add_custom_command(
-    OUTPUT ${STUB_OUTPUT}
-    COMMAND ${CMAKE_COMMAND} -E rm -f ${STUB_OUTPUT}
-    COMMAND ${CMAKE_COMMAND} -E env
-            "PYTHONPATH=$<TARGET_FILE_DIR:_cloth_sdk_core>"
-            ${STUBGEN_EXECUTABLE}
-            -m _cloth_sdk_core
-            --output ${CMAKE_CURRENT_BINARY_DIR}
-    DEPENDS _cloth_sdk_core
-    WORKING_DIRECTORY $<TARGET_FILE_DIR:_cloth_sdk_core>
-    COMMENT "Generating Python stubs for _cloth_sdk_core"
+set_target_properties(_cloth_sdk_core PROPERTIES
+    LIBRARY_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/bin"
+    RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/bin"
 )
 
-add_custom_target(_cloth_sdk_core_stubs ALL DEPENDS ${STUB_OUTPUT})
+# Python stubs
+find_program(STUBGEN_EXECUTABLE stubgen)
+
+if(STUBGEN_EXECUTABLE)
+    set(STUB_OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/_cloth_sdk_core.pyi)
+
+    add_custom_command(
+        OUTPUT ${STUB_OUTPUT}
+        COMMAND ${CMAKE_COMMAND} -E rm -f ${STUB_OUTPUT}
+        COMMAND ${CMAKE_COMMAND} -E env
+                "PYTHONPATH=$<TARGET_FILE_DIR:_cloth_sdk_core>"
+                ${STUBGEN_EXECUTABLE}
+                -m _cloth_sdk_core
+                --output ${CMAKE_CURRENT_BINARY_DIR}
+        DEPENDS _cloth_sdk_core
+        WORKING_DIRECTORY $<TARGET_FILE_DIR:_cloth_sdk_core>
+        COMMENT "Generating Python stubs for _cloth_sdk_core"
+    )
+
+    add_custom_target(_cloth_sdk_core_stubs ALL DEPENDS ${STUB_OUTPUT})
+endif()
 
 # Moving library
 add_custom_command(
@@ -157,14 +194,24 @@ add_custom_command(
     COMMENT "Copying _cloth_sdk_core to python/tissu/"
 )
 
-# Moving stubs 
 add_custom_command(
-    TARGET _cloth_sdk_core_stubs POST_BUILD
+    TARGET _cloth_sdk_core POST_BUILD
     COMMAND ${CMAKE_COMMAND} -E copy
-        ${STUB_OUTPUT}
-        ${CMAKE_SOURCE_DIR}/python/tissu/_cloth_sdk_core.pyi
-    COMMENT "Copying stubs to python/tissu/"
+        $<TARGET_FILE:_cloth_sdk_core>
+        ${CMAKE_SOURCE_DIR}/blender/libs/$<TARGET_FILE_NAME:_cloth_sdk_core>
+    COMMENT "Copying _cloth_sdk_core to blender/libs/"
 )
+
+# Moving stubs 
+if(STUBGEN_EXECUTABLE)
+    add_custom_command(
+        TARGET _cloth_sdk_core_stubs POST_BUILD
+        COMMAND ${CMAKE_COMMAND} -E copy
+            ${STUB_OUTPUT}
+            ${CMAKE_SOURCE_DIR}/python/tissu/_cloth_sdk_core.pyi
+        COMMENT "Copying stubs to python/tissu/"
+    )
+endif()
 
 enable_testing()
 add_subdirectory(tests)

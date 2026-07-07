@@ -87,6 +87,12 @@ class Cloth {
   inline void setMeshPath(const std::string& meshPath) {
     m_meshPath = meshPath;
   }
+  inline void setTranslation(const Eigen::Vector3d& translation) {
+    m_translation = translation;
+  }
+  inline void setRotation(const Eigen::Quaterniond& rotation) {
+    m_rotation = rotation;
+  }
 
   inline const std::string& getName() const { return m_name; }
   inline const ClothTopology getTopology() const { return m_topology; }
@@ -109,6 +115,8 @@ class Cloth {
   inline const double getSpacing() const { return m_spacing; }
   inline const Pin& getPin() const { return m_pin; }
   inline const std::string& getMeshPath() const { return m_meshPath; }
+  inline const Eigen::Vector3d& getTranslation() const { return m_translation; }
+  inline const Eigen::Quaterniond& getRotation() const { return m_rotation; }
 
   bool isGrid() const { return m_topology == ClothTopology::Grid; }
   bool isMesh() const { return m_topology == ClothTopology::Mesh; }
@@ -128,6 +136,8 @@ class Cloth {
   int m_gridCols;
   double m_restVolume = INFINITY;
   double m_spacing;
+  Eigen::Vector3d m_translation = Eigen::Vector3d::Zero();
+  Eigen::Quaterniond m_rotation = Eigen::Quaterniond::Identity();
   Pin m_pin;
 };
 

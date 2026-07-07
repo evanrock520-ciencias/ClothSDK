@@ -28,7 +28,7 @@ class StateSerializer {
 
  private:
   static constexpr uint8_t MAGIC[6] = {'T', 'I', 'S', 'S', 'U', '\0'};
-  static constexpr uint8_t VERSION = 1;
+  static constexpr uint8_t VERSION = 2;
   static constexpr uint8_t FLAGS = 0;
   static constexpr size_t HEADER_SIZE = 32;
   static constexpr uint32_t CRC32_POLY = 0xEDB88320;

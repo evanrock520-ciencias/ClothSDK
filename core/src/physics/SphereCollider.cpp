@@ -11,11 +11,15 @@ SphereCollider::SphereCollider(const Eigen::Vector3d& center, double radius,
                                double friction)
     : m_center(center), m_radius(radius) {
   m_friction = friction;
+  setPosition(center);
+  setPrevPosition(center);
 }
 
 void SphereCollider::resolve(std::vector<Particle>& particles, double dt,
                              double thickness) {  
   double collisionRadius = m_radius + thickness;
+  Eigen::Vector3d linearVel = getLinearVelocity(dt);
+  Eigen::Vector3d omega = getAngularVelocity(dt);
 
   for (auto& particle : particles) {
     Eigen::Vector3d vec = particle.getPosition() - m_center;
@@ -32,7 +36,7 @@ void SphereCollider::resolve(std::vector<Particle>& particles, double dt,
       Eigen::Vector3d newPosition = m_center + normal * collisionRadius;
       particle.setPosition(newPosition);
 
-      Eigen::Vector3d colliderVelocity = getVelocityAtPoint(newPosition, dt);
+      Eigen::Vector3d colliderVelocity = linearVel + omega.cross(newPosition - m_position);
       Eigen::Vector3d colliderDisplacement = colliderVelocity * dt;
       Eigen::Vector3d particleDisplacement = particle.getPosition() - particle.getOldPosition();
       Eigen::Vector3d relDisplacement = particleDisplacement - colliderDisplacement;

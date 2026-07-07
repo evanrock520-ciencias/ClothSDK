@@ -35,25 +35,30 @@ void World::clear() {
 }
 
 void World::addPlaneCollider(const Eigen::Vector3d& origin,
-                             const Eigen::Vector3d& normal, double friction) {
-  m_colliders.push_back(
-      std::make_unique<PlaneCollider>(origin, normal, friction));
+                             const Eigen::Vector3d& normal, double friction,
+                             const std::string& name) {
+  auto collider = std::make_shared<PlaneCollider>(origin, normal, friction);
+  collider->setName(name);
+  m_colliders.push_back(collider);
 }
 
 void World::addSphereCollider(const Eigen::Vector3d& center, double radius,
-                              double friction) {
-  m_colliders.push_back(
-      std::make_unique<SphereCollider>(center, radius, friction));
+                              double friction, const std::string& name) {
+  auto collider = std::make_shared<SphereCollider>(center, radius, friction);
+  collider->setName(name);
+  m_colliders.push_back(collider);
 }
 
 void World::addCapsuleCollider(const Eigen::Vector3d start,
                                const Eigen::Vector3d end, double radius,
-                               double friction) {
-  m_colliders.push_back(
-      std::make_unique<CapsuleCollider>(radius, start, end, friction));
+                               double friction, const std::string& name) {
+  auto collider = std::make_shared<CapsuleCollider>(radius, start, end, friction);
+  collider->setName(name);
+  m_colliders.push_back(collider);
 }
 
-void World::addMeshCollider(const std::string& path, double friction) {
+void World::addMeshCollider(const std::string& path, double friction,
+                            const std::string& name) {
     std::vector<Eigen::Vector3d> positions;
     std::vector<int> indices;
 
@@ -64,9 +69,9 @@ void World::addMeshCollider(const std::string& path, double friction) {
     for (size_t i = 0; i + 2 < indices.size(); i += 3)
         triangles.push_back({indices[i], indices[i+1], indices[i+2]});
 
-    m_colliders.push_back(
-        std::make_shared<MeshCollider>(positions, triangles, friction)
-    );
+    auto collider = std::make_shared<MeshCollider>(positions, triangles, friction);
+    collider->setName(name);
+    m_colliders.push_back(collider);
 }
 
 void World::moveCollider(size_t index, const Eigen::Vector3d& newPosition, const Eigen::Quaterniond& newRotation) {

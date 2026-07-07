@@ -1,7 +1,7 @@
 # Tissu
 
-![Language](https://img.shields.io/badge/Language-C%2B%2B17-blue.svg)
-![Language](https://img.shields.io/badge/Programming%20Language-Python-red)
+![Language](https://img.shields.io/badge/C++-00599C?style=flat-square&logo=C%2B%2B&logoColor=white)
+![Language](https://img.shields.io/badge/-Python-3776AB?style=flat-square&logo=python&logoColor=white)
 ![License](https://img.shields.io/badge/License-Apache%202.0-orange.svg)
 ![Physics](https://img.shields.io/badge/Physics-XPBD-green.svg)
 ![Platform](https://img.shields.io/badge/Platform-Linux-lightgrey)
@@ -12,8 +12,7 @@
 
 By combining a high-performance **C++ core** with a flexible **Python API**. Tissu lets you script complex simulations with the simplicity of Python and the velocity of C++.
 
-<!-- HERO GIF: falling cloth on sphere render (pending) -->
-![On Sphere](docs/videos/blender/OnSphere.gif)
+![Hero](docs/videos/blender/Hero.webp)
 
 ## Table of Contents
 
@@ -258,3 +257,8 @@ Technical documentation is currently a work in progress. It is expected to inclu
 ## License
 
 This project is licensed under the Apache 2.0 License - see the [LICENSE](LICENSE) file for details.
+
+## Gallery
+
+![On Sphere](docs/videos/blender/OnSphere.gif)
+

@@ -48,5 +48,7 @@ void Cloth::clear() {
   m_particleIndices.clear();
   m_triangles.clear();
   m_visualEdges.clear();
+  m_faces.clear();
+  m_edgeFaceCount.clear();
 }
 }  // namespace Tissu

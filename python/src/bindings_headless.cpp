@@ -6,6 +6,11 @@
 #include <pybind11/pybind11.h>
 #include <pybind11/stl.h>
 
+#ifdef _MSC_VER
+#include <cstddef>
+using ssize_t = std::ptrdiff_t;
+#endif
+
 #include <tuple>
 
 #include "data-structures/SpatialHash.hpp"
@@ -24,6 +29,7 @@
 #include "physics/BendingConstraint.hpp"
 #include "physics/CapsuleCollider.hpp"
 #include "physics/Collider.hpp"
+#include "physics/AttachmentConstraint.hpp"
 #include "physics/MeshCollider.hpp"
 #include "physics/Constraint.hpp"
 #include "physics/DistanceConstraint.hpp"
@@ -93,6 +99,7 @@ PYBIND11_MODULE(_cloth_sdk_core, m) {
       .def_readonly("pin_mode", &SceneHeader::FabricInfo::pin_mode);
 
   py::class_<SceneHeader::ColliderInfo>(m, "ColliderInfo")
+      .def_readonly("name", &SceneHeader::ColliderInfo::name)
       .def_readonly("type", &SceneHeader::ColliderInfo::type)
       .def_readonly("summary", &SceneHeader::ColliderInfo::summary);
 
@@ -148,9 +155,26 @@ PYBIND11_MODULE(_cloth_sdk_core, m) {
            py::arg("idB"), py::arg("idC"), py::arg("idD"), py::arg("restAngle"),
            py::arg("compliance"));
 
+  py::class_<AttachmentConstraint, Constraint,
+             std::unique_ptr<AttachmentConstraint>>(m, "AttachmentConstraint")
+      .def(py::init<int, std::shared_ptr<Collider>, int, double, double>(),
+           py::arg("particle_id"), py::arg("collider"),
+           py::arg("target_vertex_id"), py::arg("compliance") = 0.0,
+           py::arg("rest_length") = 0.0)
+      .def(py::init<int, std::shared_ptr<Collider>, const Eigen::Vector3d&,
+                    double, double>(),
+           py::arg("particle_id"), py::arg("collider"),
+           py::arg("local_anchor"), py::arg("compliance") = 0.0,
+           py::arg("rest_length") = 0.0)
+      .def("get_particle_id", &AttachmentConstraint::getParticleId);
+
   py::class_<Collider, std::shared_ptr<Collider>>(m, "Collider")
       .def("get_friction", &Collider::getFriction)
-      .def("set_friction", &Collider::setFriction);
+      .def("set_friction", &Collider::setFriction)
+      .def("get_name", &Collider::getName)
+      .def("set_name", &Collider::setName)
+      .def("get_position", &Collider::getPosition)
+      .def("get_rotation", &Collider::getRotation);
 
   py::class_<PlaneCollider, Collider, std::shared_ptr<PlaneCollider>>(
       m, "PlaneCollider")
@@ -176,7 +200,8 @@ PYBIND11_MODULE(_cloth_sdk_core, m) {
       .def(py::init<const std::vector<Eigen::Vector3d>&,
                     const std::vector<std::array<int, 3>>&, double>(),
            py::arg("vertices"), py::arg("triangles"), py::arg("friction"))
-      .def("get_mesh_path", &MeshCollider::getMeshPath);
+      .def("get_mesh_path", &MeshCollider::getMeshPath)
+      .def("get_world_vertices", &MeshCollider::getWorldVertices);
 
   py::class_<SpatialHash>(m, "SpatialHash")
       .def(py::init<int, double>(), py::arg("table_size"), py::arg("cell_size"))
@@ -237,6 +262,15 @@ PYBIND11_MODULE(_cloth_sdk_core, m) {
       .def("add_pin", &Solver::addPin)
       .def("unpin", &Solver::removePin)
       .def("add_stitch", &Solver::addStitch, py::arg("idA"), py::arg("idB"), py::arg("compliance") = 0.0)
+      .def("add_attachment", &Solver::addAttachment, py::arg("particle_id"),
+           py::arg("collider"), py::arg("target_vertex_id"),
+           py::arg("compliance") = 0.0, py::arg("rest_length") = 0.0)
+      .def("add_attachment_local", &Solver::addAttachmentLocal,
+           py::arg("particle_id"), py::arg("collider"),
+           py::arg("local_anchor"), py::arg("compliance") = 0.0,
+           py::arg("rest_length") = 0.0)
+      .def("remove_attachment", &Solver::removeAttachment,
+           py::arg("particle_id"))
       .def("soft_reset", &Solver::softReset)
       .def("set_collision_compliance", &Solver::setCollisionCompliance);
 
