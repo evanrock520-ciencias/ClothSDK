@@ -158,6 +158,11 @@ else()
     target_link_libraries(_cloth_sdk_core PRIVATE ClothCore)
 endif()
 
+set_target_properties(_cloth_sdk_core PROPERTIES
+    LIBRARY_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/bin"
+    RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/bin"
+)
+
 # Python stubs
 find_program(STUBGEN_EXECUTABLE stubgen)
 
