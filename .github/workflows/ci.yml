@@ -16,6 +16,8 @@ jobs:
             name: Linux
           - os: macos-latest
             name: macOS
+          - os: windows-latest
+            name: Windows
 
     name: ${{ matrix.name }}
     runs-on: ${{ matrix.os }}
@@ -24,62 +26,25 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
       - name: Install dependencies (Linux)
         if: runner.os == 'Linux'
         run: |
           sudo apt update
-          sudo apt install -y \
-            cmake \
-            build-essential \
-            libopenexr-dev \
-            libilmbase-dev \
-            libboost-dev \
-            libpython3-dev \
-            pybind11-dev \
-            libomp-dev \
-            git
+          sudo apt install -y cmake build-essential libomp-dev git
 
       - name: Install dependencies (macOS)
         if: runner.os == 'macOS'
         run: |
-          brew install \
-            cmake \
-            openexr \
-            boost \
-            pybind11 \
-            libomp \
-            git
-
-      - name: Cache Alembic
-        uses: actions/cache@v4
-        id: cache-alembic
-        with:
-          path: ${{ github.workspace }}/alembic-install
-          key: alembic-1.8.11-${{ runner.os }}
-
-      - name: Install Alembic from source
-        if: steps.cache-alembic.outputs.cache-hit != 'true'
-        run: |
-          JOBS=$([ "$(uname)" = "Darwin" ] && sysctl -n hw.logicalcpu || nproc)
-          git clone https://github.com/alembic/alembic.git
-          cd alembic
-          git checkout 1.8.11
-          mkdir build && cd build
-          cmake .. \
-            -DCMAKE_BUILD_TYPE=Release \
-            -DCMAKE_INSTALL_PREFIX=${{ github.workspace }}/alembic-install \
-            -DUSE_TESTS=OFF
-          make -j$JOBS
-          make install
+          brew install cmake libomp git
 
       - name: Install Python tools
         run: |
-          pip install mypy
-          pip install tqdm
-          pip install numpy
-          pip install matplotlib
-          pip install pytest
-          pip install imageio
+          python -m pip install mypy tqdm numpy matplotlib pytest imageio
 
       - name: Cache FetchContent dependencies
         uses: actions/cache@v4
@@ -89,33 +54,25 @@ jobs:
           restore-keys: |
             fetchcontent-${{ runner.os }}-
 
-      - name: Configure (Linux)
-        if: runner.os == 'Linux'
-        run: |
-          mkdir -p build
-          cmake -S . -B build \
-            -DCMAKE_BUILD_TYPE=Release \
-            -DTISSU_BUILD_VIEWER=OFF \
-            -DCMAKE_PREFIX_PATH=${{ github.workspace }}/alembic-install
+      - name: Configure
+        run: cmake -S . -B build -DCMAKE_BUILD_TYPE=Release -DTISSU_BUILD_VIEWER=OFF
 
-      - name: Configure (macOS)
-        if: runner.os == 'macOS'
-        run: |
-          mkdir -p build
-          cmake -S . -B build \
-            -DCMAKE_BUILD_TYPE=Release \
-            -DTISSU_BUILD_VIEWER=OFF \
-            -DCMAKE_PREFIX_PATH="${{ github.workspace }}/alembic-install;$(brew --prefix openexr);$(brew --prefix boost)"
+      - name: Build
+        run: cmake --build build --config Release -j 4
 
-      - name: Build (Linux/macOS)
-        run: |
-          JOBS=$([ "$(uname)" = "Darwin" ] && sysctl -n hw.logicalcpu || nproc)
-          cmake --build build -j$JOBS
+      - name: Test (C++)
+        run: ctest --test-dir build/tests -C Release --output-on-failure
 
-      - name: Test (Linux/macOS)
-        run: ctest --test-dir build/tests --output-on-failure
+      - name: Test (Python API)
+        run: pytest tests/python -v
 
-      - name: API Test
-        run: |
-            pytest tests/python -v
+      - name: Build benchmarks
+        run: cmake --build build --target tissu_benchmarks --config Release -j 4
 
+      - name: Smoke benchmarks (Linux/macOS)
+        if: runner.os != 'Windows'
+        run: ./build/bin/tissu_benchmarks --benchmark_min_time=0.001s
+
+      - name: Smoke benchmarks (Windows)
+        if: runner.os == 'Windows'
+        run: .\build\bin\Release\tissu_benchmarks.exe --benchmark_min_time=0.001s
