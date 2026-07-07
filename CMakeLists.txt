@@ -15,6 +15,15 @@ set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
+# Redirect all outputs so executables and DLLs are placed in the same folder
+set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
+set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
+set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
+
+if(MSVC)
+    add_compile_definitions(_USE_MATH_DEFINES)
+endif()
+
 include(FetchContent)
 
 # Tissu Dependencies
@@ -76,7 +85,29 @@ set(BENCHMARK_ENABLE_GTEST_TESTS OFF CACHE BOOL "" FORCE)
 set(PYBIND11_INSTALL OFF CACHE BOOL "" FORCE)
 set(PYBIND11_TEST OFF CACHE BOOL "" FORCE)
 
-FetchContent_MakeAvailable(googletest eigen tinyobjloader json pybind11 googlebenchmark)
+# Imath & Alembic configuration
+set(IMATH_INSTALL OFF CACHE BOOL "" FORCE)
+set(IMATH_HALF_USE_LOOKUP_TABLE OFF CACHE BOOL "" FORCE)
+set(ALEMBIC_SHARED_LIBS OFF CACHE BOOL "" FORCE)
+set(USE_TESTS OFF CACHE BOOL "" FORCE)
+set(USE_PYALEMBIC OFF CACHE BOOL "" FORCE)
+set(USE_BINARIES OFF CACHE BOOL "" FORCE)
+set(USE_EXAMPLES OFF CACHE BOOL "" FORCE)
+
+FetchContent_MakeAvailable(googletest eigen tinyobjloader json pybind11 googlebenchmark imath alembic)
+
+if(APPLE)
+    execute_process(
+        COMMAND brew --prefix libomp
+        OUTPUT_VARIABLE LIBOMP_PREFIX
+        OUTPUT_STRIP_TRAILING_WHITESPACE
+    )
+    set(OpenMP_C_FLAGS "-Xpreprocessor -fopenmp -I${LIBOMP_PREFIX}/include")
+    set(OpenMP_CXX_FLAGS "-Xpreprocessor -fopenmp -I${LIBOMP_PREFIX}/include")
+    set(OpenMP_C_LIB_NAMES "omp")
+    set(OpenMP_CXX_LIB_NAMES "omp")
+    set(OpenMP_omp_LIBRARY "${LIBOMP_PREFIX}/lib/libomp.dylib")
+endif()
 
 find_package(OpenMP REQUIRED) 
 
