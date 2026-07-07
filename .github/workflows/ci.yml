@@ -113,7 +113,7 @@ jobs:
           cmake --build build -j$JOBS
 
       - name: Test (Linux/macOS)
-        run: ./build/tests/unit_tests
+        run: ctest --test-dir build/tests --output-on-failure
 
       - name: API Test
         run: |
