@@ -73,7 +73,7 @@ FetchContent_Declare(
 	alembic 
 	GIT_REPOSITORY https://github.com/alembic/alembic.git 
 	GIT_TAG 1.8.11
-	PATCH_COMMAND python -c "import pathlib; p = pathlib.Path('CMakeLists.txt'); lines = p.read_text(encoding='utf-8').splitlines(); new_lines = [line.replace('OLD', 'NEW') if 'CMP0042' in line else line for line in lines]; p.write_text('\\n'.join(new_lines) + '\\n', encoding='utf-8')"
+	PATCH_COMMAND python "${CMAKE_SOURCE_DIR}/scripts/patch_alembic.py"
 )
 
 set(TINYOBJLOADER_INSTALL OFF CACHE BOOL "" FORCE)
