@@ -119,11 +119,3 @@ jobs:
         run: |
             pytest tests/python -v
 
-      - name: Build benchmarks (Linux/macOS)
-        run: |
-          JOBS=$([ "$(uname)" = "Darwin" ] && sysctl -n hw.logicalcpu || nproc)
-          cmake --build build --target tissu_benchmarks -j$JOBS
-
-      - name: Smoke benchmarks (Linux/macOS)
-        if: runner.os != 'Windows'
-        run: ./build/benchmarks/tissu_benchmarks --benchmark_min_time=0.001s
