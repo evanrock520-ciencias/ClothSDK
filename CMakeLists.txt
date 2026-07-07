@@ -97,6 +97,19 @@ set(USE_EXAMPLES OFF CACHE BOOL "" FORCE)
 
 FetchContent_MakeAvailable(googletest eigen tinyobjloader json pybind11 googlebenchmark imath alembic)
 
+if(TARGET Imath)
+    target_include_directories(Imath INTERFACE 
+        $<BUILD_INTERFACE:${imath_SOURCE_DIR}/src>
+        $<BUILD_INTERFACE:${imath_BINARY_DIR}/src>
+    )
+endif()
+if(TARGET Imath::Imath)
+    target_include_directories(Imath::Imath INTERFACE 
+        $<BUILD_INTERFACE:${imath_SOURCE_DIR}/src>
+        $<BUILD_INTERFACE:${imath_BINARY_DIR}/src>
+    )
+endif()
+
 if(APPLE)
     execute_process(
         COMMAND brew --prefix libomp
