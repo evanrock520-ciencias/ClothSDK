@@ -9,6 +9,13 @@ if build_dir.exists() and str(build_dir) not in sys.path:
     sys.path.append(str(build_dir))
 
 if os.name == "nt":
+    # Add local build output directories for DLL resolution
+    for config in ["Release", "Debug", ""]:
+        for folder in ["bin", "lib"]:
+            local_dll_dir = build_dir / folder / config if config else build_dir / folder
+            if local_dll_dir.exists():
+                os.add_dll_directory(str(local_dll_dir))
+
     vcpkg_root = os.environ.get("VCPKG_ROOT")
 
     if vcpkg_root:

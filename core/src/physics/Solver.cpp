@@ -69,9 +69,10 @@ void Solver::step(World& world, double dt) {
 }
 
 void Solver::predictPositions(double dt) {
+    const int size = static_cast<int>(m_particles.size());
 #pragma omp parallel for
-    for (auto& m_particle : m_particles) {
-        m_particle.integrate(dt);
+    for (int i = 0; i < size; ++i) {
+        m_particles[i].integrate(dt);
     }
 }
 
@@ -215,8 +216,10 @@ void Solver::solveConstraints(double dt) {
             constraint->solve(m_particles, dt);
     } else {
         for (const auto& batch : m_batches) {
+            const int batchSize = static_cast<int>(batch.size());
 #pragma omp parallel for
-            for (const int idx : batch) {
+            for (int i = 0; i < batchSize; ++i) {
+                const int idx = batch[i];
                 m_constraints[idx]->solve(m_particles, dt);
             }
         }

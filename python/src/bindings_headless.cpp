@@ -6,6 +6,11 @@
 #include <pybind11/pybind11.h>
 #include <pybind11/stl.h>
 
+#ifdef _MSC_VER
+#include <cstddef>
+using ssize_t = std::ptrdiff_t;
+#endif
+
 #include <tuple>
 
 #include "data-structures/SpatialHash.hpp"

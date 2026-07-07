@@ -32,8 +32,12 @@ set(CORE_SOURCES
     src/utils/Logger.cpp
 )
 
-find_package(Alembic REQUIRED)
-find_package(Imath REQUIRED)
+if(NOT TARGET Alembic::Alembic)
+    find_package(Alembic REQUIRED)
+endif()
+if(NOT TARGET Imath::Imath)
+    find_package(Imath REQUIRED)
+endif()
 
 add_library(ClothCore STATIC ${CORE_SOURCES})
 
