@@ -103,12 +103,6 @@ if(TARGET Imath)
         $<BUILD_INTERFACE:${imath_BINARY_DIR}/src>
     )
 endif()
-if(TARGET Imath::Imath)
-    target_include_directories(Imath::Imath INTERFACE 
-        $<BUILD_INTERFACE:${imath_SOURCE_DIR}/src>
-        $<BUILD_INTERFACE:${imath_BINARY_DIR}/src>
-    )
-endif()
 
 if(APPLE)
     execute_process(
