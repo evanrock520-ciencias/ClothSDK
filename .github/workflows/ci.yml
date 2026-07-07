@@ -114,10 +114,7 @@ jobs:
 
       - name: Configure (Windows)
         if: runner.os == 'Windows'
-        run: |
-          cmake -S . -B build \
-            -DCMAKE_BUILD_TYPE=Release \
-            -DTISSU_BUILD_VIEWER=OFF
+        run: cmake -S . -B build -DCMAKE_BUILD_TYPE=Release -DTISSU_BUILD_VIEWER=OFF
 
       - name: Build (Linux/macOS)
         if: runner.os != 'Windows'
