@@ -13,6 +13,7 @@
 #include "physics/AttachmentConstraint.hpp"
 #include "physics/BendingConstraint.hpp"
 #include "physics/Collider.hpp"
+#include "physics/ContactConstraint.hpp"
 #include "physics/DistanceConstraint.hpp"
 #include "physics/Force.hpp"
 #include "physics/PinConstraint.hpp"
@@ -41,7 +42,7 @@ void Solver::update(World& world, double deltaTime) {
     m_spatialHash.setCellSize(world.getThickness());
     m_spatialHash.build(m_particles);
 
-    double substepDt = deltaTime / static_cast<double>(m_substeps);
+    const double substepDt = deltaTime / static_cast<double>(m_substeps);
 
     for (int i = 0; i < m_substeps; i++)
         step(world, substepDt);
@@ -238,9 +239,6 @@ void Solver::solveConstraints(double dt) {
 }
 
 void Solver::solveSelfCollisions(double dt, double thickness) {
-    const double alphaHat = m_collisionCompliance / (dt * dt);
-    const double thicknessSq = thickness * thickness;
-
     for (int i = 0; i < static_cast<int>(m_particles.size()); ++i) {
         Particle& pA = m_particles[i];
         double wA = pA.getInverseMass();
@@ -258,61 +256,9 @@ void Solver::solveSelfCollisions(double dt, double thickness) {
                 std::binary_search(neighbors.begin(), neighbors.end(), j))
                 continue;
 
-            Particle& pB = m_particles[j];
-            double wB = pB.getInverseMass();
-            const double wSum = wA + wB;
-
-            if (wSum + alphaHat < 1e-12)
-                continue;
-
-            Eigen::Vector3d dir = pA.getPosition() - pB.getPosition();
-
-            if (const double distSq = dir.squaredNorm();
-                distSq > 0.0 && distSq < thicknessSq) {
-                double dist = std::sqrt(distSq);
-                Eigen::Vector3d normal = dir / dist;
-
-                const double C = dist - thickness;
-
-                double deltaLambda = -C / (wSum + alphaHat);
-                Eigen::Vector3d corr = normal * deltaLambda;
-
-                pA.setPosition(pA.getPosition() + corr * wA);
-                pB.setPosition(pB.getPosition() - corr * wB);
-
-                Eigen::Vector3d deltaA = pA.getPosition() - pA.getOldPosition();
-                Eigen::Vector3d deltaB = pB.getPosition() - pB.getOldPosition();
-                Eigen::Vector3d deltaRel = deltaA - deltaB;
-                Eigen::Vector3d deltaTangent =
-                    deltaRel - deltaRel.dot(normal) * normal;
-
-                if (const double lamdaT = deltaTangent.norm(); lamdaT > 1e-12) {
-                    if (lamdaT < m_staticFriction * deltaLambda) {
-                        pA.setPosition(pA.getPosition() -
-                                       deltaTangent * (wA / wSum));
-                        pB.setPosition(pB.getPosition() +
-                                       deltaTangent * (wB / wSum));
-                    } else {
-                        Eigen::Vector3d vA =
-                            (pA.getPosition() - pA.getOldPosition()) / dt;
-                        Eigen::Vector3d vB =
-                            (pB.getPosition() - pB.getOldPosition()) / dt;
-                        Eigen::Vector3d vRel = vA - vB;
-                        Eigen::Vector3d vt = vRel - vRel.dot(normal) * normal;
-
-                        if (const double vt_norm = vt.norm(); vt_norm > 1e-12) {
-                            double dv_mag = std::min(
-                                m_dynamicFriction * deltaLambda / dt, vt_norm);
-                            Eigen::Vector3d dv = -(vt / vt_norm) * dv_mag;
-
-                            pA.setOldPosition(pA.getOldPosition() -
-                                              dv * (wA / wSum) * dt);
-                            pB.setOldPosition(pB.getOldPosition() +
-                                              dv * (wB / wSum) * dt);
-                        }
-                    }
-                }
-            }
+            ContactConstraint contact(i, j, thickness, m_collisionCompliance,
+                                      m_staticFriction, m_dynamicFriction);
+            contact.solve(m_particles, dt);
         }
     }
 }

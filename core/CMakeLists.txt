@@ -2,6 +2,7 @@ set(CORE_SOURCES
     src/physics/Particle.cpp
     src/physics/Solver.cpp
     src/physics/Constraint.cpp
+    src/physics/ContactConstraint.cpp
     src/physics/DistanceConstraint.cpp
     src/physics/BendingConstraint.cpp
     src/physics/PinConstraint.cpp

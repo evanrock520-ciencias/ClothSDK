@@ -20,14 +20,18 @@
 namespace Tissu {
 
 class ContactConstraint : public Constraint {
- public:
-  ContactConstraint(int idA, int idB, double thickness, double compliance);
-  void solve(std::vector<Particle>& particles, double dt) override;
+public:
+    ContactConstraint(int idA, int idB, double thickness, double compliance,
+                      double staticFriction, double dynamicFriction);
+    void solve(std::vector<Particle>& particles, double dt) override;
+    std::vector<int> getParticleIds() const override { return {m_idA, m_idB}; }
 
- private:
-  int m_idA;
-  int m_idB;
-  double m_thickness;
+private:
+    int m_idA;
+    int m_idB;
+    double m_thickness;
+    double m_staticFriction;
+    double m_dynamicFriction;
 };
 
-}  // namespace Tissu
+} // namespace Tissu
