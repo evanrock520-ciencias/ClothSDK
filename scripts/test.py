@@ -16,50 +16,18 @@ def run_command(cmd, cwd=None):
         sys.exit(result.returncode)
 
 def main():
-    parser = argparse.ArgumentParser(description="Cross-platform build and run helper for Tissu SDK")
-    parser.add_argument("--no-compile", action="store_true", help="Skip CMake configuration")
-    parser.add_argument("--no-build", action="store_true", help="Skip build step")
+    parser = argparse.ArgumentParser(description="Cross-platform run helper for Tissu")
     parser.add_argument("--no-test", action="store_true", help="Skip unit tests")
     parser.add_argument("--no-integration", action="store_true", help="Skip integration tests")
     parser.add_argument("--no-api-test", action="store_true", help="Skip API tests")
     parser.add_argument("--bench", action="store_true", help="Run benchmarks")
-    
+
     args = parser.parse_args()
     
     # Paths
     script_dir = Path(__file__).parent.resolve()
     root_dir = script_dir.parent
     build_dir = root_dir / "build"
-    
-    # 1. Compile (CMake configure)
-    if not args.no_compile:
-        print("--- Configuring CMake ---")
-        build_dir.mkdir(parents=True, exist_ok=True)
-        cmake_cmd = [
-            "cmake",
-            "-S", str(root_dir),
-            "-B", str(build_dir),
-            "-DCMAKE_BUILD_TYPE=Release",
-            "-DCMAKE_POLICY_VERSION_MINIMUM=3.5",
-            "-DBENCHMARK_ENABLE_WERROR=OFF",
-        ]
-        if platform.system() != "Windows":
-            cmake_cmd.append("-DCMAKE_C_FLAGS=-Wno-c2y-extensions")
-        
-        run_command(cmake_cmd, cwd=root_dir)
-        print()
-
-    # 2. Build (CMake build)
-    if not args.no_build:
-        print("--- Building Project ---")
-        build_cmd = [
-            "cmake",
-            "--build", str(build_dir),
-            "--config", "Release",
-            "--parallel"
-        ]
-        run_command(build_cmd, cwd=root_dir)
-        print()
 
     # Helper to find executable
     def find_executable(name, subfolder):
@@ -79,27 +47,27 @@ def main():
         print(f"Error: Executable '{name}' not found. Searched in: {[str(p) for p in possible_paths]}")
         sys.exit(1)
 
-    # 3. Test
+    # 1. Test
     if not args.no_test:
         print("--- Running Unit Tests ---")
         exe = find_executable("unit_tests", "tests")
         run_command([str(exe)], cwd=root_dir)
         print()
 
-    # 4. Integration Test
+    # 2. Integration Test
     if not args.no_integration:
         print("--- Running Integration Tests ---")
         exe = find_executable("integration", "tests")
         run_command([str(exe)], cwd=root_dir)
         print()
         
-    # 5. API Tests
+    # 3. API Tests
     if not args.no_api_test:
         print("--- Running API Tests ---")
         api_tests_path = root_dir / "tests" / "python"
         run_command([sys.executable, "-m", "pytest", "-v", str(api_tests_path)], cwd=root_dir)
 
-    # 6. Benchmarks
+    # 4. Benchmarks
     if args.bench:
         print("--- Running Benchmarks ---")
         exe = find_executable("tissu_benchmarks", "benchmarks")
