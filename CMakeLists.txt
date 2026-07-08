@@ -72,7 +72,8 @@ FetchContent_Declare(
 FetchContent_Declare(
 	alembic 
 	GIT_REPOSITORY https://github.com/alembic/alembic.git 
-	GIT_TAG 1.8.6
+	GIT_TAG 1.8.11
+	PATCH_COMMAND python "${CMAKE_SOURCE_DIR}/scripts/patch_alembic.py"
 )
 
 set(TINYOBJLOADER_INSTALL OFF CACHE BOOL "" FORCE)
@@ -95,6 +96,14 @@ set(USE_BINARIES OFF CACHE BOOL "" FORCE)
 set(USE_EXAMPLES OFF CACHE BOOL "" FORCE)
 
 FetchContent_MakeAvailable(googletest eigen tinyobjloader json pybind11 googlebenchmark imath alembic)
+
+if(TARGET Imath)
+    target_include_directories(Imath INTERFACE 
+        $<BUILD_INTERFACE:${imath_SOURCE_DIR}/src>
+        $<BUILD_INTERFACE:${imath_BINARY_DIR}/src>
+    )
+endif()
+
 
 if(APPLE)
     execute_process(

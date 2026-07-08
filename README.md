@@ -44,8 +44,10 @@ Tissu includes the following features:
   - Bending constraint
   - Volume constraint
   - Pin constraint
+  - Stitch Constraint
   - Broad-phase collision detection via Spatial Hash
   - Sphere, capsule and plane colliders
+  - Mesh colliders
   - Kinematic Colliders
   - Self-collision detection
   - Gravity force
@@ -60,9 +62,6 @@ Tissu includes the following features:
 Features planned for future releases:
 
 - USD exportation
-- Mesh colliders
-- Stitch constraint
-- Full multi-cloth support (viewer + Alembic)
 
 The ultimate goal of **Tissu** is to become a Blender add-on.
 
@@ -146,8 +145,6 @@ These dependencies must be installed on your system before building the project:
 
 - Cmake ($\ge$ 3.16)
 - C++ Compiler with C++17 support (GCC, Clang, or MSVC)
-- [Alembic](https://github.com/alembic/alembic)
-- [Imath](https://github.com/AcademySoftwareFoundation/Imath)
 - OpenMP
 
 ### Python Requirements
@@ -168,6 +165,8 @@ These dependencies are automatically downloaded and built by CMake via `FetchCon
 - [tinyobjloader](https://github.com/tinyobjloader/tinyobjloader)
 - [nlohmann/json](https://github.com/nlohmann/json) (v3.11.3)
 - [pybind11](https://github.com/pybind/pybind11) (v2.13.6)
+- [Alembic](https://github.com/alembic/alembic) (1.8.11)
+- [Imath](https://github.com/AcademySoftwareFoundation/Imath)
 - [GoogleTest](https://github.com/google/googletest) (v1.15.2) - *For testing*
 - [Google Benchmark](https://github.com/google/benchmark) (v1.9.1) - *For benchmarking*
 
@@ -191,8 +190,8 @@ If the build includes the **standalone viewer** (`TISSU_BUILD_VIEWER=ON`), the f
 ## Supported Operating Systems
 
 - **Linux:** Supported and tested (On Fedora)
-- **macOS:** Untested.
-- **Windows:** Experimental. (Need more tests)
+- **macOS:** Tested
+- **Windows:** Supported and tested.
 
 ---
 
@@ -209,14 +208,10 @@ cd Tissu
 
 ### 2. Compile the SDK
 
-Build the shared library and the standalone viewer using CMake.
+Build the shared library and the standalone viewer using our build script.
 
 ```bash
-mkdir build
-cd build
-cmake .. -DCMAKE_BUILD_TYPE=Release
-make -j4 
-cd ..
+python scripts/build.py
 ```
 
 ### 3. Install Tissu
@@ -227,6 +222,7 @@ To import the library in your scripts, install the tissu package with pip:
 pip install .
 ```
 
+> [!NOTE]
 > Run this from the root of the repo after building with CMake
 
 ---
@@ -238,6 +234,12 @@ Tissu includes a test suite for both **C++** and **Python**
 - **C++ Tests:** Powered by Google Test (`tests/`)
 - **Python Tests:** Powered by Pytest (`tests/python/`).
 - **Benchmarks:** Powered by Google Benchmark (`benchmarks/`).
+
+To run all tests, you can use the test script:
+
+```bash
+python scripts/test.py
+```
 
 ---
 
