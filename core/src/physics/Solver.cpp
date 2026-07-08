@@ -24,6 +24,8 @@ Solver::Solver()
     : m_substeps(15),
       m_iterations(2),
       m_collisionCompliance(1e-9),
+      m_staticFriction(0.3),
+      m_dynamicFriction(0.3),
       m_spatialHash(10007, 0.08),
       m_graphBuilt(false) {}
 
@@ -79,11 +81,13 @@ void Solver::predictPositions(double dt) {
 int Solver::addParticle(const Particle& particle) {
     m_particles.push_back(particle);
     m_initialPositions.push_back(particle.getPosition());
+    int id = static_cast<int>(m_particles.size() - 1);
+    m_adjList.push_back({});
     return static_cast<int>(m_particles.size() - 1);
 }
 
 void Solver::softReset() {
-    for (int i = 0; i < (int)m_particles.size(); i++) {
+    for (int i = 0; i < static_cast<int>(m_particles.size()); i++) {
         m_particles[i].setPosition(m_initialPositions[i]);
         m_particles[i].setOldPosition(m_initialPositions[i]);
     }
@@ -95,7 +99,7 @@ void Solver::softReset() {
 void Solver::clear() {
     m_particles.clear();
     m_constraints.clear();
-    m_adjacencies.clear();
+    m_adjList.clear();
     m_initialPositions.clear();
     m_batches.clear();
     m_transientPins.clear();
@@ -110,12 +114,12 @@ const std::vector<Particle>& Solver::getParticles() const {
 }
 
 void Solver::addDistanceConstraint(int idA, int idB, double compliance) {
-    Particle& pA = m_particles[idA];
-    Particle& pB = m_particles[idB];
+    const Particle& pA = m_particles[idA];
+    const Particle& pB = m_particles[idB];
     double restLength = (pA.getPosition() - pB.getPosition()).norm();
     m_constraints.push_back(
         std::make_unique<DistanceConstraint>(idA, idB, restLength, compliance));
-    m_adjacencies.insert(getAdjacencyKey(idA, idB));
+    addAdjacency(idA, idB);
     m_graphBuilt = false;
 }
 
@@ -123,17 +127,17 @@ void Solver::addBendingConstraint(int idA, int idB, int idC, int idD,
                                   double restAngle, double compliance) {
     m_constraints.push_back(std::make_unique<BendingConstraint>(
         idA, idB, idC, idD, restAngle, compliance));
-    m_adjacencies.insert(getAdjacencyKey(idA, idC));
-    m_adjacencies.insert(getAdjacencyKey(idB, idC));
-    m_adjacencies.insert(getAdjacencyKey(idA, idD));
-    m_adjacencies.insert(getAdjacencyKey(idB, idD));
+    addAdjacency(idA, idB);
+    addAdjacency(idB, idC);
+    addAdjacency(idA, idD);
+    addAdjacency(idB, idD);
     m_graphBuilt = false;
 }
 
 void Solver::addStitch(int idA, int idB, double compliance) {
     m_constraints.push_back(
         std::make_unique<StitchConstraint>(idA, idB, compliance));
-    m_adjacencies.insert(getAdjacencyKey(idA, idB));
+    addAdjacency(idA, idB);
     m_graphBuilt = false;
 }
 
@@ -171,35 +175,35 @@ void Solver::removeAttach(int id) {
 void Solver::addAttachment(int particleId, std::shared_ptr<Collider> collider,
                            int targetVertexId, double compliance,
                            double restLength) {
-  m_attachments.push_back(std::make_unique<AttachmentConstraint>(
-      particleId, std::move(collider), targetVertexId, compliance, restLength));
+    m_attachments.push_back(std::make_unique<AttachmentConstraint>(
+        particleId, std::move(collider), targetVertexId, compliance,
+        restLength));
 }
 
 void Solver::addAttachmentLocal(int particleId,
                                 std::shared_ptr<Collider> collider,
                                 const Eigen::Vector3d& localAnchor,
                                 double compliance, double restLength) {
-  m_attachments.push_back(std::make_unique<AttachmentConstraint>(
-      particleId, std::move(collider), localAnchor, compliance, restLength));
+    m_attachments.push_back(std::make_unique<AttachmentConstraint>(
+        particleId, std::move(collider), localAnchor, compliance, restLength));
 }
 
 void Solver::removeAttachment(int particleId) {
-  m_attachments.erase(
-      std::remove_if(
-          m_attachments.begin(), m_attachments.end(),
-          [particleId](const std::unique_ptr<AttachmentConstraint>& att) {
-            return att->getParticleId() == particleId;
-          }),
-      m_attachments.end());
+    m_attachments.erase(
+        std::remove_if(
+            m_attachments.begin(), m_attachments.end(),
+            [particleId](const std::unique_ptr<AttachmentConstraint>& att) {
+                return att->getParticleId() == particleId;
+            }),
+        m_attachments.end());
 }
-
 
 double Solver::addVolumeConstraint(const std::vector<Triangle>& triangles,
                                    const std::vector<Particle>& particles,
                                    double compliance) {
     auto constraint =
         std::make_unique<VolumeConstraint>(triangles, particles, compliance);
-    double restVolume = constraint->getRestVolume();
+    const double restVolume = constraint->getRestVolume();
     m_constraints.push_back(std::move(constraint));
     m_graphBuilt = false;
     return restVolume;
@@ -212,7 +216,7 @@ void Solver::addMassToParticle(int id, double mass) {
 
 void Solver::solveConstraints(double dt) {
     if (m_batches.empty()) {
-        for (auto& constraint : m_constraints)
+        for (const auto& constraint : m_constraints)
             constraint->solve(m_particles, dt);
     } else {
         for (const auto& batch : m_batches) {
@@ -234,10 +238,10 @@ void Solver::solveConstraints(double dt) {
 }
 
 void Solver::solveSelfCollisions(double dt, double thickness) {
-    double alphaHat = m_collisionCompliance / (dt * dt);
-    double thicknessSq = thickness * thickness;
+    const double alphaHat = m_collisionCompliance / (dt * dt);
+    const double thicknessSq = thickness * thickness;
 
-    for (int i = 0; i < (int)m_particles.size(); ++i) {
+    for (int i = 0; i < static_cast<int>(m_particles.size()); ++i) {
         Particle& pA = m_particles[i];
         double wA = pA.getInverseMass();
         if (wA == 0.0)
@@ -250,24 +254,25 @@ void Solver::solveSelfCollisions(double dt, double thickness) {
             if (i >= j)
                 continue;
 
-            if (m_adjacencies.count(getAdjacencyKey(i, j)))
+            if (const auto& neighbors = m_adjList[i];
+                std::binary_search(neighbors.begin(), neighbors.end(), j))
                 continue;
 
             Particle& pB = m_particles[j];
             double wB = pB.getInverseMass();
-            double wSum = wA + wB;
+            const double wSum = wA + wB;
 
             if (wSum + alphaHat < 1e-12)
                 continue;
 
             Eigen::Vector3d dir = pA.getPosition() - pB.getPosition();
-            double distSq = dir.squaredNorm();
 
-            if (distSq > 0.0 && distSq < thicknessSq) {
+            if (const double distSq = dir.squaredNorm();
+                distSq > 0.0 && distSq < thicknessSq) {
                 double dist = std::sqrt(distSq);
                 Eigen::Vector3d normal = dir / dist;
 
-                double C = dist - thickness;
+                const double C = dist - thickness;
 
                 double deltaLambda = -C / (wSum + alphaHat);
                 Eigen::Vector3d corr = normal * deltaLambda;
@@ -275,8 +280,38 @@ void Solver::solveSelfCollisions(double dt, double thickness) {
                 pA.setPosition(pA.getPosition() + corr * wA);
                 pB.setPosition(pB.getPosition() - corr * wB);
 
-                pA.setOldPosition(pA.getPosition());
-                pB.setOldPosition(pB.getPosition());
+                Eigen::Vector3d deltaA = pA.getPosition() - pA.getOldPosition();
+                Eigen::Vector3d deltaB = pB.getPosition() - pB.getOldPosition();
+                Eigen::Vector3d deltaRel = deltaA - deltaB;
+                Eigen::Vector3d deltaTangent =
+                    deltaRel - deltaRel.dot(normal) * normal;
+
+                if (const double lamdaT = deltaTangent.norm(); lamdaT > 1e-12) {
+                    if (lamdaT < m_staticFriction * deltaLambda) {
+                        pA.setPosition(pA.getPosition() -
+                                       deltaTangent * (wA / wSum));
+                        pB.setPosition(pB.getPosition() +
+                                       deltaTangent * (wB / wSum));
+                    } else {
+                        Eigen::Vector3d vA =
+                            (pA.getPosition() - pA.getOldPosition()) / dt;
+                        Eigen::Vector3d vB =
+                            (pB.getPosition() - pB.getOldPosition()) / dt;
+                        Eigen::Vector3d vRel = vA - vB;
+                        Eigen::Vector3d vt = vRel - vRel.dot(normal) * normal;
+
+                        if (const double vt_norm = vt.norm(); vt_norm > 1e-12) {
+                            double dv_mag = std::min(
+                                m_dynamicFriction * deltaLambda / dt, vt_norm);
+                            Eigen::Vector3d dv = -(vt / vt_norm) * dv_mag;
+
+                            pA.setOldPosition(pA.getOldPosition() -
+                                              dv * (wA / wSum) * dt);
+                            pB.setOldPosition(pB.getOldPosition() +
+                                              dv * (wB / wSum) * dt);
+                        }
+                    }
+                }
             }
         }
     }
@@ -289,11 +324,18 @@ void Solver::applyForces(World& world, double dt) {
     }
 }
 
-uint64_t Solver::getAdjacencyKey(int idA, int idB) const {
-    uint64_t low = static_cast<uint32_t>(std::min(idA, idB));
-    uint64_t high = static_cast<uint32_t>(std::max(idA, idB));
+void Solver::addAdjacency(int idA, int idB) {
+    if (std::find(m_adjList[idA].begin(), m_adjList[idA].end(), idB) ==
+        m_adjList[idA].end()) {
+        m_adjList[idA].push_back(idB);
+        std::sort(m_adjList[idA].begin(), m_adjList[idA].end());
+    }
 
-    return (high << 32) | low;
+    if (std::find(m_adjList[idB].begin(), m_adjList[idB].end(), idA) ==
+        m_adjList[idB].end()) {
+        m_adjList[idB].push_back(idA);
+        std::sort(m_adjList[idB].begin(), m_adjList[idB].end());
+    }
 }
 
 void Solver::setIterations(const int count) {

@@ -47,8 +47,10 @@ public:
     void setSubsteps(int count);
     void setIterations(int count);
     void setCollisionCompliance(double c) { m_collisionCompliance = c; }
-    void setCurrentFrame(int frame) { m_currentFrame = frame; }
-    void setCurrentTime(double time) { m_currentTime = time; }
+    void setCurrentFrame(const int frame) { m_currentFrame = frame; }
+    void setCurrentTime(const double time) { m_currentTime = time; }
+    void setStaticFriction(const double friction) { m_staticFriction = friction; }
+    void setDynamicFriction(const double friction) { m_dynamicFriction = friction; }
 
     inline int getSubsteps() const { return m_substeps; }
     inline int getIterations() const { return m_iterations; }
@@ -66,8 +68,8 @@ public:
     }
 
     void addDistanceConstraint(int idA, int idB, double compliance);
-    void addBendingConstraint(int a, int b, int c, int d, double restAngle,
-                              double compliance);
+    void addBendingConstraint(int idA, int idB, int idC, int idD,
+                              double restAngle, double compliance);
     double addVolumeConstraint(const std::vector<Triangle>& triangles,
                                const std::vector<Particle>& particles,
                                double compliance);
@@ -99,11 +101,11 @@ private:
 
     void predictPositions(double dt);
     void solveConstraints(double dt);
-    uint64_t getAdjacencyKey(int idA, int idB) const;
+    void addAdjacency(int idA, int idB);
 
     std::vector<Particle> m_particles;
     std::vector<std::unique_ptr<Constraint>> m_constraints;
-    std::unordered_set<uint64_t> m_adjacencies;
+    std::vector<std::vector<int>> m_adjList;
     std::vector<Eigen::Vector3d> m_initialPositions;
 
     SpatialHash m_spatialHash;
@@ -112,6 +114,8 @@ private:
     int m_substeps;
     int m_iterations;
     double m_collisionCompliance;
+    double m_staticFriction;
+    double m_dynamicFriction;
 
     ConstraintGraph m_graph;
     std::vector<std::vector<int>> m_batches;
