@@ -1,6 +1,7 @@
 build/
 bin/
 docs/gen/
+site/
 examples/outputs/
 data/animations/
 data/exports/
@@ -28,6 +29,7 @@ data/cache/*
 !data/cache/.gitkeep
 
 .vscode/
+.idea/
 *.log
 *.ninja
 
