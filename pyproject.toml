@@ -13,9 +13,9 @@ authors = [{ name = "Evan Miranda" }]
 keywords = ["cloth", "simulation", "physics", "3d"]
 
 dependencies = [
-	"numpy",
-	"tqdm",
-	"matplotlib",
+    "numpy",
+    "tqdm",
+    "matplotlib",
     "imageio"
 ]
 
@@ -50,3 +50,25 @@ zip-safe = false
 
 [tool.setuptools.package-data]
 tissu = ["*.so", "*.pyd", "*.pyi", "shaders/*.vert", "shaders/*.frag"]
+
+[tool.ruff]
+line-length = 80
+target-version = "py312"
+
+[tool.ruff.lint]
+select = [
+    "E",
+    "W",
+    "F",
+    "I",
+    "B",
+    "C4",
+    "UP",
+    "N",
+    "SIM"
+]
+ignore = []
+
+[tool.ruff.format]
+quote-style = "double"
+indent-style = "space"
