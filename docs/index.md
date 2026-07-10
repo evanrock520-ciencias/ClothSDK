@@ -1,4 +1,6 @@
-# Technical Documentation
+# Tissu Docs
+
+This is the documentation for Tissu.
 
 ## Index
 
@@ -6,7 +8,7 @@
 
 [2. Architecture](core/architecture.md)
 
-[3. Python API](python/api.md)
+[3. Python API](python/index.md)
 
 [4. Blender Add-on](blender/addon.md)
 

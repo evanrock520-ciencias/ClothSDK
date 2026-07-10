@@ -165,3 +165,5 @@ sim.add_mesh(
 - `name` (`str`): Name of the mesh.
 - `path` (`str`): Path to the mesh file.
 - `friction` (`float`): Friction coefficient of the mesh.
+
+###  

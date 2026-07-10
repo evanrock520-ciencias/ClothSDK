@@ -8,9 +8,12 @@
 [![CI](https://github.com/evanrock520-ciencias/Tissu/actions/workflows/ci.yml/badge.svg)](https://github.com/evanrock520-ciencias/Tissu/actions/workflows/ci.yml)
 [![Release](https://github.com/evanrock520-ciencias/Tissu/actions/workflows/release.yml/badge.svg?event=release)](https://github.com/evanrock520-ciencias/Tissu/actions/workflows/release.yml)
 
-**Tissu** is a C++ cloth simulation SDK designed to integrate seamlessly into Digital Content Creation (DCC) tools such as Blender. It was developed to make high-fidelity cloth simulation as accessible as possible for technical artists and developers.
+**Tissu** is a C++ cloth simulation SDK designed to integrate seamlessly into Digital Content Creation (DCC) tools such
+as Blender. It was developed to make high-fidelity cloth simulation as accessible as possible for technical artists and
+developers.
 
-By combining a high-performance **C++ core** with a flexible **Python API**. Tissu lets you script complex simulations with the simplicity of Python and the velocity of C++.
+By combining a high-performance **C++ core** with a flexible **Python API**. Tissu lets you script complex simulations
+with the simplicity of Python and the velocity of C++.
 
 ![Hero](docs/videos/blender/Hero.webp)
 
@@ -33,29 +36,29 @@ By combining a high-performance **C++ core** with a flexible **Python API**. Tis
 Tissu includes the following features:
 
 - **IO**
-  - Alembic exportation (`.abc`)
-  - Wavefront `.obj` importation and exportation
-  - State serialization (`.tissu`)
-  - Scene loader and exporter (`.json`)
-  - Material presets loader (`.json`)
+    - Alembic exportation (`.abc`)
+    - Wavefront `.obj` importation and exportation
+    - State serialization (`.tissu`)
+    - Scene loader and exporter (`.json`)
+    - Material presets loader (`.json`)
 
 - **Physics (XPBD Solver)**
-  - Distance constraint
-  - Bending constraint
-  - Volume constraint
-  - Pin constraint
-  - Stitch Constraint
-  - Broad-phase collision detection via Spatial Hash
-  - Sphere, capsule and plane colliders
-  - Mesh colliders
-  - Kinematic Colliders
-  - Self-collision detection
-  - Gravity force
-  - Aerodynamic force
+    - Distance constraint
+    - Bending constraint
+    - Volume constraint
+    - Pin constraint
+    - Stitch Constraint
+    - Broad-phase collision detection via Spatial Hash
+    - Sphere, capsule and plane colliders
+    - Mesh colliders
+    - Kinematic Colliders
+    - Self-collision detection
+    - Gravity force
+    - Aerodynamic force
 
 - **Python API**
-  - Full simulation scripting via `tissu` Python package
-  - Event scheduling
+    - Full simulation scripting via `tissu` Python package
+    - Event scheduling
 
 ### Coming Soon
 
@@ -69,7 +72,8 @@ The ultimate goal of **Tissu** is to become a Blender add-on.
 
 ## How To Use
 
-Let's script a cloth falling onto a sphere collider. The following example demonstrates how to set up a simulation, add constraints, schedule events, and export the result.
+Let's script a cloth falling onto a sphere collider. The following example demonstrates how to set up a simulation, add
+constraints, schedule events, and export the result.
 
 ```python
 from tissu import Simulation
@@ -93,10 +97,12 @@ curtain.pin_top_corners()
 # (name, initial position, radius, friction)
 ball = sim.add_sphere('ball', [2.0, 0.0, 0.0], 1.0, 0.5)
 
+
 # 4. Schedule an event: Unpin the curtain at frame 40 so it falls
 @sim.on_frame(40)
 def unpin(sim):
     curtain.unpin()
+
 
 # 5. Run the simulation and export the result directly to Alembic
 output = "data/animations/cloth_on_sphere.abc"
@@ -112,7 +118,8 @@ sim.bake_alembic(
 
 ## Real-time Viewer
 
-Tissu comes with a built-in OpenGL viewer for real-time visualization. If you install **Tissu** with viewer support, you can preview your simulation before baking.
+Tissu comes with a built-in OpenGL viewer for real-time visualization. If you install **Tissu** with viewer support, you
+can preview your simulation before baking.
 
 Instead of calling `sim.bake_alembic()`, simply launch the interactive viewer.
 
