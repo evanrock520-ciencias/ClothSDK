@@ -28,16 +28,16 @@
 namespace Tissu {
 
 class SceneExporter {
- public:
-  static void saveScene(const std::string& filepath, const std::string& name,
-                        Solver& solver, World& world);
+public:
+    static void saveScene(const std::string& filepath, const std::string& name,
+                          Solver& solver, World& world);
 
- private:
-  static void saveFabrics(nlohmann::ordered_json& data,
-                          const std::vector<std::shared_ptr<Cloth>>& fabrics);
-  static void saveColliders(
-      nlohmann::ordered_json& data,
-      const std::vector<std::shared_ptr<Collider>>& colliders);
+private:
+    static void saveFabrics(nlohmann::ordered_json& data,
+                            const std::vector<std::shared_ptr<Cloth>>& fabrics);
+    static void
+    saveColliders(nlohmann::ordered_json& data,
+                  const std::vector<std::shared_ptr<Collider>>& colliders);
 };
 
-}  // namespace Tissu
+} // namespace Tissu

@@ -1,68 +1,89 @@
+import contextlib
+
 import bpy
 
-
 MATERIAL_PRESETS = {
-    'COTTON':  {'density': 0.2,   'structural': 1e-9,  'shear': 1e-8,  'bending': 0.01},
-    'DENIM':   {'density': 0.45,  'structural': 1e-10, 'shear': 1e-9,  'bending': 0.0005},
-    'LEATHER': {'density': 0.7,   'structural': 0.0,   'shear': 1e-10, 'bending': 1e-6},
-    'SILK':    {'density': 0.1,   'structural': 1e-9,  'shear': 1e-8,  'bending': 0.1},
-    'SPANDEX': {'density': 0.15,  'structural': 0.005, 'shear': 0.005, 'bending': 0.1},
+    "COTTON": {
+        "density": 0.2,
+        "structural": 1e-9,
+        "shear": 1e-8,
+        "bending": 0.01,
+    },
+    "DENIM": {
+        "density": 0.45,
+        "structural": 1e-10,
+        "shear": 1e-9,
+        "bending": 0.0005,
+    },
+    "LEATHER": {
+        "density": 0.7,
+        "structural": 0.0,
+        "shear": 1e-10,
+        "bending": 1e-6,
+    },
+    "SILK": {"density": 0.1, "structural": 1e-9, "shear": 1e-8, "bending": 0.1},
+    "SPANDEX": {
+        "density": 0.15,
+        "structural": 0.005,
+        "shear": 0.005,
+        "bending": 0.1,
+    },
 }
 
 # UPDATES
 
+
 def update_substeps(self, context):
     from ..simulation.bridge import get_simulation
+
     sim = get_simulation()
     sim.substeps = self.substeps
-    
+
+
 def update_iterations(self, context):
     from ..simulation.bridge import get_simulation
+
     sim = get_simulation()
     sim.iterations = self.iterations
-    
+
+
 def update_thickness(self, context):
     from ..simulation.bridge import get_simulation
+
     sim = get_simulation()
     sim.thickness = self.thickness
 
+
 def update_gravity(self, context):
     from ..simulation.bridge import get_simulation
+
     sim = get_simulation()
     sim.gravity = self.gravity
-    
+
+
 def update_wind(self, context):
     from ..simulation.bridge import get_simulation
+
     sim = get_simulation()
     sim.wind = self.wind
-    
+
+
 def update_air_thickness(self, context):
     from ..simulation.bridge import get_simulation
+
     sim = get_simulation()
     sim.air_thickness = self.air_thickness
 
 
 class SolverProperties(bpy.types.PropertyGroup):
-    substeps: bpy.props.IntProperty(
-        name="Substeps",
-        default=10,
-        min=1,
-        max=80,
-        update=update_substeps
-    )
-    iterations: bpy.props.IntProperty(
-        name="Iterations",
-        default=3,
-        min=1,
-        max=40,
-        update=update_iterations
-    )
+    substeps: bpy.props.IntProperty(name="Substeps", default=10, min=1, max=80, update=update_substeps)
+    iterations: bpy.props.IntProperty(name="Iterations", default=3, min=1, max=40, update=update_iterations)
     thickness: bpy.props.FloatProperty(
         name="Thickness",
         default=0.05,
         min=0.00001,
         max=1,
-        update=update_thickness
+        update=update_thickness,
     )
 
 
@@ -72,72 +93,41 @@ class WorldProperties(bpy.types.PropertyGroup):
         default=-9.81,
         min=-100.0,
         max=0.0,
-        update=update_gravity
+        update=update_gravity,
     )
-    wind: bpy.props.FloatVectorProperty(
-        name="Wind",
-        default=[0.0, 0.0, 0.0],
-        update=update_wind
-    )
-    air_thickness: bpy.props.FloatProperty(
-        name="Air Thickness",
-        default=0.1,
-        min=0.0,
-        max=1.0
-    )
+    wind: bpy.props.FloatVectorProperty(name="Wind", default=[0.0, 0.0, 0.0], update=update_wind)
+    air_thickness: bpy.props.FloatProperty(name="Air Thickness", default=0.1, min=0.0, max=1.0)
 
 
 def _update_preset(self, context):
-    if self.preset == 'CUSTOM':
+    if self.preset == "CUSTOM":
         return
     values = MATERIAL_PRESETS.get(self.preset)
     if values:
-        self.density = values['density']
-        self.structural = values['structural']
-        self.shear = values['shear']
-        self.bending = values['bending']
+        self.density = values["density"]
+        self.structural = values["structural"]
+        self.shear = values["shear"]
+        self.bending = values["bending"]
 
 
 class MaterialProperties(bpy.types.PropertyGroup):
     preset: bpy.props.EnumProperty(
         name="Preset",
         items=[
-            ('CUSTOM',  'Custom',  ''),
-            ('SILK',    'Silk',    ''),
-            ('COTTON',  'Cotton',  ''),
-            ('DENIM',   'Denim',   ''),
-            ('LEATHER', 'Leather', ''),
-            ('SPANDEX', 'Spandex', ''),
+            ("CUSTOM", "Custom", ""),
+            ("SILK", "Silk", ""),
+            ("COTTON", "Cotton", ""),
+            ("DENIM", "Denim", ""),
+            ("LEATHER", "Leather", ""),
+            ("SPANDEX", "Spandex", ""),
         ],
-        default='CUSTOM',
+        default="CUSTOM",
         update=_update_preset,
     )
-    density: bpy.props.FloatProperty(
-        name="Density",
-        default=0.1,
-        min=0.0,
-        max=100.0
-    )
-    bending: bpy.props.FloatProperty(
-        name="Bending Compliance",
-        default=0.1,
-        min=0.0,
-        max=1.0
-    )
-    shear: bpy.props.FloatProperty(
-        name="Shear Compliance",
-        default=1e-8,
-        min=0.0,
-        max=1.0
-    )
-    structural: bpy.props.FloatProperty(
-        name="Structural Compliance",
-        default=1e-9,
-        min=0.0,
-        max=1.0
-    )
-    
-
+    density: bpy.props.FloatProperty(name="Density", default=0.1, min=0.0, max=100.0)
+    bending: bpy.props.FloatProperty(name="Bending Compliance", default=0.1, min=0.0, max=1.0)
+    shear: bpy.props.FloatProperty(name="Shear Compliance", default=1e-8, min=0.0, max=1.0)
+    structural: bpy.props.FloatProperty(name="Structural Compliance", default=1e-9, min=0.0, max=1.0)
 
 
 classes = [SolverProperties, WorldProperties, MaterialProperties]
@@ -145,49 +135,32 @@ classes = [SolverProperties, WorldProperties, MaterialProperties]
 
 def register():
     for cls in classes:
-        try:
+        with contextlib.suppress(RuntimeError):
             bpy.utils.unregister_class(cls)
-        except RuntimeError:
-            pass
         bpy.utils.register_class(cls)
     bpy.types.Scene.solver_props = bpy.props.PointerProperty(type=SolverProperties)
     bpy.types.Scene.world_props = bpy.props.PointerProperty(type=WorldProperties)
     bpy.types.Scene.material_props = bpy.props.PointerProperty(type=MaterialProperties)
-    bpy.types.Object.tissu_is_collider = bpy.props.BoolProperty(
-        name="Is Collider",
-        default=False
-    )
+    bpy.types.Object.tissu_is_collider = bpy.props.BoolProperty(name="Is Collider", default=False)
     bpy.types.Object.tissu_collider_type = bpy.props.EnumProperty(
         name="Collider Type",
         items=[
-            ('MESH',    'Mesh',    'Triangle mesh collider'),
-            ('PLANE',   'Plane',   'Infinite plane collider'),
-            ('SPHERE',  'Sphere',  'Sphere collider'),
-            ('CAPSULE', 'Capsule', 'Capsule collider'),
+            ("MESH", "Mesh", "Triangle mesh collider"),
+            ("PLANE", "Plane", "Infinite plane collider"),
+            ("SPHERE", "Sphere", "Sphere collider"),
+            ("CAPSULE", "Capsule", "Capsule collider"),
         ],
-        default='MESH',
+        default="MESH",
     )
-    bpy.types.Object.tissu_collider_friction = bpy.props.FloatProperty(
-        name="Friction",
-        default=0.5,
-        min=0.0,
-        max=1.0
-    )
-    bpy.types.Object.tissu_is_fabric = bpy.props.BoolProperty(
-        name="Is Fabric",
-        default=False
-    )
-    bpy.types.Scene.tissu_seams = bpy.props.StringProperty(
-        name="Tissu Seams",
-        default="[]"
-    )
+    bpy.types.Object.tissu_collider_friction = bpy.props.FloatProperty(name="Friction", default=0.5, min=0.0, max=1.0)
+    bpy.types.Object.tissu_is_fabric = bpy.props.BoolProperty(name="Is Fabric", default=False)
+    bpy.types.Scene.tissu_seams = bpy.props.StringProperty(name="Tissu Seams", default="[]")
+
 
 def unregister():
     for cls in reversed(classes):
-        try:
+        with contextlib.suppress(RuntimeError):
             bpy.utils.unregister_class(cls)
-        except RuntimeError:
-            pass
     if hasattr(bpy.types.Scene, "solver_props"):
         del bpy.types.Scene.solver_props
     if hasattr(bpy.types.Scene, "world_props"):

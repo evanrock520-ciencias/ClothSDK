@@ -19,22 +19,19 @@ if os.name == "nt":
     vcpkg_root = os.environ.get("VCPKG_ROOT")
 
     if vcpkg_root:
-        dll_dir = (
-            Path(vcpkg_root)
-            / "installed"
-            / "x64-windows"
-            / "bin"
-        )
+        dll_dir = Path(vcpkg_root) / "installed" / "x64-windows" / "bin"
 
         if dll_dir.exists():
             os.add_dll_directory(str(dll_dir))
 
 try:
-    from . import _cloth_sdk_core
-    from ._cloth_sdk_core import *
+    from . import _cloth_sdk_core  # noqa: F401
+    from ._cloth_sdk_core import *  # noqa: F403
 
 except ImportError as e:
     print(f"[Tissu] Import error: {e}")
     raise
 
-from .engine import Simulation, Fabric, Material
+from .engine import Fabric, Material, Simulation  # noqa: E402
+
+__all__ = ["Fabric", "Material", "Simulation"]

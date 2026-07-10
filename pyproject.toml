@@ -52,7 +52,7 @@ zip-safe = false
 tissu = ["*.so", "*.pyd", "*.pyi", "shaders/*.vert", "shaders/*.frag"]
 
 [tool.ruff]
-line-length = 80
+line-length = 120
 target-version = "py312"
 
 [tool.ruff.lint]
@@ -67,7 +67,7 @@ select = [
     "N",
     "SIM"
 ]
-ignore = []
+ignore = ["N801", "N803", "N806"]
 
 [tool.ruff.format]
 quote-style = "double"

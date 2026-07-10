@@ -36,93 +36,93 @@ class Particle;
  * implicit velocity via friction.
  */
 class Collider {
- public:
-  /**
-   * @brief Destroy the collider for safe cleanup.
-   *
-   */
-  virtual ~Collider() = default;
+public:
+    /**
+     * @brief Destroy the collider for safe cleanup.
+     *
+     */
+    virtual ~Collider() = default;
 
-  /**
-   * @brief Detects and resolves interpenetration between particles and the
-   * collider volume.
-   *
-   * Derived classes must implement the specific geometry projection logic.
-   *
-   * @param particles Reference to the global particle buffer.
-   * @param dt Current substep time delta. Required for kinematic friction
-   * calculations.
-   */
-  virtual void resolve(std::vector<Particle>& particles, double dt,
-                       double thickness) = 0;
+    /**
+     * @brief Detects and resolves interpenetration between particles and the
+     * collider volume.
+     *
+     * Derived classes must implement the specific geometry projection logic.
+     *
+     * @param particles Reference to the global particle buffer.
+     * @param dt Current substep time delta. Required for kinematic friction
+     * calculations.
+     */
+    virtual void resolve(std::vector<Particle>& particles, double dt,
+                         double thickness) = 0;
 
-  /**
-   * @brief Transforms the collider's position and rotation.
-   *
-   * @param position New position of the collider.
-   * @param rotation New rotation of the collider.
-   */
-  virtual void transform(const Eigen::Vector3d& position,
-                         const Eigen::Quaterniond& rotation);
+    /**
+     * @brief Transforms the collider's position and rotation.
+     *
+     * @param position New position of the collider.
+     * @param rotation New rotation of the collider.
+     */
+    virtual void transform(const Eigen::Vector3d& position,
+                           const Eigen::Quaterniond& rotation);
 
-  Eigen::Vector3d getLinearVelocity(double dt) const;
+    Eigen::Vector3d getLinearVelocity(double dt) const;
 
-  Eigen::Vector3d getAngularVelocity(double dt) const;
+    Eigen::Vector3d getAngularVelocity(double dt) const;
 
-  Eigen::Vector3d getVelocityAtPoint(const Eigen::Vector3d& point,
-                                     double dt) const;
+    Eigen::Vector3d getVelocityAtPoint(const Eigen::Vector3d& point,
+                                       double dt) const;
 
-  /**
-   * @brief Configures the surface friction coefficient.
-   *
-   * @param friction Friction value in the range [0.0, 1.0]
-   */
-  void setFriction(double friction) { m_friction = friction; }
+    /**
+     * @brief Configures the surface friction coefficient.
+     *
+     * @param friction Friction value in the range [0.0, 1.0]
+     */
+    void setFriction(double friction) { m_friction = friction; }
 
-  inline void setPosition(const Eigen::Vector3d& position) {
-    m_position = position;
-  }
-  inline void setRotation(const Eigen::Quaterniond& rotation) {
-    m_rotation = rotation;
-  }
+    inline void setPosition(const Eigen::Vector3d& position) {
+        m_position = position;
+    }
+    inline void setRotation(const Eigen::Quaterniond& rotation) {
+        m_rotation = rotation;
+    }
 
-  inline void setPrevPosition(const Eigen::Vector3d& prevPosition) {
-    m_prevPosition = prevPosition;
-  }
-  inline void setPrevRotation(const Eigen::Quaterniond& prevRotation) {
-    m_prevRotation = prevRotation;
-  }
+    inline void setPrevPosition(const Eigen::Vector3d& prevPosition) {
+        m_prevPosition = prevPosition;
+    }
+    inline void setPrevRotation(const Eigen::Quaterniond& prevRotation) {
+        m_prevRotation = prevRotation;
+    }
 
-  inline void setName(const std::string& name) { m_name = name; }
+    inline void setName(const std::string& name) { m_name = name; }
 
-  /** @return The current surface friction coefficient. */
-  inline double getFriction() const { return m_friction; }
+    /** @return The current surface friction coefficient. */
+    inline double getFriction() const { return m_friction; }
 
-  inline const Eigen::Vector3d& getPosition() const { return m_position; }
-  inline const Eigen::Quaterniond& getRotation() const { return m_rotation; }
+    inline const Eigen::Vector3d& getPosition() const { return m_position; }
+    inline const Eigen::Quaterniond& getRotation() const { return m_rotation; }
 
-  inline const Eigen::Vector3d& getPrevPosition() const {
-    return m_prevPosition;
-  }
-  inline const Eigen::Quaterniond& getPrevRotation() const {
-    return m_prevRotation;
-  }
+    inline const Eigen::Vector3d& getPrevPosition() const {
+        return m_prevPosition;
+    }
+    inline const Eigen::Quaterniond& getPrevRotation() const {
+        return m_prevRotation;
+    }
 
-  inline const std::string& getName() const { return m_name; }
+    inline const std::string& getName() const { return m_name; }
 
- protected:
-  /**
-   * @brief Tangential friction coefficient used during collision response.
-   *
-   */
-  double m_friction = 0.5;
+protected:
+    /**
+     * @brief Tangential friction coefficient used during collision response.
+     *
+     */
+    double m_friction = 0.5;
 
-  Eigen::Vector3d m_position = Eigen::Vector3d::Zero();
-  Eigen::Quaterniond m_rotation = Eigen::Quaterniond::Identity();
-  Eigen::Vector3d m_prevPosition = Eigen::Vector3d::Zero();
-  Eigen::Quaterniond m_prevRotation = Eigen::Quaterniond::Identity();
+    Eigen::Vector3d m_position = Eigen::Vector3d::Zero();
+    Eigen::Quaterniond m_rotation = Eigen::Quaterniond::Identity();
+    Eigen::Vector3d m_prevPosition = Eigen::Vector3d::Zero();
+    Eigen::Quaterniond m_prevRotation = Eigen::Quaterniond::Identity();
 
-  std::string m_name;
+    std::string m_name;
 };
 
-}  // namespace Tissu
+} // namespace Tissu

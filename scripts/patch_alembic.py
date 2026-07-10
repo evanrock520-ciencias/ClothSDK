@@ -1,12 +1,16 @@
 import pathlib
 import sys
 
+
 def main():
     path = pathlib.Path("CMakeLists.txt")
     if not path.is_file():
-        print(f"Error: CMakeLists.txt not found in {pathlib.Path.cwd()}", file=sys.stderr)
+        print(
+            f"Error: CMakeLists.txt not found in {pathlib.Path.cwd()}",
+            file=sys.stderr,
+        )
         sys.exit(1)
-        
+
     print(f"Patching CMakeLists.txt in {pathlib.Path.cwd()}...")
     try:
         content = path.read_text(encoding="utf-8")
@@ -21,7 +25,7 @@ def main():
                 print(f"  Replaced: {line.strip()} -> {new_line.strip()}")
             else:
                 new_lines.append(line)
-        
+
         if replaced:
             path.write_text("\n".join(new_lines) + "\n", encoding="utf-8")
             print("Successfully patched.")
@@ -30,6 +34,7 @@ def main():
     except Exception as e:
         print(f"Error during patching: {e}", file=sys.stderr)
         sys.exit(1)
+
 
 if __name__ == "__main__":
     main()

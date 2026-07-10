@@ -1,24 +1,33 @@
 from __future__ import annotations
-from pathlib import Path
-import numpy as np
 
-import bpy
+from pathlib import Path
+
+import numpy as np
 
 ADDON_PATH = Path(__file__).resolve().parents[1]
 LIBS_PATH = str(ADDON_PATH / "libs")
 if LIBS_PATH not in __import__("sys").path:
     __import__("sys").path.insert(0, LIBS_PATH)
 
-from _cloth_sdk_core import (
-    World, Solver, Cloth, ClothMesh, ClothMaterial,
-    GravityForce, AerodynamicForce, Pin, PinMode,
-    MeshCollider, PlaneCollider, SphereCollider, CapsuleCollider,
-    AlembicExporter, OBJLoader, SceneExporter, SceneLoader,
-    ConfigLoader, Logger,
+from _cloth_sdk_core import (  # noqa: E402
+    AlembicExporter,
+    Cloth,
+    ClothMaterial,
+    GravityForce,
+    Logger,
+    Solver,
+    World,
 )
 
+
 class Simulation:
-    def __init__(self, substeps: int = 10, iterations: int = 2, gravity: float = -9.81, thickness: float = 0.02):
+    def __init__(
+        self,
+        substeps: int = 10,
+        iterations: int = 2,
+        gravity: float = -9.81,
+        thickness: float = 0.02,
+    ):
         self.world = World()
         self.solver = Solver()
         self._substeps = substeps
@@ -34,24 +43,24 @@ class Simulation:
         self.world.add_force(self._gravity_force)
 
         # Track simulation objects
-        self.cloth_objects = {}  
-        self._aero_forces = {}   
+        self.cloth_objects = {}
+        self._aero_forces = {}
         self._colliders = {}
-    
+
     @property
     def substeps(self):
         return self._substeps
-    
+
     @substeps.setter
     def substeps(self, value):
         print(f"--> [Bridge] Change substeps to: {value}")
         self._substeps = value
         self.solver.set_substeps(value)
-    
+
     @property
     def iterations(self):
         return self._iterations
-    
+
     @iterations.setter
     def iterations(self, value):
         print(f"--> [Bridge] Change iterations to: {value}")
@@ -61,17 +70,17 @@ class Simulation:
     @property
     def thickness(self):
         return self._thickness
-    
+
     @thickness.setter
     def thickness(self, value):
         print(f"--> [Bridge] Change thickness to: {value}")
         self._thickness = value
         self.world.set_thickness(value)
-        
+
     @property
     def gravity(self):
         return self._gravity
-    
+
     @gravity.setter
     def gravity(self, value):
         print(f"--> [Bridge] Change gravity to: {value}")
@@ -80,11 +89,11 @@ class Simulation:
         self.world.set_gravity(self._gravity_vector)
         if hasattr(self, "_gravity_force") and self._gravity_force is not None:
             self._gravity_force.set_gravity(self._gravity_vector)
-    
+
     @property
     def wind(self):
         return self._wind
-    
+
     @wind.setter
     def wind(self, value):
         val_list = [float(x) for x in value]
@@ -98,11 +107,11 @@ class Simulation:
         self.world.set_wind(tissu_wind)
         for force in self._aero_forces.values():
             force.set_wind(tissu_wind)
-        
+
     @property
     def air_thickness(self):
         return self._air_thickness
-    
+
     @air_thickness.setter
     def air_thickness(self, value):
         print(f"--> [Bridge] Change air thickness to: {value}")
@@ -115,16 +124,22 @@ class Simulation:
         particles = self.solver.get_particles()
         return np.array([p.get_position() for p in particles], dtype=np.float64)
 
-    def step(self, dt: float = 1.0/60.0):
+    def step(self, dt: float = 1.0 / 60.0):
         self.solver.update(self.world, dt)
 
-    def bake_alembic(self, filepath: str, start_frame: int = 0, end_frame: int = 120, fps: float = 60.0) -> bool:
+    def bake_alembic(
+        self,
+        filepath: str,
+        start_frame: int = 0,
+        end_frame: int = 120,
+        fps: float = 60.0,
+    ) -> bool:
         if not self.cloth_objects:
             raise RuntimeError("No cloth objects found in simulation to bake.")
 
         exporter = AlembicExporter()
         dt = 1.0 / fps
-        
+
         names = list(self.cloth_objects.keys())
         global_indices_list = []
         particle_indices_list = []
@@ -135,14 +150,19 @@ class Simulation:
             particle_indices_list.append(np.array(particle_ids, dtype=np.int32))
 
         print(f"--> [Bridge] Baking simulation to {filepath}...")
-        
-        if not exporter.open(filepath, names, self.get_positions(),
-                             global_indices_list, particle_indices_list):
+
+        if not exporter.open(
+            filepath,
+            names,
+            self.get_positions(),
+            global_indices_list,
+            particle_indices_list,
+        ):
             print(f"--> [Bridge] Failed to create Alembic file: {filepath}")
             return False
 
         total_frames = end_frame - start_frame
-        
+
         for frame_idx in range(total_frames):
             self.step(dt)
             current_time = frame_idx * dt
@@ -152,6 +172,7 @@ class Simulation:
         print(f"--> [Bridge] Bake completed successfully: {filepath}")
         return True
 
+
 class Fabric:
     def __init__(self, name: str, material: Material) -> None:
         self.name = name
@@ -160,7 +181,7 @@ class Fabric:
             material.density,
             material.structural,
             material.shear,
-            material.bending
+            material.bending,
         )
         self.instance = Cloth(name, native_mat)
         self.solver = None
@@ -171,7 +192,10 @@ class Fabric:
             return np.empty((0, 3), dtype=np.float64)
         all_particles = self.solver.get_particles()
         my_indices = self.instance.get_particle_indices()
-        return np.array([all_particles[idx].get_position() for idx in my_indices], dtype=np.float64)
+        return np.array(
+            [all_particles[idx].get_position() for idx in my_indices],
+            dtype=np.float64,
+        )
 
     def get_triangles(self):
         return self.instance.get_triangles()
@@ -219,13 +243,15 @@ class Material:
     @classmethod
     def from_dict(cls, data: dict):
         return cls(
-            density = data.get("density", 0.1),
-            structural = data.get("structural", 1e-9),
-            shear = data.get("shear", 1e-8),
-            bending = data.get("bending", 0.01)
+            density=data.get("density", 0.1),
+            structural=data.get("structural", 1e-9),
+            shear=data.get("shear", 1e-8),
+            bending=data.get("bending", 0.01),
         )
-            
+
+
 tissu_sim_instance = None
+
 
 def get_simulation() -> Simulation:
     global tissu_sim_instance
@@ -233,7 +259,9 @@ def get_simulation() -> Simulation:
         tissu_sim_instance = Simulation()
     return tissu_sim_instance
 
+
 classes = [Material, Fabric, Simulation]
+
 
 def register():
     global tissu_sim_instance
@@ -247,4 +275,3 @@ def unregister():
     if tissu_sim_instance is not None:
         tissu_sim_instance = None
     Logger.info("Tissu simulation bridge unregistered.")
-

@@ -1,9 +1,8 @@
 import sys
 from pathlib import Path
 
-import bpy
-from .pattern import properties, operators
 from .panels import UI
+from .pattern import operators, properties
 from .simulation import bridge, session
 
 bl_info = {
@@ -35,9 +34,11 @@ modules = [
     UI,
 ]
 
+
 def register():
     for module in modules:
         module.register()
+
 
 def unregister():
     for module in reversed(modules):

@@ -31,7 +31,7 @@ public:
     AttachmentConstraint(int particleId, std::shared_ptr<Collider> collider,
                          int targetVertexId, double compliance = 0.0,
                          double restLength = 0.0);
-    
+
     AttachmentConstraint(int particleId, std::shared_ptr<Collider> collider,
                          const Eigen::Vector3d& localAnchor,
                          double compliance = 0.0, double restLength = 0.0);

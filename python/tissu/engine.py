@@ -1,16 +1,25 @@
 from __future__ import annotations
-from typing import Iterator
-from collections import defaultdict
-from . import _cloth_sdk_core as sdk
-import numpy as np
+
 import os
-from tqdm.auto import tqdm
-import matplotlib.pyplot as plt
+from collections import defaultdict
+from collections.abc import Iterator
+
 import imageio
+import matplotlib.pyplot as plt
+import numpy as np
+from tqdm.auto import tqdm
+
+from . import _cloth_sdk_core as sdk
 
 
 class Simulation:
-    def __init__(self, substeps: int = 10, iterations: int = 2, gravity: float = -9.81, thickness: float = 0.02):
+    def __init__(
+        self,
+        substeps: int = 10,
+        iterations: int = 2,
+        gravity: float = -9.81,
+        thickness: float = 0.02,
+    ):
         self.world = sdk.World()
         self.solver = sdk.Solver()
 
@@ -28,7 +37,6 @@ class Simulation:
         self.thickness = thickness
         self.wind = [0.0, 0.0, 0.0]
         self.air_density = 0.1
-        self._collision_compliance = 0.0
 
         self.actions = defaultdict(list)
 
@@ -104,10 +112,6 @@ class Simulation:
         self.world.set_thickness(val)
 
     @property
-    def collision_compliance(self):
-        return self._collision_compliance
-
-    @property
     def fabrics(self):
         return self.cloth_objects.values()
 
@@ -125,8 +129,8 @@ class Simulation:
 
         for particle in self.solver.get_particles():
             v = particle.get_velocity(dt)
-            m = 1.0 / particle.get_inverse_mass() if particle.get_inverse_mass() > 0 else float('inf')
-            k = 0.5 * m * np.dot(v, v) if m != float('inf') else 0.0
+            m = 1.0 / particle.get_inverse_mass() if particle.get_inverse_mass() > 0 else float("inf")
+            k = 0.5 * m * np.dot(v, v) if m != float("inf") else 0.0
 
             ke = np.append(ke, k)
 
@@ -137,7 +141,7 @@ class Simulation:
 
         for particle in self.solver.get_particles():
             y = particle.get_position()[1]
-            m = 1.0 / particle.get_inverse_mass() if particle.get_inverse_mass() > 0 else float('inf')
+            m = 1.0 / particle.get_inverse_mass() if particle.get_inverse_mass() > 0 else float("inf")
             p = m * abs(self.gravity) * y
 
             pe = np.append(pe, p)
@@ -159,11 +163,15 @@ class Simulation:
             raise KeyError(f"Fabric '{name}' not found.")
         return self.cloth_objects[name]
 
-    def stitch(self, fabricA: "Fabric", fabricB: "Fabric",
-               local_ids_A: np.ndarray, local_ids_B: np.ndarray,
-               compliance: float = 0.0) -> None:
-
-        # TODO: Include variable lengths 
+    def stitch(
+        self,
+        fabricA: Fabric,
+        fabricB: Fabric,
+        local_ids_A: np.ndarray,
+        local_ids_B: np.ndarray,
+        compliance: float = 0.0,
+    ) -> None:
+        # TODO: Include variable lengths
         if len(local_ids_A) != len(local_ids_B):
             raise ValueError("Local Id's Length Mismatch.")
 
@@ -171,14 +179,19 @@ class Simulation:
         mapB = np.array(fabricB.instance.get_particle_indices())
         global_ids_A = mapA[local_ids_A]
         global_ids_B = mapB[local_ids_B]
-        for gA, gB in zip(global_ids_A, global_ids_B):
+        for gA, gB in zip(global_ids_A, global_ids_B, strict=False):
             self.solver.add_stitch(int(gA), int(gB), float(compliance))
 
-    def attach(self, fabric: "Fabric", collider_name: str,
-               local_ids: list,
-               target_vertex_ids: list = None,
-               local_anchors: list = None,
-               compliance: float = 0.0, rest_length: float = 0.0) -> None:
+    def attach(
+        self,
+        fabric: Fabric,
+        collider_name: str,
+        local_ids: list,
+        target_vertex_ids: list = None,
+        local_anchors: list = None,
+        compliance: float = 0.0,
+        rest_length: float = 0.0,
+    ) -> None:
         index = self._colliders.get(collider_name)
         if index is None:
             raise ValueError(f"Collider '{collider_name}' not found.")
@@ -190,14 +203,25 @@ class Simulation:
         if target_vertex_ids is not None:
             if len(local_ids) != len(target_vertex_ids):
                 raise ValueError("Length mismatch between local_ids and target_vertex_ids.")
-            for gId, vId in zip(global_ids, target_vertex_ids):
-                self.solver.add_attachment(int(gId), collider, int(vId), float(compliance), float(rest_length))
+            for gId, vId in zip(global_ids, target_vertex_ids, strict=False):
+                self.solver.add_attachment(
+                    int(gId),
+                    collider,
+                    int(vId),
+                    float(compliance),
+                    float(rest_length),
+                )
         elif local_anchors is not None:
             if len(local_anchors) != len(local_ids):
                 raise ValueError("Length mismatch between local_ids and local_anchors.")
-            for gId, anchor in zip(global_ids, local_anchors):
-                self.solver.add_attachment_local(int(gId), collider, np.array(anchor, dtype=np.float64),
-                                                 float(compliance), float(rest_length))
+            for gId, anchor in zip(global_ids, local_anchors, strict=False):
+                self.solver.add_attachment_local(
+                    int(gId),
+                    collider,
+                    np.array(anchor, dtype=np.float64),
+                    float(compliance),
+                    float(rest_length),
+                )
         else:
             raise ValueError("Must provide either target_vertex_ids or local_anchors.")
 
@@ -241,7 +265,7 @@ class Simulation:
             aero = sdk.AerodynamicForce(
                 cloth.get_aerofaces(),
                 sim.world.get_wind(),
-                sim.world.get_air_density()
+                sim.world.get_air_density(),
             )
             sim._aero_forces[fabric.name] = aero
             sim.world.add_force(aero)
@@ -292,11 +316,7 @@ class Simulation:
 
         self.world.add_cloth(fabric.instance)
 
-        aero = sdk.AerodynamicForce(
-            fabric.instance.get_aerofaces(),
-            self.wind,
-            self.air_density
-        )
+        aero = sdk.AerodynamicForce(fabric.instance.get_aerofaces(), self.wind, self.air_density)
 
         fabric._solver = self.solver
         self._aero_forces[fabric.name] = aero
@@ -305,19 +325,42 @@ class Simulation:
         self.cloth_objects[fabric.name] = fabric
         sdk.Logger.info(f"Successfully added fabric: {fabric.name}")
 
-    def create_grid(self, name: str, rows: int, cols: int, spacing: float, material=None, translation=(0.0, 0.0, 0.0),
-                    rotation=(0.0, 0.0, 0.0, 1.0)) -> "Fabric":
+    def create_grid(
+        self,
+        name: str,
+        rows: int,
+        cols: int,
+        spacing: float,
+        material=None,
+        translation=(0.0, 0.0, 0.0),
+        rotation=(0.0, 0.0, 0.0, 1.0),
+    ) -> Fabric:
         if name in self.cloth_objects:
             raise ValueError(f"Fabric '{name}' already exists in simulation.")
 
         resolved = self._resolve_material(material)
-        fabric = Fabric.grid(name, rows, cols, spacing, resolved, self.solver, translation, rotation)
+        fabric = Fabric.grid(
+            name,
+            rows,
+            cols,
+            spacing,
+            resolved,
+            self.solver,
+            translation,
+            rotation,
+        )
         self.add_fabric(fabric)
 
         return fabric
 
-    def create_from_obj(self, name: str, path: str, material=None, translation=(0.0, 0.0, 0.0),
-                        rotation=(0.0, 0.0, 0.0, 1.0)):
+    def create_from_obj(
+        self,
+        name: str,
+        path: str,
+        material=None,
+        translation=(0.0, 0.0, 0.0),
+        rotation=(0.0, 0.0, 0.0, 1.0),
+    ):
         if name in self.cloth_objects:
             raise ValueError(f"Fabric '{name}' already exists in simulation.")
 
@@ -327,13 +370,28 @@ class Simulation:
 
         return fabric
 
-    def create_from_arrays(self, name: str, vertices: np.ndarray, triangles: np.ndarray, material=None,
-                           translation=(0.0, 0.0, 0.0), rotation=(0.0, 0.0, 0.0, 1.0)):
+    def create_from_arrays(
+        self,
+        name: str,
+        vertices: np.ndarray,
+        triangles: np.ndarray,
+        material=None,
+        translation=(0.0, 0.0, 0.0),
+        rotation=(0.0, 0.0, 0.0, 1.0),
+    ):
         if name in self.cloth_objects:
             raise ValueError(f"Fabric '{name}' already exists in simulation.")
 
         resolved = self._resolve_material(material)
-        fabric = Fabric.from_arrays(name, vertices, triangles, resolved, self.solver, translation, rotation)
+        fabric = Fabric.from_arrays(
+            name,
+            vertices,
+            triangles,
+            resolved,
+            self.solver,
+            translation,
+            rotation,
+        )
         self.add_fabric(fabric)
 
         return fabric
@@ -350,8 +408,7 @@ class Simulation:
             return material
         else:
             raise TypeError(
-                f"Invalid material type: {type(material).__name__}. "
-                f"Expected str, dict, Material or None."
+                f"Invalid material type: {type(material).__name__}. " f"Expected str, dict, Material or None."
             )
 
     def add_floor(self, name: str, height: float = 0.0, friction: float = 0.5):
@@ -373,7 +430,14 @@ class Simulation:
         sdk.Logger.info(f"Added sphere collider '{name}' at {center}")
         self._colliders[name] = len(self.world.get_colliders()) - 1
 
-    def add_capsule(self, name: str, start: np.array, end: np.array, radius: float = 1.0, friction: float = 0.5):
+    def add_capsule(
+        self,
+        name: str,
+        start: np.array,
+        end: np.array,
+        radius: float = 1.0,
+        friction: float = 0.5,
+    ):
         self.world.add_capsule_collider(start, end, float(radius), float(friction), name)
         sdk.Logger.info(f"Added capsule collider '{name}' from {start} to {end}")
         self._colliders[name] = len(self.world.get_colliders()) - 1
@@ -382,7 +446,13 @@ class Simulation:
         self.world.add_mesh_collider(path, friction, name)
         self._colliders[name] = len(self.world.get_colliders()) - 1
 
-    def add_mesh_from_arrays(self, name: str, vertices: np.ndarray, triangles: np.ndarray, friction: float = 0.5):
+    def add_mesh_from_arrays(
+        self,
+        name: str,
+        vertices: np.ndarray,
+        triangles: np.ndarray,
+        friction: float = 0.5,
+    ):
         collider = sdk.MeshCollider(vertices, triangles, float(friction))
         collider.set_name(name)
         self.world.add_collider(collider)
@@ -414,7 +484,13 @@ class Simulation:
     def soft_reset(self):
         self.solver.soft_reset()
 
-    def bake_alembic(self, filepath: str, start_frame: int = 0, end_frame: int = 120, fps: float = 60.0) -> bool:
+    def bake_alembic(
+        self,
+        filepath: str,
+        start_frame: int = 0,
+        end_frame: int = 120,
+        fps: float = 60.0,
+    ) -> bool:
         """
         Bakes the simulation to an Alembic (.abc) cache file.
 
@@ -422,7 +498,7 @@ class Simulation:
         each frame to disk. The simulation state is modified in place.
 
         Args:
-            filepath:    Output path for the .abc file. Created or overwritten if it exists.
+            filepath:    Output path for the .abc file. Created or overwritten if it exists.  # noqa: E501
             start_frame: First frame to bake.
             end_frame:   Last frame to bake.
             fps:         Frames per second, used to compute the timestep.
@@ -448,8 +524,13 @@ class Simulation:
 
         sdk.Logger.info(f"Baking simulation to {filepath}...")
 
-        if not exporter.open(filepath, names, self.get_positions(),
-                             global_indices_list, particle_indices_list):
+        if not exporter.open(
+            filepath,
+            names,
+            self.get_positions(),
+            global_indices_list,
+            particle_indices_list,
+        ):
             sdk.Logger.error(f"Failed to create Alembic file: {filepath}")
             return False
 
@@ -475,10 +556,19 @@ class Simulation:
         sdk.Logger.info(f"Snapshot saved: {filename}")
         return True
 
-    def save_scene(self, path: str = "data/configs/scenes/default.json", name: str = "default"):
+    def save_scene(
+        self,
+        path: str = "data/configs/scenes/default.json",
+        name: str = "default",
+    ):
         sdk.SceneExporter.save_scene(path, name, self.solver, self.world)
 
-    def view(self, width: int = 1280, height: int = 720, title: str = " Tissu | Live Simulation"):
+    def view(
+        self,
+        width: int = 1280,
+        height: int = 720,
+        title: str = " Tissu | Live Simulation",
+    ):
         if not self.cloth_objects:
             sdk.Logger.warn("No fabrics in simulation.")
 
@@ -486,7 +576,7 @@ class Simulation:
             self.app = sdk.Application()
 
         current_dir = os.path.dirname(os.path.abspath(__file__))
-        project_root = os.path.dirname(os.path.dirname(current_dir))
+        os.path.dirname(os.path.dirname(current_dir))
         shader_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "shaders", "")
 
         self.app.set_solver(self.solver)
@@ -497,7 +587,7 @@ class Simulation:
             fabric = self.cloth_objects[first_cloth_name]
             self.app.set_cloth(fabric.instance)
 
-        sdk.Logger.info(f"Initializing OpenGL Viewer")
+        sdk.Logger.info("Initializing OpenGL Viewer")
         sdk.Logger.info(f"Shader Path : {shader_path}")
 
         if self._aero_forces:
@@ -516,10 +606,7 @@ class Simulation:
         sdk.Logger.info("Viewer closed.")
 
     def plot(self, fabric_name: str | None = None) -> None:
-        if fabric_name is not None:
-            fabrics = [self.get_fabric(fabric_name)]
-        else:
-            fabrics = list(self.cloth_objects.values())
+        fabrics = [self.get_fabric(fabric_name)] if fabric_name is not None else list(self.cloth_objects.values())
 
         if not fabrics:
             sdk.Logger.warn("No fabrics to plot.")
@@ -542,23 +629,30 @@ class Simulation:
             all_z.append(z)
 
             ax.plot_trisurf(
-                x, z, y,
+                x,
+                z,
+                y,
                 triangles=triangles,
                 cmap="plasma",
                 vmin=float(y.min()),
                 vmax=float(y.max()),
-                edgecolor="none"
+                edgecolor="none",
             )
 
         all_x = np.concatenate(all_x)
         all_y = np.concatenate(all_y)
         all_z = np.concatenate(all_z)
 
-        max_range = np.array([
-            all_x.max() - all_x.min(),
-            all_y.max() - all_y.min(),
-            all_z.max() - all_z.min()
-        ]).max() / 2.0
+        max_range = (
+            np.array(
+                [
+                    all_x.max() - all_x.min(),
+                    all_y.max() - all_y.min(),
+                    all_z.max() - all_z.min(),
+                ]
+            ).max()
+            / 2.0
+        )
 
         mid_x = (all_x.max() + all_x.min()) / 2
         mid_y = (all_y.max() + all_y.min()) / 2
@@ -574,12 +668,15 @@ class Simulation:
         plt.tight_layout()
         plt.show()
 
-    def plot_gif(self, fabric_name: str | None = None, start: int = 0, end: int = 120, fps: float = 30,
-                 filename: str = "simulation.gif") -> None:
-        if fabric_name is not None:
-            fabrics = [self.get_fabric(fabric_name)]
-        else:
-            fabrics = list(self.cloth_objects.values())
+    def plot_gif(
+        self,
+        fabric_name: str | None = None,
+        start: int = 0,
+        end: int = 120,
+        fps: float = 30,
+        filename: str = "simulation.gif",
+    ) -> None:
+        fabrics = [self.get_fabric(fabric_name)] if fabric_name is not None else list(self.cloth_objects.values())
 
         if not fabrics:
             sdk.Logger.warn("No fabrics to plot.")
@@ -588,7 +685,11 @@ class Simulation:
         init_pos = np.concatenate([f.get_positions() for f in fabrics])
         x0, y0, z0 = init_pos[:, 0], init_pos[:, 1], init_pos[:, 2]
         max_range = np.array([x0.max() - x0.min(), y0.max() - y0.min(), z0.max() - z0.min()]).max() / 2.0
-        mid_x, mid_y, mid_z = (x0.max() + x0.min()) / 2, (y0.max() + y0.min()) / 2, (z0.max() + z0.min()) / 2
+        mid_x, mid_y, mid_z = (
+            (x0.max() + x0.min()) / 2,
+            (y0.max() + y0.min()) / 2,
+            (z0.max() + z0.min()) / 2,
+        )
 
         fig = plt.figure()
         ax = fig.add_subplot(projection="3d")
@@ -609,8 +710,16 @@ class Simulation:
                     triangles = mapper[triangles_global]
                     x, y, z = positions[:, 0], positions[:, 1], positions[:, 2]
 
-                    ax.plot_trisurf(x, z, y, triangles=triangles, cmap="plasma",
-                                    vmin=float(y.min()), vmax=float(y.max()), edgecolor="none")
+                    ax.plot_trisurf(
+                        x,
+                        z,
+                        y,
+                        triangles=triangles,
+                        cmap="plasma",
+                        vmin=float(y.min()),
+                        vmax=float(y.max()),
+                        edgecolor="none",
+                    )
                 ax.set_xlim(mid_x - max_range, mid_x + max_range)
                 ax.set_ylim(mid_z - max_range, mid_z + max_range)
                 ax.set_zlim(mid_y - max_range, mid_y + max_range)
@@ -632,7 +741,12 @@ class Simulation:
         frames = np.arange(len(self._ke_history))
         fig, ax1 = plt.subplots()
         ax1.plot(frames, self._ke_history, label="KE", color="tab:blue")
-        ax1.plot(frames, self._ke_history + self._pe_history, label="Total", color="tab:green")
+        ax1.plot(
+            frames,
+            self._ke_history + self._pe_history,
+            label="Total",
+            color="tab:green",
+        )
         ax1.set_xlabel("Frame")
         ax1.set_ylabel("Kinetic / Total Energy")
         ax1.tick_params(axis="y")
@@ -659,7 +773,7 @@ class Simulation:
 
     def load_physics(self, filepath: str) -> None:
         """
-        Loads physics parameters from a JSON file and applies them to the simulation.
+        Loads physics parameters from a JSON file and applies them to the simulation.  # noqa: E501
 
         Args:
             filepath: Path to the physics JSON file.
@@ -755,8 +869,17 @@ class Fabric:
         self._pins = np.empty(0, dtype=int)
 
     @classmethod
-    def grid(cls, name: str, rows: int, cols: int, spacing: float, material: Material, solver: sdk.Solver,
-             translation=(0.0, 0.0, 0.0), rotation=(0.0, 0.0, 0.0, 1.0)) -> Fabric:
+    def grid(
+        cls,
+        name: str,
+        rows: int,
+        cols: int,
+        spacing: float,
+        material: Material,
+        solver: sdk.Solver,
+        translation=(0.0, 0.0, 0.0),
+        rotation=(0.0, 0.0, 0.0, 1.0),
+    ) -> Fabric:
         fabric = cls(name, material)
         fabric._rows = rows
         fabric._cols = cols
@@ -766,8 +889,15 @@ class Fabric:
         return fabric
 
     @classmethod
-    def from_obj(cls, name: str, path: str, material: Material, solver: sdk.Solver, translation=(0.0, 0.0, 0.0),
-                 rotation=(0.0, 0.0, 0.0, 1.0)):
+    def from_obj(
+        cls,
+        name: str,
+        path: str,
+        material: Material,
+        solver: sdk.Solver,
+        translation=(0.0, 0.0, 0.0),
+        rotation=(0.0, 0.0, 0.0, 1.0),
+    ):
         fabric = cls(name, material)
         success, pos, indices = sdk.OBJLoader.load(path)
         if not success:
@@ -778,21 +908,46 @@ class Fabric:
         return fabric
 
     @classmethod
-    def from_arrays(cls, name: str, vertices: np.ndarray, triangles: np.ndarray, material: Material, solver: sdk.Solver,
-                    translation=(0.0, 0.0, 0.0), rotation=(0.0, 0.0, 0.0, 1.0)):
+    def from_arrays(
+        cls,
+        name: str,
+        vertices: np.ndarray,
+        triangles: np.ndarray,
+        material: Material,
+        solver: sdk.Solver,
+        translation=(0.0, 0.0, 0.0),
+        rotation=(0.0, 0.0, 0.0, 1.0),
+    ):
         fabric = cls(name, material)
         factory = sdk.ClothMesh()
-        factory.build_from_mesh(vertices, triangles.flatten(), fabric.instance, solver, "", translation, rotation)
+        factory.build_from_mesh(
+            vertices,
+            triangles.flatten(),
+            fabric.instance,
+            solver,
+            "",
+            translation,
+            rotation,
+        )
         return fabric
 
-    def update_material(self, density: float = None, structural: float = None, shear: float = None,
-                        bending: float = None):
+    def update_material(
+        self,
+        density: float = None,
+        structural: float = None,
+        shear: float = None,
+        bending: float = None,
+    ):
         current_mat = self.instance.get_material()
 
-        if density is not None: current_mat.density = float(density)
-        if structural is not None: current_mat.structural_compliance = float(structural)
-        if shear is not None: current_mat.shear_compliance = float(shear)
-        if bending is not None: current_mat.bending_compliance = float(bending)
+        if density is not None:
+            current_mat.density = float(density)
+        if structural is not None:
+            current_mat.structural_compliance = float(structural)
+        if shear is not None:
+            current_mat.shear_compliance = float(shear)
+        if bending is not None:
+            current_mat.bending_compliance = float(bending)
 
         self.instance.set_material(current_mat)
         sdk.Logger.info(f"Updated material for '{self.name}'")
@@ -800,21 +955,23 @@ class Fabric:
     def enable_volume_preservation(self, compliance=1e-4) -> float:
         """
         Adds internal pressure to a closed mesh to maintain its volume.
-        For instance, this function could be used to simulate a pillow or puffy jackets.
-        
-        Args: 
+        For instance, this function could be used to simulate a pillow or puffy jackets.  # noqa: E501
+
+        Args:
             compliance: Inverse of stiffness. Lower values make the volume rigid
             while higher values allow more compression.
-            
+
         Returns:
             float: The calculated rest volume of the mesh.
-            
+
         Raises:
-            RuntimeError: If the fabric isn't in a simulation or the mesh isn't closed.
+            RuntimeError: If the fabric isn't in a simulation or the mesh isn't closed.  # noqa: E501
 
         """
         if self._solver is None:
-            raise RuntimeError("Fabric must be added to a Simulation before enabling volume preservation.")
+            raise RuntimeError(
+                "Fabric must be added to a Simulation before enabling volume preservation."  # noqa: E501
+            )
 
         if not self.instance.is_closed():
             raise RuntimeError(f"Fabric '{self.name}' is not a closed mesh.")
@@ -822,7 +979,7 @@ class Fabric:
         rest_volume = self._solver.add_volume_constraint(
             self.instance.get_triangles_native(),
             self._solver.get_particles(),
-            compliance
+            compliance,
         )
 
         self.instance.set_rest_volume(rest_volume)
@@ -839,7 +996,10 @@ class Fabric:
 
         all_particles = self._solver.get_particles()
         my_indices = self.instance.get_particle_indices()
-        return np.array([all_particles[idx].get_position() for idx in my_indices], dtype=np.float64)
+        return np.array(
+            [all_particles[idx].get_position() for idx in my_indices],
+            dtype=np.float64,
+        )
 
     def upper_particles(self, threshold: float = 0.01):
         pos = self.get_positions()
@@ -877,7 +1037,9 @@ class Fabric:
             self._solver.add_pin(global_id, target_pos, compliance)
 
         self.instance.set_pin(sdk.Pin(sdk.PinMode.BY_HEIGHT, compliance, threshold))
-        sdk.Logger.info(f"Fabric '{self.name}': Pinned {len(self._pins)} vertices by height.")
+        sdk.Logger.info(
+            f"Fabric '{self.name}': Pinned {len(self._pins)} vertices by height."  # noqa: E501
+        )
 
     def pin_top_corners(self, threshold: float = 0.01, compliance: float = 0.0):
         if self._solver is None:
@@ -903,7 +1065,9 @@ class Fabric:
             self._solver.add_pin(global_id, target_pos, compliance)
 
         self.instance.set_pin(sdk.Pin(sdk.PinMode.TOP_CORNERS, compliance, threshold))
-        sdk.Logger.info(f"Fabric '{self.name}': Pinned top corners (IDs: {list(self._pins)})")
+        sdk.Logger.info(
+            f"Fabric '{self.name}': Pinned top corners (IDs: {list(self._pins)})"  # noqa: E501
+        )
 
     def unpin(self):
         my_ids = self.instance.get_particle_indices()
@@ -949,23 +1113,18 @@ class Material:
         if any(v < 0 for v in [structural, shear, bending]):
             raise ValueError("Compliance values must be >= 0.")
 
-        self._native = sdk.ClothMaterial(
-            float(density),
-            float(structural),
-            float(shear),
-            float(bending)
-        )
+        self._native = sdk.ClothMaterial(float(density), float(structural), float(shear), float(bending))
 
     @classmethod
-    def from_preset(cls, name: str, presets_path: str = None) -> "Material":
+    def from_preset(cls, name: str, presets_path: str = None) -> Material:
         """
         Creates a Material from a named preset.
-        
+
         Tries to load from a JSON file if presets_path is provided.
         Falls back to built-in presets if the file is not found.
 
         Args:
-            name:         Preset name. Built-in options: silk, cotton, denim, leather, spandex.
+            name:         Preset name. Built-in options: silk, cotton, denim, leather, spandex.  # noqa: E501
             presets_path: Optional path to the material's directory.
 
         Raises:
@@ -979,18 +1138,17 @@ class Material:
                     sdk.ConfigLoader.load_material(filepath, mat._native)
                     return mat
                 except Exception as e:
-                    sdk.Logger.warn(f"Could not load preset from {filepath}: {e}. Falling back to built-in.")
+                    sdk.Logger.warn(
+                        f"Could not load preset from {filepath}: {e}. Falling back to built-in."  # noqa: E501
+                    )
 
         if name not in cls._BUILTIN_PRESETS:
-            raise ValueError(
-                f"Unknown preset: '{name}'. "
-                f"Available: {list(cls._BUILTIN_PRESETS.keys())}"
-            )
+            raise ValueError(f"Unknown preset: '{name}'. " f"Available: {list(cls._BUILTIN_PRESETS.keys())}")
 
         return cls(*cls._BUILTIN_PRESETS[name])
 
     @classmethod
-    def from_dict(cls, data: dict) -> "Material":
+    def from_dict(cls, data: dict) -> Material:
         """
         Creates a Material from a dictionary of properties.
 
@@ -1002,7 +1160,7 @@ class Material:
             density=data.get("density", 0.1),
             structural=data.get("structural_compliance", 1e-9),
             shear=data.get("shear_compliance", 1e-8),
-            bending=data.get("bending_compliance", 0.01)
+            bending=data.get("bending_compliance", 0.01),
         )
 
     @property
@@ -1046,7 +1204,7 @@ class Material:
         self._native.bending_compliance = float(v)
 
     @property
-    def native(self) -> "sdk.ClothMaterial":
+    def native(self) -> sdk.ClothMaterial:
         """Returns the underlying C++ ClothMaterial."""
         return self._native
 

@@ -32,43 +32,46 @@ namespace Tissu {
  * along the fixed normal.
  */
 class PlaneCollider : public Collider {
- public:
-  /**
-   * @brief Constructs a new Plane Collider.
-   *
-   * @param origin Any point residing on the collision plane.
-   * @param normal A vector defining the collision side of the plane.
-   * @param friction The friction coefficient [0.0 - 1.0] for tangential
-   * damping.
-   */
-  PlaneCollider(const Eigen::Vector3d& origin, const Eigen::Vector3d& normal,
-                double friction);
+public:
+    /**
+     * @brief Constructs a new Plane Collider.
+     *
+     * @param origin Any point residing on the collision plane.
+     * @param normal A vector defining the collision side of the plane.
+     * @param friction The friction coefficient [0.0 - 1.0] for tangential
+     * damping.
+     */
+    PlaneCollider(const Eigen::Vector3d& origin, const Eigen::Vector3d& normal,
+                  double friction);
 
-  /**
-   * @brief Projects penetrating particles onto the plane's surface.
-   *
-   * The method calculates the signed distance of each particle from the plane.
-   * If the distance is less than the collision thickness, the particle is
-   * translated along the normal and its implicit velocity is damped.
-   *
-   * @param particles Reference to the global particle buffer.
-   * @param dt Current substep time delta.
-   */
-  void resolve(std::vector<Particle>& particles, double dt, double thickness);
+    /**
+     * @brief Projects penetrating particles onto the plane's surface.
+     *
+     * The method calculates the signed distance of each particle from the
+     * plane. If the distance is less than the collision thickness, the particle
+     * is translated along the normal and its implicit velocity is damped.
+     *
+     * @param particles Reference to the global particle buffer.
+     * @param dt Current substep time delta.
+     */
+    void resolve(std::vector<Particle>& particles, double dt, double thickness);
 
-  void transform(const Eigen::Vector3d& position, const Eigen::Quaterniond& rotation) override;
+    void transform(const Eigen::Vector3d& position,
+                   const Eigen::Quaterniond& rotation) override;
 
-  inline const Eigen::Vector3d& getOrigin() const { return m_origin; }
-  inline const Eigen::Vector3d& getNormal() const { return m_normal; }
+    inline const Eigen::Vector3d& getOrigin() const { return m_origin; }
+    inline const Eigen::Vector3d& getNormal() const { return m_normal; }
 
-  void setOrigin(const Eigen::Vector3d& origin) { m_origin = origin; }
-  void setNormal(const Eigen::Vector3d& normal) { m_normal = normal.normalized(); }
+    void setOrigin(const Eigen::Vector3d& origin) { m_origin = origin; }
+    void setNormal(const Eigen::Vector3d& normal) {
+        m_normal = normal.normalized();
+    }
 
- private:
-  Eigen::Vector3d
-      m_origin;  ///< World-space coordinate of a point in the plane.
-  Eigen::Vector3d
-      m_normal;  ///< Normalized vector defining the surface orientation.
+private:
+    Eigen::Vector3d
+        m_origin; ///< World-space coordinate of a point in the plane.
+    Eigen::Vector3d
+        m_normal; ///< Normalized vector defining the surface orientation.
 };
 
-}  // namespace Tissu
+} // namespace Tissu

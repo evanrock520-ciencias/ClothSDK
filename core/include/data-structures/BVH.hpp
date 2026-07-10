@@ -1,10 +1,10 @@
 #pragma once
 
-#include <limits>
-#include <vector>
-#include <Eigen/Dense>
 #include "math/Geometry.hpp"
 #include "math/Types.hpp"
+#include <Eigen/Dense>
+#include <limits>
+#include <vector>
 
 namespace Tissu {
 
@@ -18,11 +18,10 @@ struct BVHNode {
 
     BVHNode() = default;
 
-    bool isLeaf() const {
-        return left == -1 && right == -1;
-    }
+    bool isLeaf() const { return left == -1 && right == -1; }
 
-    void calculateLeafBox(const Triangle& tri, const std::vector<Eigen::Vector3d>& vertices) {
+    void calculateLeafBox(const Triangle& tri,
+                          const std::vector<Eigen::Vector3d>& vertices) {
         bbox.extend(vertices[tri.a]);
         bbox.extend(vertices[tri.b]);
         bbox.extend(vertices[tri.c]);
@@ -45,8 +44,8 @@ public:
 
 private:
     int buildRecursive(std::vector<Triangle>& tempTriangles,
-                       const std::vector<Eigen::Vector3d>& vertices,
-                       int start, int end);
+                       const std::vector<Eigen::Vector3d>& vertices, int start,
+                       int end);
 
     void queryRecursive(int nodeIdx, const Eigen::Vector3d& point,
                         double squaredRadius,

@@ -30,22 +30,22 @@ namespace Tissu {
  * @ref ClothMesh::buildFromMesh.
  */
 class OBJLoader {
- public:
-  /**
-   * @brief Loads vertex positions and triangle indices from a Wavefront OBJ
-   * file.
-   *
-   * @param path Path to the .obj file.
-   * @param outPos Output vector populated with one entry per unique vertex.
-   *        Cleared before writing.
-   * @param outIndices Output vector of flat triangle indices into @p outPos.
-   *        Cleared before writing.
-   * @return true If correctly loaded.
-   * @return false In other way.
-   */
-  static bool load(const std::string& path,
-                   std::vector<Eigen::Vector3d>& outPos,
-                   std::vector<int>& outIndices);
+public:
+    /**
+     * @brief Loads vertex positions and triangle indices from a Wavefront OBJ
+     * file.
+     *
+     * @param path Path to the .obj file.
+     * @param outPos Output vector populated with one entry per unique vertex.
+     *        Cleared before writing.
+     * @param outIndices Output vector of flat triangle indices into @p outPos.
+     *        Cleared before writing.
+     * @return true If correctly loaded.
+     * @return false In other way.
+     */
+    static bool load(const std::string& path,
+                     std::vector<Eigen::Vector3d>& outPos,
+                     std::vector<int>& outIndices);
 };
 
-}  // namespace Tissu
+} // namespace Tissu

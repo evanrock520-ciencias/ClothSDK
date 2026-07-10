@@ -29,38 +29,38 @@ namespace Tissu {
  *
  */
 class AlembicExporter {
- public:
-  AlembicExporter();
-  ~AlembicExporter();
+public:
+    AlembicExporter();
+    ~AlembicExporter();
 
-  /**
-   * @brief Creates a new .abc file and initializes the mesh topology.
-   * @param path Target filesystem path.
-   * @param positions Initial vertex positions to define the count.
-   * @param indices Triangle indices defining the fixed topology.
-   * @return true if the file was successfully created.
-   */
-  bool open(const std::string& path,
-            const std::vector<std::string>& names,
-            const std::vector<Eigen::Vector3d>& global_positions,
-            const std::vector<std::vector<int>>& global_indices,
-            const std::vector<std::vector<int>>& particle_indices);
+    /**
+     * @brief Creates a new .abc file and initializes the mesh topology.
+     * @param path Target filesystem path.
+     * @param positions Initial vertex positions to define the count.
+     * @param indices Triangle indices defining the fixed topology.
+     * @return true if the file was successfully created.
+     */
+    bool open(const std::string& path, const std::vector<std::string>& names,
+              const std::vector<Eigen::Vector3d>& global_positions,
+              const std::vector<std::vector<int>>& global_indices,
+              const std::vector<std::vector<int>>& particle_indices);
 
-  /**
-   * @brief Writes a single simulation frame to the archive.
-   * @param global_positions Current global vertex positions from the solver.
-   * @param time The timestamp for this frame.
-   */
-  void writeFrame(const std::vector<Eigen::Vector3d>& global_positions, double time);
+    /**
+     * @brief Writes a single simulation frame to the archive.
+     * @param global_positions Current global vertex positions from the solver.
+     * @param time The timestamp for this frame.
+     */
+    void writeFrame(const std::vector<Eigen::Vector3d>& global_positions,
+                    double time);
 
-  /**
-   * @brief Finalizes the archive and closes the file.
-   */
-  void close();
+    /**
+     * @brief Finalizes the archive and closes the file.
+     */
+    void close();
 
- private:
-  struct Impl;
-  std::unique_ptr<Impl> m_impl;
+private:
+    struct Impl;
+    std::unique_ptr<Impl> m_impl;
 };
 
-}  // namespace Tissu
+} // namespace Tissu

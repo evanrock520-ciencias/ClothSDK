@@ -1,3 +1,5 @@
+import contextlib
+
 import bpy
 
 
@@ -7,10 +9,9 @@ class VIEW3D_PT_Tissu(bpy.types.Panel):
     bl_space_type = "VIEW_3D"
     bl_region_type = "UI"
     bl_category = "Tissu"
-    
-    
+
     def draw(self, context):
-        layout = self.layout
+        pass
 
 
 class VIEW3D_PT_Simulation(bpy.types.Panel):
@@ -22,7 +23,7 @@ class VIEW3D_PT_Simulation(bpy.types.Panel):
     bl_icon = "PHYSICS"
 
     def draw(self, context):
-        layout = self.layout
+        pass
 
 
 class VIEW3D_PT_Solver(bpy.types.Panel):
@@ -58,6 +59,7 @@ class VIEW3D_PT_Environment(bpy.types.Panel):
         layout.prop(worldProps, "wind")
         layout.prop(worldProps, "air_thickness")
 
+
 class VIEW3D_PT_State(bpy.types.Panel):
     bl_idname = "VIEW3D_PT_State"
     bl_label = "State"
@@ -69,15 +71,16 @@ class VIEW3D_PT_State(bpy.types.Panel):
     def draw(self, context):
         layout = self.layout
         from ..simulation import session
-        
+
         row = layout.row(align=True)
         if session.is_simulating_live:
             row.operator("tissu.simulate", text="Stop Live", icon="CANCEL")
         else:
             row.operator("tissu.simulate", text="Simulate Live", icon="PLAY")
         row.operator("tissu.reset_simulation", text="Reset", icon="FILE_REFRESH")
-            
+
         layout.operator("tissu.bake", text="Bake Alembic Cache...")
+
 
 class VIEW3D_PT_Material(bpy.types.Panel):
     bl_idname = "VIEW3D_PT_Material"
@@ -92,7 +95,7 @@ class VIEW3D_PT_Material(bpy.types.Panel):
         materialProps = context.scene.material_props
         layout.prop(materialProps, "preset")
         col = layout.column()
-        col.enabled = (materialProps.preset == 'CUSTOM')
+        col.enabled = materialProps.preset == "CUSTOM"
         col.prop(materialProps, "density")
         col.prop(materialProps, "structural")
         col.prop(materialProps, "shear")
@@ -109,12 +112,16 @@ class VIEW3D_PT_Colliders(bpy.types.Panel):
     bl_region_type = "UI"
     bl_category = "Tissu"
     bl_icon = "MESH_ICOSPHERE"
-    
+
     def draw(self, context):
         layout = self.layout
         obj = context.active_object
 
-        layout.operator("tissu.mark_as_collider", text="Mark as Collider", icon="MESH_ICOSPHERE")
+        layout.operator(
+            "tissu.mark_as_collider",
+            text="Mark as Collider",
+            icon="MESH_ICOSPHERE",
+        )
         layout.operator("tissu.remove_collider", text="Remove Collider", icon="X")
 
         if obj and obj.tissu_is_collider:
@@ -131,7 +138,7 @@ class VIEW3D_PT_Stitches(bpy.types.Panel):
     bl_region_type = "UI"
     bl_category = "Tissu"
     bl_icon = "UV"
-    
+
     def draw(self, context):
         layout = self.layout
         layout.label(text="A panel for stitches")
@@ -146,7 +153,7 @@ class VIEW3D_PT_Pins(bpy.types.Panel):
     bl_region_type = "UI"
     bl_category = "Tissu"
     bl_icon = "PINNED"
-    
+
     def draw(self, context):
         layout = self.layout
         layout.label(text="A panel for pins")
@@ -161,7 +168,7 @@ class VIEW3D_PT_Patterns(bpy.types.Panel):
     bl_region_type = "UI"
     bl_category = "Tissu"
     bl_icon = "MOD_BUILD"
-    
+
     def draw(self, context):
         layout = self.layout
         layout.label(text="A panel for patterns")
@@ -174,11 +181,12 @@ class VIEW3D_PT_Fabrics(bpy.types.Panel):
     bl_region_type = "UI"
     bl_category = "Tissu"
     bl_icon = "MESH_DATA"
-    
+
     def draw(self, context):
         layout = self.layout
         layout.operator("tissu.mark_as_fabric", text="Mark as Fabric", icon="ADD")
         layout.operator("tissu.unmark_as_fabric", text="Unmark as Fabric", icon="REMOVE")
+
 
 class VIEW3D_PT_NewPattern(bpy.types.Panel):
     bl_idname = "VIEW3D_PT_NewPattern"
@@ -188,11 +196,15 @@ class VIEW3D_PT_NewPattern(bpy.types.Panel):
     bl_category = "Tissu"
     bl_parent_id = "VIEW3D_PT_Patterns"
     bl_icon = "ADD"
-    
+
     def draw(self, context):
         layout = self.layout
         layout.operator("tissu.new_pattern", text="New Pattern", icon="ADD")
-        layout.operator("tissu.from_selected_mesh", text="From Selected Mesh", icon="MESH_DATA")
+        layout.operator(
+            "tissu.from_selected_mesh",
+            text="From Selected Mesh",
+            icon="MESH_DATA",
+        )
 
 
 class VIEW3D_PT_Remesh(bpy.types.Panel):
@@ -203,7 +215,7 @@ class VIEW3D_PT_Remesh(bpy.types.Panel):
     bl_category = "Tissu"
     bl_parent_id = "VIEW3D_PT_Patterns"
     bl_icon = "MOD_REMESH"
-    
+
     def draw(self, context):
         layout = self.layout
         layout.operator("tissu.remesh", text="Remesh", icon="MOD_REMESH")
@@ -216,27 +228,23 @@ classes = [
     VIEW3D_PT_State,
     VIEW3D_PT_Material,
     VIEW3D_PT_Colliders,
-    VIEW3D_PT_Patterns, 
+    VIEW3D_PT_Patterns,
     VIEW3D_PT_Fabrics,
     VIEW3D_PT_NewPattern,
     VIEW3D_PT_Remesh,
     VIEW3D_PT_Pins,
-    VIEW3D_PT_Stitches
+    VIEW3D_PT_Stitches,
 ]
 
 
 def register():
     for cls in classes:
-        try:
+        with contextlib.suppress(RuntimeError):
             bpy.utils.unregister_class(cls)
-        except RuntimeError:
-            pass
         bpy.utils.register_class(cls)
 
 
 def unregister():
     for cls in reversed(classes):
-        try:
+        with contextlib.suppress(RuntimeError):
             bpy.utils.unregister_class(cls)
-        except RuntimeError:
-            pass

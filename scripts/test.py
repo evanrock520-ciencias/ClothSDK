@@ -1,12 +1,11 @@
 #!/usr/bin/env python3
 import argparse
-import os
-import platform
+import socket
 import subprocess
 import sys
-from pathlib import Path
 from datetime import datetime
-import socket
+from pathlib import Path
+
 
 def run_command(cmd, cwd=None):
     print(f"Running: {' '.join(cmd)}")
@@ -14,6 +13,7 @@ def run_command(cmd, cwd=None):
     if result.returncode != 0:
         print(f"Command failed with exit code {result.returncode}")
         sys.exit(result.returncode)
+
 
 def main():
     parser = argparse.ArgumentParser(description="Cross-platform run helper for Tissu")
@@ -23,7 +23,7 @@ def main():
     parser.add_argument("--bench", action="store_true", help="Run benchmarks")
 
     args = parser.parse_args()
-    
+
     # Paths
     script_dir = Path(__file__).parent.resolve()
     root_dir = script_dir.parent
@@ -44,7 +44,9 @@ def main():
         for p in possible_paths:
             if p.is_file():
                 return p
-        print(f"Error: Executable '{name}' not found. Searched in: {[str(p) for p in possible_paths]}")
+        print(
+            f"Error: Executable '{name}' not found. Searched in: {[str(p) for p in possible_paths]}"  # noqa: E501
+        )
         sys.exit(1)
 
     # 1. Test
@@ -60,36 +62,40 @@ def main():
         exe = find_executable("integration", "tests")
         run_command([str(exe)], cwd=root_dir)
         print()
-        
+
     # 3. API Tests
     if not args.no_api_test:
         print("--- Running API Tests ---")
         api_tests_path = root_dir / "tests" / "python"
-        run_command([sys.executable, "-m", "pytest", "-v", str(api_tests_path)], cwd=root_dir)
+        run_command(
+            [sys.executable, "-m", "pytest", "-v", str(api_tests_path)],
+            cwd=root_dir,
+        )
 
     # 4. Benchmarks
     if args.bench:
         print("--- Running Benchmarks ---")
         exe = find_executable("tissu_benchmarks", "benchmarks")
-        
+
         results_dir = root_dir / "benchmarks" / "results"
         results_dir.mkdir(parents=True, exist_ok=True)
-        
+
         timestamp = datetime.now().strftime("%Y-%m-%d_%H-%M")
         machine = socket.gethostname()
         output_file = results_dir / f"{timestamp}_{machine}.json"
-        
+
         bench_cmd = [
             str(exe),
             "--benchmark_format=json",
             f"--benchmark_out={output_file}",
             "--benchmark_out_format=json",
             "--benchmark_repetitions=3",
-            "--benchmark_report_aggregates_only=true"
+            "--benchmark_report_aggregates_only=true",
         ]
         run_command(bench_cmd, cwd=root_dir)
         print(f"Results saved to {output_file}")
         print()
+
 
 if __name__ == "__main__":
     main()

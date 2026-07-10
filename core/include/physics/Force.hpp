@@ -34,27 +34,27 @@ class Particle;
  * Current implementations include @ref GravityForce and @ref AerodynamicForce.
  */
 class Force {
- public:
-  /**
-   * @brief Destroy the Force object.
-   *
-   */
-  virtual ~Force() = default;
+public:
+    /**
+     * @brief Destroy the Force object.
+     *
+     */
+    virtual ~Force() = default;
 
-  /**
-   * @brief Applies the force to all relevant particles in the buffer.
-   *
-   * Implementations should iterate over the particle buffer and call
-   * @ref Particle::addForce on each affected particle. Stationary particles
-   * (inverse mass == 0.0) should generally be skipped.
-   *
-   * This method is called by @ref Solver::applyForces once per substep,
-   * before constraint solving begins.
-   *
-   * @param particles Reference to the solver's global particle buffer.
-   * @param dt Current substep time delta in seconds.
-   */
-  virtual void apply(std::vector<Particle>& particles, double dt) = 0;
+    /**
+     * @brief Applies the force to all relevant particles in the buffer.
+     *
+     * Implementations should iterate over the particle buffer and call
+     * @ref Particle::addForce on each affected particle. Stationary particles
+     * (inverse mass == 0.0) should generally be skipped.
+     *
+     * This method is called by @ref Solver::applyForces once per substep,
+     * before constraint solving begins.
+     *
+     * @param particles Reference to the solver's global particle buffer.
+     * @param dt Current substep time delta in seconds.
+     */
+    virtual void apply(std::vector<Particle>& particles, double dt) = 0;
 };
 
-}  // namespace Tissu
+} // namespace Tissu

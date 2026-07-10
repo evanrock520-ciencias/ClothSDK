@@ -26,43 +26,43 @@
 namespace Tissu {
 
 struct SceneHeader {
-  float version;
-  std::string name;
-  std::string physics_preset;
-
-  struct FabricInfo {
+    float version;
     std::string name;
-    std::string type;
-    int rows = 0, cols = 0;
-    float spacing = 0.0f;
-    Eigen::Vector3d translation;
-    Eigen::Quaterniond rotation;
-    std::string source;
-    std::string material;
-    std::string pin_mode;
-  };
+    std::string physics_preset;
 
-  struct ColliderInfo {
-    std::string name;
-    std::string type;
-    std::string summary;
-  };
+    struct FabricInfo {
+        std::string name;
+        std::string type;
+        int rows = 0, cols = 0;
+        float spacing = 0.0f;
+        Eigen::Vector3d translation;
+        Eigen::Quaterniond rotation;
+        std::string source;
+        std::string material;
+        std::string pin_mode;
+    };
 
-  std::vector<FabricInfo> fabrics;
-  std::vector<ColliderInfo> colliders;
+    struct ColliderInfo {
+        std::string name;
+        std::string type;
+        std::string summary;
+    };
+
+    std::vector<FabricInfo> fabrics;
+    std::vector<ColliderInfo> colliders;
 };
 
 class SceneLoader {
- public:
-  static void loadScene(const std::string& filepath, Solver& solver,
-                        World& world);
+public:
+    static void loadScene(const std::string& filepath, Solver& solver,
+                          World& world);
 
-  static SceneHeader getSceneHeader(const std::string& filepath);
+    static SceneHeader getSceneHeader(const std::string& filepath);
 
- private:
-  static void loadFabric(const nlohmann::json& fabricData, Cloth& outCloth,
-                         Solver& solver);
-  static void loadCollider(const nlohmann::json& collider, World& world);
+private:
+    static void loadFabric(const nlohmann::json& fabricData, Cloth& outCloth,
+                           Solver& solver);
+    static void loadCollider(const nlohmann::json& collider, World& world);
 };
 
-}  // namespace Tissu
+} // namespace Tissu

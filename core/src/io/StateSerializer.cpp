@@ -26,423 +26,471 @@ namespace Tissu {
 
 bool StateSerializer::save(const std::string& path, Solver& solver,
                            World& world) {
-  std::vector<uint8_t> buf;
-  buf.reserve(1024 * 1024);
+    std::vector<uint8_t> buf;
+    buf.reserve(1024 * 1024);
 
-  auto write = [&](const void* data, size_t size) {
-    const uint8_t* ptr = reinterpret_cast<const uint8_t*>(data);
-    buf.insert(buf.end(), ptr, ptr + size);
-  };
+    auto write = [&](const void* data, size_t size) {
+        const uint8_t* ptr = reinterpret_cast<const uint8_t*>(data);
+        buf.insert(buf.end(), ptr, ptr + size);
+    };
 
-  // Header
-  write(MAGIC, 6);
-  write(&VERSION, 1);
-  write(&FLAGS, 1);
-  uint32_t frame = solver.getCurrentFrame();
-  double time = solver.getCurrentTime();
-  uint32_t count = solver.getParticleCount();
-  write(&frame, sizeof(uint32_t));
-  write(&time, sizeof(double));
-  write(&count, sizeof(uint32_t));
+    // Header
+    write(MAGIC, 6);
+    write(&VERSION, 1);
+    write(&FLAGS, 1);
+    uint32_t frame = solver.getCurrentFrame();
+    double time = solver.getCurrentTime();
+    uint32_t count = solver.getParticleCount();
+    write(&frame, sizeof(uint32_t));
+    write(&time, sizeof(double));
+    write(&count, sizeof(uint32_t));
 
-  size_t crcOffset = buf.size();
-  uint32_t crcPlaceholder = 0x00000000;
-  write(&crcPlaceholder, sizeof(uint32_t));
+    size_t crcOffset = buf.size();
+    uint32_t crcPlaceholder = 0x00000000;
+    write(&crcPlaceholder, sizeof(uint32_t));
 
-  uint32_t padding = 0x00000000;
-  write(&padding, sizeof(uint32_t));
+    uint32_t padding = 0x00000000;
+    write(&padding, sizeof(uint32_t));
 
-  // World
-  Eigen::Vector3d gravity = world.getGravity();
-  Eigen::Vector3d wind = world.getWind();
-  double density = world.getAirDensity();
-  double thickness = world.getThickness();
-  write(gravity.data(), 3 * sizeof(double));
-  write(wind.data(), 3 * sizeof(double));
-  write(&density, sizeof(double));
-  write(&thickness, sizeof(double));
+    // World
+    Eigen::Vector3d gravity = world.getGravity();
+    Eigen::Vector3d wind = world.getWind();
+    double density = world.getAirDensity();
+    double thickness = world.getThickness();
+    write(gravity.data(), 3 * sizeof(double));
+    write(wind.data(), 3 * sizeof(double));
+    write(&density, sizeof(double));
+    write(&thickness, sizeof(double));
 
-  // Colliders
-  const auto& colliders = world.getColliders();
-  uint32_t colliderCount = static_cast<uint32_t>(colliders.size());
-  write(&colliderCount, sizeof(uint32_t));
+    // Colliders
+    const auto& colliders = world.getColliders();
+    uint32_t colliderCount = static_cast<uint32_t>(colliders.size());
+    write(&colliderCount, sizeof(uint32_t));
 
-  for (const auto& collider : colliders) {
-    double friction = collider->getFriction();
+    for (const auto& collider : colliders) {
+        double friction = collider->getFriction();
 
-    auto pos = collider->getPosition();
-    auto rot = collider->getRotation();
-    auto prevPos = collider->getPrevPosition();
-    auto prevRot = collider->getPrevRotation();
+        auto pos = collider->getPosition();
+        auto rot = collider->getRotation();
+        auto prevPos = collider->getPrevPosition();
+        auto prevRot = collider->getPrevRotation();
 
-    write(pos.data(), 3 * sizeof(double));
-    write(rot.coeffs().data(), 4 * sizeof(double));
-    write(prevPos.data(), 3 * sizeof(double));
-    write(prevRot.coeffs().data(), 4 * sizeof(double));
+        write(pos.data(), 3 * sizeof(double));
+        write(rot.coeffs().data(), 4 * sizeof(double));
+        write(prevPos.data(), 3 * sizeof(double));
+        write(prevRot.coeffs().data(), 4 * sizeof(double));
 
-    std::string name = collider->getName();
-    uint32_t nameLength = static_cast<uint32_t>(name.size());
-    write(&nameLength, sizeof(uint32_t));
-    if (nameLength > 0) {
-      write(name.data(), nameLength);
+        std::string name = collider->getName();
+        uint32_t nameLength = static_cast<uint32_t>(name.size());
+        write(&nameLength, sizeof(uint32_t));
+        if (nameLength > 0) {
+            write(name.data(), nameLength);
+        }
+
+        if (const auto* s =
+                dynamic_cast<const SphereCollider*>(collider.get())) {
+            uint8_t type = 0;
+            Eigen::Vector3d center = s->getCenter();
+            double radius = s->getRadius();
+            write(&type, sizeof(uint8_t));
+            write(&friction, sizeof(double));
+            write(center.data(), 3 * sizeof(double));
+            write(&radius, sizeof(double));
+        } else if (const auto* p =
+                       dynamic_cast<const PlaneCollider*>(collider.get())) {
+            uint8_t type = 1;
+            Eigen::Vector3d origin = p->getOrigin();
+            Eigen::Vector3d normal = p->getNormal();
+            write(&type, sizeof(uint8_t));
+            write(&friction, sizeof(double));
+            write(origin.data(), 3 * sizeof(double));
+            write(normal.data(), 3 * sizeof(double));
+        } else if (const auto* c =
+                       dynamic_cast<const CapsuleCollider*>(collider.get())) {
+            uint8_t type = 2;
+            Eigen::Vector3d start = c->getStart();
+            Eigen::Vector3d end = c->getEnd();
+            double radius = c->getRadius();
+            write(&type, sizeof(uint8_t));
+            write(&friction, sizeof(double));
+            write(start.data(), 3 * sizeof(double));
+            write(end.data(), 3 * sizeof(double));
+            write(&radius, sizeof(double));
+        } else if (const auto* m =
+                       dynamic_cast<const MeshCollider*>(collider.get())) {
+            uint8_t type = 3;
+            write(&type, sizeof(uint8_t));
+            write(&friction, sizeof(double));
+        }
     }
 
-    if (const auto* s = dynamic_cast<const SphereCollider*>(collider.get())) {
-      uint8_t type = 0;
-      Eigen::Vector3d center = s->getCenter();
-      double radius = s->getRadius();
-      write(&type, sizeof(uint8_t));
-      write(&friction, sizeof(double));
-      write(center.data(), 3 * sizeof(double));
-      write(&radius, sizeof(double));
-    } else if (const auto* p =
-                   dynamic_cast<const PlaneCollider*>(collider.get())) {
-      uint8_t type = 1;
-      Eigen::Vector3d origin = p->getOrigin();
-      Eigen::Vector3d normal = p->getNormal();
-      write(&type, sizeof(uint8_t));
-      write(&friction, sizeof(double));
-      write(origin.data(), 3 * sizeof(double));
-      write(normal.data(), 3 * sizeof(double));
-    } else if (const auto* c =
-                   dynamic_cast<const CapsuleCollider*>(collider.get())) {
-      uint8_t type = 2;
-      Eigen::Vector3d start = c->getStart();
-      Eigen::Vector3d end = c->getEnd();
-      double radius = c->getRadius();
-      write(&type, sizeof(uint8_t));
-      write(&friction, sizeof(double));
-      write(start.data(), 3 * sizeof(double));
-      write(end.data(), 3 * sizeof(double));
-      write(&radius, sizeof(double));
-    } else if (const auto* m =
-                   dynamic_cast<const MeshCollider*>(collider.get())) {
-      uint8_t type = 3;
-      write(&type, sizeof(uint8_t));
-      write(&friction, sizeof(double));
+    // Particles
+    const auto& particles = solver.getParticles();
+    for (const auto& p : particles) {
+        Eigen::Vector3d pos = p.getPosition();
+        Eigen::Vector3d oldPos = p.getOldPosition();
+        double invMass = p.getInverseMass();
+        write(pos.data(), 3 * sizeof(double));
+        write(oldPos.data(), 3 * sizeof(double));
+        write(&invMass, sizeof(double));
     }
-  }
 
-  // Particles
-  const auto& particles = solver.getParticles();
-  for (const auto& p : particles) {
-    Eigen::Vector3d pos = p.getPosition();
-    Eigen::Vector3d oldPos = p.getOldPosition();
-    double invMass = p.getInverseMass();
-    write(pos.data(), 3 * sizeof(double));
-    write(oldPos.data(), 3 * sizeof(double));
-    write(&invMass, sizeof(double));
-  }
+    // Constraints
+    const auto& constraints = solver.getConstraints();
+    uint32_t constraintsCount = static_cast<uint32_t>(constraints.size());
+    write(&constraintsCount, sizeof(uint32_t));
 
-  // Constraints
-  const auto& constraints = solver.getConstraints();
-  uint32_t constraintsCount = static_cast<uint32_t>(constraints.size());
-  write(&constraintsCount, sizeof(uint32_t));
+    for (const auto& c : constraints) {
+        double lambda = c->getLambda();
+        write(&lambda, sizeof(double));
+    }
 
-  for (const auto& c : constraints) {
-    double lambda = c->getLambda();
-    write(&lambda, sizeof(double));
-  }
+    uint32_t crc = computeCRC32(buf.data(), buf.size());
+    memcpy(buf.data() + crcOffset, &crc, sizeof(uint32_t));
 
-  uint32_t crc = computeCRC32(buf.data(), buf.size());
-  memcpy(buf.data() + crcOffset, &crc, sizeof(uint32_t));
+    std::ofstream file(path, std::ios::binary);
+    if (!file.is_open())
+        throw std::runtime_error("Invalid directory.");
+    file.write(reinterpret_cast<const char*>(buf.data()), buf.size());
 
-  std::ofstream file(path, std::ios::binary);
-  if (!file.is_open()) throw std::runtime_error("Invalid directory.");
-  file.write(reinterpret_cast<const char*>(buf.data()), buf.size());
-
-  return file.good();
+    return file.good();
 }
 
 bool StateSerializer::load(const std::string& path, Solver& solver,
                            World& world) {
-  std::ifstream file(path, std::ios::binary);
-  if (!file.is_open()) throw std::runtime_error("File not found.");
+    std::ifstream file(path, std::ios::binary);
+    if (!file.is_open())
+        throw std::runtime_error("File not found.");
 
-  std::vector<uint8_t> buf(std::istreambuf_iterator<char>(file), {});
-  if (buf.size() < 32) return false;
-
-  size_t cursor = 0;
-  auto read = [&](void* dst, size_t size) -> bool {
-    if (cursor + size > buf.size()) return false;
-    memcpy(dst, buf.data() + cursor, size);
-    cursor += size;
-    return true;
-  };
-
-  if (memcmp(buf.data(), MAGIC, 6) != 0) {
-    Logger::error("Invalid magic number.");
-    return false;
-  }
-
-  constexpr size_t CRC_OFFSET = 24;
-  uint32_t storedCrc = 0;
-  memcpy(&storedCrc, buf.data() + CRC_OFFSET, sizeof(uint32_t));
-
-  memset(buf.data() + CRC_OFFSET, 0, sizeof(uint32_t));
-  uint32_t computedCrc = computeCRC32(buf.data(), buf.size());
-  memcpy(buf.data() + CRC_OFFSET, &storedCrc, sizeof(uint32_t));
-
-  if (storedCrc != computedCrc) {
-    Logger::error("CRC mismatch.");
-    return false;
-  }
-
-  // Header
-  cursor = 6;
-  uint8_t version, flags;
-  uint32_t frame, count;
-  double time;
-
-  if (!read(&version, 1)) return false;
-  if (!read(&flags, 1)) return false;
-  if (!read(&frame, sizeof(uint32_t))) return false;
-  if (!read(&time, sizeof(double))) return false;
-  if (!read(&count, sizeof(uint32_t))) return false;
-
-  solver.setCurrentFrame(frame);
-  solver.setCurrentTime(time);
-
-  cursor += sizeof(uint32_t);
-  cursor += sizeof(uint32_t);
-
-  if (version != VERSION) {
-    Logger::error("Version mismatch");
-    return false;
-  }
-
-  // World
-  Eigen::Vector3d gravity, wind;
-  double density, thickness;
-
-  if (!read(&gravity, 3 * sizeof(double))) return false;
-  if (!read(&wind, 3 * sizeof(double))) return false;
-  if (!read(&density, sizeof(double))) return false;
-  if (!read(&thickness, sizeof(double))) return false;
-
-  world.setGravity(gravity);
-  world.setWind(wind);
-  world.setAirDensity(density);
-  world.setThickness(thickness);
-
-  // Colliders
-  uint32_t collidersCount;
-  if (!read(&collidersCount, sizeof(uint32_t))) return false;
-  auto& colliders = world.getColliders();
-
-  if (colliders.size() < collidersCount) {
-    Logger::error("Not enough collider slots: '" +
-                  std::to_string(collidersCount) + "' rather than '" +
-                  std::to_string(colliders.size()) + "'");
-    return false;
-  }
-
-  for (size_t idx = 0; idx < collidersCount; idx++) {
-    Eigen::Vector3d pos, prevPos;
-    Eigen::Quaterniond rot, prevRot;
-
-    if (!read(pos.data(), 3 * sizeof(double))) return false;
-    if (!read(rot.coeffs().data(), 4 * sizeof(double))) return false;
-    if (!read(prevPos.data(), 3 * sizeof(double))) return false;
-    if (!read(prevRot.coeffs().data(), 4 * sizeof(double))) return false;
-
-    uint32_t nameLength;
-    if (!read(&nameLength, sizeof(uint32_t))) return false;
-    std::string name(nameLength, '\0');
-    if (nameLength > 0) {
-      if (!read(&name[0], nameLength)) return false;
-    }
-
-    uint8_t type;
-    double friction;
-    if (!read(&type, sizeof(uint8_t))) return false;
-    if (!read(&friction, sizeof(double))) return false;
-
-    colliders[idx]->setPosition(pos);
-    colliders[idx]->setRotation(rot);
-    colliders[idx]->setPrevPosition(prevPos);
-    colliders[idx]->setPrevRotation(prevRot);
-    colliders[idx]->setName(name);
-    colliders[idx]->setFriction(friction);
-
-    switch (type) {
-      case 0: {
-        Eigen::Vector3d center;
-        double radius;
-
-        if (!read(center.data(), 3 * sizeof(double))) return false;
-        if (!read(&radius, sizeof(double))) return false;
-
-        if (colliders.size() > idx &&
-            dynamic_cast<SphereCollider*>(colliders[idx].get())) {
-          auto* sphere = dynamic_cast<SphereCollider*>(colliders[idx].get());
-          sphere->setCenter(center);
-          sphere->setRadius(radius);
-        } else {
-          Logger::error("Missing collider slot for sphere.");
-          return false;
-        }
-        break;
-      }
-      case 1: {
-        Eigen::Vector3d origin, normal;
-
-        if (!read(origin.data(), 3 * sizeof(double))) return false;
-        if (!read(normal.data(), 3 * sizeof(double))) return false;
-
-        if (colliders.size() > idx &&
-            dynamic_cast<PlaneCollider*>(colliders[idx].get())) {
-          auto* plane = dynamic_cast<PlaneCollider*>(colliders[idx].get());
-          plane->setOrigin(origin);
-          plane->setNormal(normal);
-        } else {
-          Logger::error("Missing collider slot for plane.");
-          return false;
-        }
-        break;
-      }
-      case 2: {
-        Eigen::Vector3d start, end;
-        double radius;
-
-        if (!read(start.data(), 3 * sizeof(double))) return false;
-        if (!read(end.data(), 3 * sizeof(double))) return false;
-        if (!read(&radius, sizeof(double))) return false;
-
-        if (colliders.size() > idx &&
-            dynamic_cast<CapsuleCollider*>(colliders[idx].get())) {
-          auto* capsule = dynamic_cast<CapsuleCollider*>(colliders[idx].get());
-          capsule->setStart(start);
-          capsule->setEnd(end);
-          capsule->setRadius(radius);
-        } else {
-          Logger::error("Missing collider slot for capsule.");
-          return false;
-        }
-        break;
-      }
-      case 3: {
-        if (colliders.size() > idx &&
-            dynamic_cast<MeshCollider*>(colliders[idx].get())) {
-          auto* mesh = dynamic_cast<MeshCollider*>(colliders[idx].get());
-          mesh->transform(pos, rot);
-        } else {
-          Logger::error("Missing collider slot for mesh.");
-          return false;
-        }
-        break;
-      }
-      default: {
-        Logger::error("Unknown collider type in save file: " + std::to_string(type));
+    std::vector<uint8_t> buf(std::istreambuf_iterator<char>(file), {});
+    if (buf.size() < 32)
         return false;
-      }
+
+    size_t cursor = 0;
+    auto read = [&](void* dst, size_t size) -> bool {
+        if (cursor + size > buf.size())
+            return false;
+        memcpy(dst, buf.data() + cursor, size);
+        cursor += size;
+        return true;
+    };
+
+    if (memcmp(buf.data(), MAGIC, 6) != 0) {
+        Logger::error("Invalid magic number.");
+        return false;
     }
-  }
 
-  // Particles
-  auto& particles = solver.getParticles();
-  if (particles.size() != count) {
-    Logger::error("Particles size mismatch: '" + std::to_string(count) +
-                  "' rather than '" + std::to_string(particles.size()) + "'");
-    return false;
-  }
+    constexpr size_t CRC_OFFSET = 24;
+    uint32_t storedCrc = 0;
+    memcpy(&storedCrc, buf.data() + CRC_OFFSET, sizeof(uint32_t));
 
-  for (size_t idx = 0; idx < count; ++idx) {
-    Eigen::Vector3d pos, oldPos;
-    double invMass;
+    memset(buf.data() + CRC_OFFSET, 0, sizeof(uint32_t));
+    uint32_t computedCrc = computeCRC32(buf.data(), buf.size());
+    memcpy(buf.data() + CRC_OFFSET, &storedCrc, sizeof(uint32_t));
 
-    if (!read(pos.data(), 3 * sizeof(double))) return false;
-    if (!read(oldPos.data(), 3 * sizeof(double))) return false;
-    if (!read(&invMass, sizeof(double))) return false;
+    if (storedCrc != computedCrc) {
+        Logger::error("CRC mismatch.");
+        return false;
+    }
 
-    particles[idx].setPosition(pos);
-    particles[idx].setOldPosition(oldPos);
-    particles[idx].setInverseMass(invMass);
-  }
+    // Header
+    cursor = 6;
+    uint8_t version, flags;
+    uint32_t frame, count;
+    double time;
 
-  // Constraints
-  uint32_t constraintsCount;
+    if (!read(&version, 1))
+        return false;
+    if (!read(&flags, 1))
+        return false;
+    if (!read(&frame, sizeof(uint32_t)))
+        return false;
+    if (!read(&time, sizeof(double)))
+        return false;
+    if (!read(&count, sizeof(uint32_t)))
+        return false;
 
-  if (!read(&constraintsCount, sizeof(uint32_t))) return false;
+    solver.setCurrentFrame(frame);
+    solver.setCurrentTime(time);
 
-  auto& constraints = solver.getConstraints();
-  if (constraints.size() != constraintsCount) {
-    Logger::error("Constraints size mismatch: '" +
-                  std::to_string(constraintsCount) + "' rather than '" +
-                  std::to_string(constraints.size()) + "'");
-    return false;
-  }
+    cursor += sizeof(uint32_t);
+    cursor += sizeof(uint32_t);
 
-  for (size_t idx = 0; idx < constraintsCount; idx++) {
-    double lambda;
-    if (!read(&lambda, sizeof(double))) return false;
+    if (version != VERSION) {
+        Logger::error("Version mismatch");
+        return false;
+    }
 
-    constraints[idx]->setLambda(lambda);
-  }
-  return true;
+    // World
+    Eigen::Vector3d gravity, wind;
+    double density, thickness;
+
+    if (!read(&gravity, 3 * sizeof(double)))
+        return false;
+    if (!read(&wind, 3 * sizeof(double)))
+        return false;
+    if (!read(&density, sizeof(double)))
+        return false;
+    if (!read(&thickness, sizeof(double)))
+        return false;
+
+    world.setGravity(gravity);
+    world.setWind(wind);
+    world.setAirDensity(density);
+    world.setThickness(thickness);
+
+    // Colliders
+    uint32_t collidersCount;
+    if (!read(&collidersCount, sizeof(uint32_t)))
+        return false;
+    auto& colliders = world.getColliders();
+
+    if (colliders.size() < collidersCount) {
+        Logger::error("Not enough collider slots: '" +
+                      std::to_string(collidersCount) + "' rather than '" +
+                      std::to_string(colliders.size()) + "'");
+        return false;
+    }
+
+    for (size_t idx = 0; idx < collidersCount; idx++) {
+        Eigen::Vector3d pos, prevPos;
+        Eigen::Quaterniond rot, prevRot;
+
+        if (!read(pos.data(), 3 * sizeof(double)))
+            return false;
+        if (!read(rot.coeffs().data(), 4 * sizeof(double)))
+            return false;
+        if (!read(prevPos.data(), 3 * sizeof(double)))
+            return false;
+        if (!read(prevRot.coeffs().data(), 4 * sizeof(double)))
+            return false;
+
+        uint32_t nameLength;
+        if (!read(&nameLength, sizeof(uint32_t)))
+            return false;
+        std::string name(nameLength, '\0');
+        if (nameLength > 0) {
+            if (!read(&name[0], nameLength))
+                return false;
+        }
+
+        uint8_t type;
+        double friction;
+        if (!read(&type, sizeof(uint8_t)))
+            return false;
+        if (!read(&friction, sizeof(double)))
+            return false;
+
+        colliders[idx]->setPosition(pos);
+        colliders[idx]->setRotation(rot);
+        colliders[idx]->setPrevPosition(prevPos);
+        colliders[idx]->setPrevRotation(prevRot);
+        colliders[idx]->setName(name);
+        colliders[idx]->setFriction(friction);
+
+        switch (type) {
+        case 0: {
+            Eigen::Vector3d center;
+            double radius;
+
+            if (!read(center.data(), 3 * sizeof(double)))
+                return false;
+            if (!read(&radius, sizeof(double)))
+                return false;
+
+            if (colliders.size() > idx &&
+                dynamic_cast<SphereCollider*>(colliders[idx].get())) {
+                auto* sphere =
+                    dynamic_cast<SphereCollider*>(colliders[idx].get());
+                sphere->setCenter(center);
+                sphere->setRadius(radius);
+            } else {
+                Logger::error("Missing collider slot for sphere.");
+                return false;
+            }
+            break;
+        }
+        case 1: {
+            Eigen::Vector3d origin, normal;
+
+            if (!read(origin.data(), 3 * sizeof(double)))
+                return false;
+            if (!read(normal.data(), 3 * sizeof(double)))
+                return false;
+
+            if (colliders.size() > idx &&
+                dynamic_cast<PlaneCollider*>(colliders[idx].get())) {
+                auto* plane =
+                    dynamic_cast<PlaneCollider*>(colliders[idx].get());
+                plane->setOrigin(origin);
+                plane->setNormal(normal);
+            } else {
+                Logger::error("Missing collider slot for plane.");
+                return false;
+            }
+            break;
+        }
+        case 2: {
+            Eigen::Vector3d start, end;
+            double radius;
+
+            if (!read(start.data(), 3 * sizeof(double)))
+                return false;
+            if (!read(end.data(), 3 * sizeof(double)))
+                return false;
+            if (!read(&radius, sizeof(double)))
+                return false;
+
+            if (colliders.size() > idx &&
+                dynamic_cast<CapsuleCollider*>(colliders[idx].get())) {
+                auto* capsule =
+                    dynamic_cast<CapsuleCollider*>(colliders[idx].get());
+                capsule->setStart(start);
+                capsule->setEnd(end);
+                capsule->setRadius(radius);
+            } else {
+                Logger::error("Missing collider slot for capsule.");
+                return false;
+            }
+            break;
+        }
+        case 3: {
+            if (colliders.size() > idx &&
+                dynamic_cast<MeshCollider*>(colliders[idx].get())) {
+                auto* mesh = dynamic_cast<MeshCollider*>(colliders[idx].get());
+                mesh->transform(pos, rot);
+            } else {
+                Logger::error("Missing collider slot for mesh.");
+                return false;
+            }
+            break;
+        }
+        default: {
+            Logger::error("Unknown collider type in save file: " +
+                          std::to_string(type));
+            return false;
+        }
+        }
+    }
+
+    // Particles
+    auto& particles = solver.getParticles();
+    if (particles.size() != count) {
+        Logger::error("Particles size mismatch: '" + std::to_string(count) +
+                      "' rather than '" + std::to_string(particles.size()) +
+                      "'");
+        return false;
+    }
+
+    for (size_t idx = 0; idx < count; ++idx) {
+        Eigen::Vector3d pos, oldPos;
+        double invMass;
+
+        if (!read(pos.data(), 3 * sizeof(double)))
+            return false;
+        if (!read(oldPos.data(), 3 * sizeof(double)))
+            return false;
+        if (!read(&invMass, sizeof(double)))
+            return false;
+
+        particles[idx].setPosition(pos);
+        particles[idx].setOldPosition(oldPos);
+        particles[idx].setInverseMass(invMass);
+    }
+
+    // Constraints
+    uint32_t constraintsCount;
+
+    if (!read(&constraintsCount, sizeof(uint32_t)))
+        return false;
+
+    auto& constraints = solver.getConstraints();
+    if (constraints.size() != constraintsCount) {
+        Logger::error("Constraints size mismatch: '" +
+                      std::to_string(constraintsCount) + "' rather than '" +
+                      std::to_string(constraints.size()) + "'");
+        return false;
+    }
+
+    for (size_t idx = 0; idx < constraintsCount; idx++) {
+        double lambda;
+        if (!read(&lambda, sizeof(double)))
+            return false;
+
+        constraints[idx]->setLambda(lambda);
+    }
+    return true;
 }
 
 void StateSerializer::initCrcTable() {
-  if (crcTableReady) return;
-  for (uint32_t idx = 0; idx < 256; idx++) {
-    uint32_t crc = idx;
-    for (int jdx = 0; jdx < 8; jdx++) {
-      if (crc & 1)
-        crc = (crc >> 1) ^ CRC32_POLY;
-      else
-        crc >>= 1;
+    if (crcTableReady)
+        return;
+    for (uint32_t idx = 0; idx < 256; idx++) {
+        uint32_t crc = idx;
+        for (int jdx = 0; jdx < 8; jdx++) {
+            if (crc & 1)
+                crc = (crc >> 1) ^ CRC32_POLY;
+            else
+                crc >>= 1;
+        }
+        buildCrcTable[idx] = crc;
     }
-    buildCrcTable[idx] = crc;
-  }
-  crcTableReady = true;
+    crcTableReady = true;
 }
 
 uint32_t StateSerializer::computeCRC32(const uint8_t* data, size_t length) {
-  initCrcTable();
-  uint32_t crc = 0xFFFFFFFF;
-  for (size_t idx = 0; idx < length; idx++)
-    crc = (crc >> 8) ^ buildCrcTable[(crc ^ data[idx]) & 0xFF];
-  return crc ^ 0xFFFFFFFF;
+    initCrcTable();
+    uint32_t crc = 0xFFFFFFFF;
+    for (size_t idx = 0; idx < length; idx++)
+        crc = (crc >> 8) ^ buildCrcTable[(crc ^ data[idx]) & 0xFF];
+    return crc ^ 0xFFFFFFFF;
 }
 
 bool StateSerializer::validate(const std::string& path) {
-  std::ifstream file(path, std::ios::binary);
-  if (!file.is_open()) return false;
+    std::ifstream file(path, std::ios::binary);
+    if (!file.is_open())
+        return false;
 
-  std::vector<uint8_t> buf(std::istreambuf_iterator<char>(file), {});
-  if (buf.size() < 32) return false;
+    std::vector<uint8_t> buf(std::istreambuf_iterator<char>(file), {});
+    if (buf.size() < 32)
+        return false;
 
-  if (memcmp(buf.data(), MAGIC, 6) != 0) return false;
+    if (memcmp(buf.data(), MAGIC, 6) != 0)
+        return false;
 
-  constexpr size_t CRC_OFFSET = 24;
-  uint32_t storedCrc = 0;
-  memcpy(&storedCrc, buf.data() + CRC_OFFSET, sizeof(uint32_t));
+    constexpr size_t CRC_OFFSET = 24;
+    uint32_t storedCrc = 0;
+    memcpy(&storedCrc, buf.data() + CRC_OFFSET, sizeof(uint32_t));
 
-  memset(buf.data() + CRC_OFFSET, 0, sizeof(uint32_t));
-  uint32_t computedCrc = computeCRC32(buf.data(), buf.size());
-  memcpy(buf.data() + CRC_OFFSET, &storedCrc, sizeof(uint32_t));
+    memset(buf.data() + CRC_OFFSET, 0, sizeof(uint32_t));
+    uint32_t computedCrc = computeCRC32(buf.data(), buf.size());
+    memcpy(buf.data() + CRC_OFFSET, &storedCrc, sizeof(uint32_t));
 
-  if (storedCrc != computedCrc) return false;
+    if (storedCrc != computedCrc)
+        return false;
 
-  uint8_t version = buf[6];
-  if (version != VERSION) return false;
+    uint8_t version = buf[6];
+    if (version != VERSION)
+        return false;
 
-  return true;
+    return true;
 }
 
 StateInfo StateSerializer::getStateInfo(const std::string& path) {
-  std::ifstream file(path, std::ios::binary);
-  if (!file.is_open()) throw std::runtime_error("File not found.");
+    std::ifstream file(path, std::ios::binary);
+    if (!file.is_open())
+        throw std::runtime_error("File not found.");
 
-  std::vector<uint8_t> buf(std::istreambuf_iterator<char>(file), {});
-  if (buf.size() < 32) throw std::runtime_error("File too small");
+    std::vector<uint8_t> buf(std::istreambuf_iterator<char>(file), {});
+    if (buf.size() < 32)
+        throw std::runtime_error("File too small");
 
-  StateInfo info;
-  info.version = *reinterpret_cast<uint8_t*>(buf.data() + 6);
-  info.frame = *reinterpret_cast<uint32_t*>(buf.data() + 8);
-  info.timestamp = *reinterpret_cast<double*>(buf.data() + 12);
-  info.particleCount = *reinterpret_cast<uint32_t*>(buf.data() + 20);
-  return info;
+    StateInfo info;
+    info.version = *reinterpret_cast<uint8_t*>(buf.data() + 6);
+    info.frame = *reinterpret_cast<uint32_t*>(buf.data() + 8);
+    info.timestamp = *reinterpret_cast<double*>(buf.data() + 12);
+    info.particleCount = *reinterpret_cast<uint32_t*>(buf.data() + 20);
+    return info;
 }
 
-}  // namespace Tissu
+} // namespace Tissu

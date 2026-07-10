@@ -49,8 +49,12 @@ public:
     void setCollisionCompliance(double c) { m_collisionCompliance = c; }
     void setCurrentFrame(const int frame) { m_currentFrame = frame; }
     void setCurrentTime(const double time) { m_currentTime = time; }
-    void setStaticFriction(const double friction) { m_staticFriction = friction; }
-    void setDynamicFriction(const double friction) { m_dynamicFriction = friction; }
+    void setStaticFriction(const double friction) {
+        m_staticFriction = friction;
+    }
+    void setDynamicFriction(const double friction) {
+        m_dynamicFriction = friction;
+    }
 
     inline int getSubsteps() const { return m_substeps; }
     inline int getIterations() const { return m_iterations; }

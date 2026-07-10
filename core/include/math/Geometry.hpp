@@ -1,14 +1,14 @@
 #pragma once
 
-#include "Types.hpp"
 #include "Eigen/Dense"
+#include "Types.hpp"
 
 namespace Tissu {
 
 inline Eigen::Vector3d closestPointOnTriangle(const Eigen::Vector3d& point,
-                                               const Eigen::Vector3d& a,
-                                               const Eigen::Vector3d& b,
-                                               const Eigen::Vector3d& c) {
+                                              const Eigen::Vector3d& a,
+                                              const Eigen::Vector3d& b,
+                                              const Eigen::Vector3d& c) {
     Eigen::Vector3d ab = b - a;
     Eigen::Vector3d ac = c - a;
     Eigen::Vector3d ap = point - a;
@@ -57,4 +57,4 @@ inline Eigen::Vector3d closestPointOnTriangle(const Eigen::Vector3d& point,
     return a + v * ab + w * ac;
 }
 
-}
+} // namespace Tissu

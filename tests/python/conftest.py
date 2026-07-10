@@ -1,5 +1,4 @@
 import sys
-import os
 from pathlib import Path
 
 build_dir = Path(__file__).parents[2] / "build"
