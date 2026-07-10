@@ -42,9 +42,12 @@ jobs:
         run: |
           brew install cmake libomp git
 
-      - name: Install Python tools
+      - name: Install Python tools & Linters
         run: |
-          python -m pip install mypy tqdm numpy matplotlib pytest imageio
+          python -m pip install pre-commit mypy tqdm numpy matplotlib pytest imageio
+
+      - name: Run pre-commit (Ruff & Clang-Format)
+        run: pre-commit run --all-files
 
       - name: Cache FetchContent dependencies
         uses: actions/cache@v4
