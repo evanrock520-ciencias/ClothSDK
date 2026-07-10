@@ -17,5 +17,5 @@ nav:
   - Physics & Math: core/physics_and_math.md
   - Architecture: core/architecture.md
   - Build And Develops: core/build_and_develops.md
-  - Python API: python/api.md
+  - Python API: python/index.md
   - Blender: blender/addon.md 
