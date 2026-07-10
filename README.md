@@ -12,7 +12,7 @@
 as Blender. It was developed to make high-fidelity cloth simulation as accessible as possible for technical artists and
 developers.
 
-By combining a high-performance **C++ core** with a flexible **Python API**. Tissu lets you script complex simulations
+By combining a high-performance **C++ core** with a flexible **Python API**, Tissu lets you script complex simulations
 with the simplicity of Python and the velocity of C++.
 
 ![Hero](docs/videos/blender/Hero.webp)
@@ -256,8 +256,8 @@ Technical documentation is currently a work in progress. It is expected to inclu
 
 - [Architecture overview](docs/core/architecture.md)
 - [Physics & math reference](docs/core/physics_and_math.md)
-- [Python API reference](docs/python/api.md)
-- [Build & development guide](docs/core/build_and_develops.md)
+- [Python API reference](docs/python/index.md)
+- [Build & development guide](docs/core/build_and_development.md)
 
 > Almost all pages may be incomplete or missing content.
 

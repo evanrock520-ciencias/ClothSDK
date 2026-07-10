@@ -1,13 +1,13 @@
 # Python API
 
-**Tissu** is available from both, this repo and PyPI. You can install it using pip:
+**Tissu** is available from both this repo and PyPI. You can install it using pip:
 
 ```bash
 pip install pytissu
 ```
 
 > [!NOTE]
-> To use the repo version of Tissu, see [Installation]((../core/build_and_develops.md)).
+> To use the repo version of Tissu, see [Installation](../core/build_and_development.md).
 
 ## Supported Python Versions and Platforms
 

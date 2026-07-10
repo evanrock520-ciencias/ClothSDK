@@ -60,7 +60,7 @@ almost immediately. This is why we need a more stable approach.
 
 ### Verlet
 
-The Verlet's method is given by the next one equation.
+The Verlet method is given by the following equation.
 
 $$x_{n+1} = 2 ⋅ x_n - x_{n-1} + a_n ⋅ Δt²$$
 
@@ -161,7 +161,7 @@ $$
 \end{array}
 $$
 
-The algorithm consists in three main steps:
+The algorithm consists of three main steps:
 
 1. **Position Update**: In (5) we update the velocity of each particle based on external forces, and in (7) we predict
    the new position of each particle based on
