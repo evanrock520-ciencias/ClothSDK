@@ -50,7 +50,7 @@ def test_bake_without_fabrics():
 
     with pytest.raises(RuntimeError):
         sim.bake_alembic(
-            filepath="test.abc",
+            path="test.abc",
         )
 
 
@@ -58,7 +58,7 @@ def test_snapshot_of_invalid_fabric():
     sim = Simulation()
 
     with pytest.raises(RuntimeError):
-        sim.save_snapshot(filename="test.obj", fabric_name="curtain")
+        sim.save_snapshot(path="test.obj", fabric_name="curtain")
 
 
 def test_resolve_material():
@@ -203,7 +203,7 @@ def test_bake_alembic(tmp_path):
 
     abc_file = tmp_path / "multi_cloth.abc"
 
-    success = sim.bake_alembic(filepath=str(abc_file), start_frame=0, end_frame=5, fps=60.0)
+    success = sim.bake_alembic(path=str(abc_file), start_frame=0, end_frame=5, fps=60.0)
 
     assert success
     assert abc_file.exists()
