@@ -17,7 +17,7 @@ By starting from the source code, these are the prerequisites to build and devel
 
 ```bash
 sudo apt update
-sudo apt install -y build-essential cmake python3 python3-pip git git
+sudo apt install -y build-essential cmake python3 python3-pip git
 ```
 
 ### Linux (Fedora)

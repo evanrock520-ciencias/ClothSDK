@@ -14,8 +14,9 @@ extra_javascript:
   - https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js
 
 nav:
+  - Home: index.md
   - Physics & Math: core/physics_and_math.md
   - Architecture: core/architecture.md
-  - Build And Develops: core/build_and_develops.md
+  - Build And Development: core/build_and_development.md
   - Python API: python/index.md
   - Blender: blender/addon.md 

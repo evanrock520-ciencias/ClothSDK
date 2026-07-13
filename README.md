@@ -150,7 +150,7 @@ The viewer includes an integrated ImGui control panel to manage the simulation o
 
 These dependencies must be installed on your system before building the project:
 
-- Cmake ($\ge$ 3.16)
+- Cmake ($\ge$ 3.20)
 - C++ Compiler with C++17 support (GCC, Clang, or MSVC)
 - OpenMP
 
@@ -158,7 +158,7 @@ These dependencies must be installed on your system before building the project:
 
 To build and use `tissu`, you need:
 
-- Python ($\ge$ 3.8)
+- Python ($\ge$ 3.12)
 - Build Tools: setuptools $\ge$ 61.0, wheel
 - Packages: mypy, numpy, tqdm, pytest
 

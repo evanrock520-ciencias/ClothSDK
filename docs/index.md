@@ -12,4 +12,4 @@ This is the documentation for Tissu.
 
 [4. Blender Add-on](blender/addon.md)
 
-[5. Build and Develops](core/build_and_develops.md)
+[5. Build and Develops](core/build_and_development.md)

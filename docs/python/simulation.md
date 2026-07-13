@@ -166,4 +166,124 @@ sim.add_mesh(
 - `path` (`str`): Path to the mesh file.
 - `friction` (`float`): Friction coefficient of the mesh.
 
-###  
+### `simulate`
+
+Runs the simulation for a given number of frames.
+
+```python
+sim.simulate(frames=120, dt=0.016)
+```
+
+**Parameters**:
+
+- `frames` (`int`): Number of frames to simulate.
+- `dt` (`float`): Time step for each frame.
+
+### `reset`
+
+Clears the simulation, removing all fabrics and colliders, and resetting the simulation parameters to their default
+values.
+
+```python
+sim.reset()
+```
+
+### `soft_reset`
+
+Resets all particles to their initial positions.
+
+```python
+sim.soft_reset()
+```
+
+### `save_scene`
+
+Saves the defined scene to a JSON file. See [File Formats](../core/formats.md) for more information.
+
+```python
+sim.save_scene(path="path/to/scene.json", name="scene")
+```
+
+**Parameters**:
+
+- `path` (`str`): Path to the JSON file where the scene will be saved.
+- `name` (`str`): Name of the scene.
+
+### `save_state`
+
+Saves the current state of the simulation to a `.tissu` file. See [File Formats](../core/formats.md) for more
+information.
+
+```python
+sim.save_state(path="path/to/state.tissu")
+```
+
+**Parameters**:
+
+- `path` (`str`): Path to the `.tissu` file where the state will be saved.
+
+### `save_snapshot`
+
+Takes a geometry snapshot of the simulation and saves it to a `.obj` file.
+
+```python
+sim.save_snapshot(path="path/to/snapshot.obj", fabric_name="fabric")
+```
+
+**Parameters**:
+
+- `path` (`str`): Path to the `.obj` file where the snapshot will be saved.
+- `fabric_name` (`str`): Name of the fabric for which to save a snapshot.
+
+### `load_scene`
+
+Loads a scene from a JSON file with type `scene`.
+
+```python
+sim.load_scene(path="path/to/scene.json")
+```
+
+**Parameters**:
+
+- `path` (`str`): Path to the JSON file containing the scene.
+
+### `load_state`
+
+Loads a simulation state from a `.tissu` file.
+
+```python
+sim.load_state(path="path/to/state.tissu")
+```
+
+**Parameters**:
+
+- `path` (`str`): Path to the `.tissu` file containing the simulation state.
+
+### `view`
+
+Launches an interactive viewer to visualize the simulation. This requires the viewer to be built and available.
+
+```python
+sim.view(width=800, height=600, title="Viewer")
+```
+
+**Parameters**:
+
+- `width` (`int`): Width of the viewer window.
+- `height` (`int`): Height of the viewer window.
+- `title` (`str`): Title of the viewer window.
+
+### `bake_alembic`
+
+Saves a simulation to an Alembic file.
+
+```python
+sim.bake_alembic(path="path/to/simulation.abc", start_frame=0, end_frame=120, fps=24)
+```
+
+**Parameters**:
+
+- `path` (`str`): Path to the Alembic file where the simulation will be saved.
+- `start_frame` (`int`): Starting frame of the simulation to bake.
+- `end_frame` (`int`): Ending frame of the simulation to bake.
+- `fps` (`float`): Frames per second for the baked simulation.
