@@ -226,7 +226,7 @@ class Simulation:
             raise ValueError("Must provide either target_vertex_ids or local_anchors.")
 
     @classmethod
-    def load_scene(cls, filepath: str) -> Simulation:
+    def load_scene(cls, path: str) -> Simulation:
         sim = cls.__new__(cls)
         sim.world = sdk.World()
         sim.solver = sdk.Solver()
@@ -240,7 +240,7 @@ class Simulation:
         sim._last_dt = 1 / 60
         sim._frame_counter = 0
 
-        sdk.SceneLoader.load_scene(filepath, sim.solver, sim.world)
+        sdk.SceneLoader.load_scene(path, sim.solver, sim.world)
         sim._gravity_force = sdk.GravityForce(sim.world.get_gravity())
         sim.world.add_force(sim._gravity_force)
 
@@ -271,7 +271,7 @@ class Simulation:
             sim.world.add_force(aero)
             sim.cloth_objects[fabric.name] = fabric
 
-        sdk.Logger.info(f"Scene loaded: {filepath}")
+        sdk.Logger.info(f"Scene loaded: {path}")
         return sim
 
     def on_frame(self, frame: int):
@@ -486,7 +486,7 @@ class Simulation:
 
     def bake_alembic(
         self,
-        filepath: str,
+        path: str,
         start_frame: int = 0,
         end_frame: int = 120,
         fps: float = 60.0,
@@ -498,7 +498,7 @@ class Simulation:
         each frame to disk. The simulation state is modified in place.
 
         Args:
-            filepath:    Output path for the .abc file. Created or overwritten if it exists.  # noqa: E501
+            path:    Output path for the .abc file. Created or overwritten if it exists.  # noqa: E501
             start_frame: First frame to bake.
             end_frame:   Last frame to bake.
             fps:         Frames per second, used to compute the timestep.
@@ -522,16 +522,16 @@ class Simulation:
             particle_ids = cloth_obj.instance.get_particle_indices()
             particle_indices_list.append(np.array(particle_ids, dtype=np.int32))
 
-        sdk.Logger.info(f"Baking simulation to {filepath}...")
+        sdk.Logger.info(f"Baking simulation to {path}...")
 
         if not exporter.open(
-            filepath,
+            path,
             names,
             self.get_positions(),
             global_indices_list,
             particle_indices_list,
         ):
-            sdk.Logger.error(f"Failed to create Alembic file: {filepath}")
+            sdk.Logger.error(f"Failed to create Alembic file: {path}")
             return False
 
         total_frames = end_frame - start_frame
@@ -543,17 +543,17 @@ class Simulation:
 
         self.actions.clear()
         exporter.close()
-        sdk.Logger.info(f"Bake completed successfully: {filepath}")
+        sdk.Logger.info(f"Bake completed successfully: {path}")
         return True
 
-    def save_snapshot(self, filename: str, fabric_name: str):
+    def save_snapshot(self, path: str, fabric_name: str):
         if fabric_name not in self.cloth_objects:
             raise RuntimeError(f"Fabric '{fabric_name}' not found.")
 
         fabric = self.cloth_objects[fabric_name]
 
-        sdk.OBJExporter.export_obj(filename, fabric.instance, self.solver)
-        sdk.Logger.info(f"Snapshot saved: {filename}")
+        sdk.OBJExporter.export_obj(path, fabric.instance, self.solver)
+        sdk.Logger.info(f"Snapshot saved: {path}")
         return True
 
     def save_scene(
@@ -674,7 +674,7 @@ class Simulation:
         start: int = 0,
         end: int = 120,
         fps: float = 30,
-        filename: str = "simulation.gif",
+        path: str = "simulation.gif",
     ) -> None:
         fabrics = [self.get_fabric(fabric_name)] if fabric_name is not None else list(self.cloth_objects.values())
 
@@ -694,9 +694,9 @@ class Simulation:
         fig = plt.figure()
         ax = fig.add_subplot(projection="3d")
 
-        sdk.Logger.info(f"Rendering GIF '{filename}' ({end - start} frames @ {fps} fps)...")
+        sdk.Logger.info(f"Rendering GIF '{path}' ({end - start} frames @ {fps} fps)...")
 
-        with imageio.get_writer(filename, mode="I", fps=fps) as writer:
+        with imageio.get_writer(path, mode="I", fps=fps) as writer:
             for _ in tqdm(range(end - start), desc="Rendering GIF", unit="frame"):
                 self.step(self._last_dt)
 
@@ -735,7 +735,7 @@ class Simulation:
                 writer.append_data(image)
 
         plt.close(fig)
-        sdk.Logger.info(f"GIF saved: {filename}")
+        sdk.Logger.info(f"GIF saved: {path}")
 
     def plot_energy(self) -> None:
         frames = np.arange(len(self._ke_history))
@@ -757,66 +757,66 @@ class Simulation:
         fig.legend(loc="upper right")
         plt.show()
 
-    def load_material(self, filepath: str, cloth_name: str) -> None:
+    def load_material(self, path: str, cloth_name: str) -> None:
         """
         Loads material properties from a JSON file and applies them to a fabric.
 
         Args:
-            filepath:   Path to the material JSON file.
+            path:   Path to the material JSON file.
             cloth_name: Name of the target fabric.
         """
         if cloth_name not in self.cloth_objects:
             raise KeyError(f"Fabric '{cloth_name}' not found in simulation.")
 
         fabric = self.cloth_objects[cloth_name]
-        sdk.ConfigLoader.load_material(filepath, fabric.instance.get_material())
+        sdk.ConfigLoader.load_material(path, fabric.instance.get_material())
 
-    def load_physics(self, filepath: str) -> None:
+    def load_physics(self, path: str) -> None:
         """
         Loads physics parameters from a JSON file and applies them to the simulation.  # noqa: E501
 
         Args:
-            filepath: Path to the physics JSON file.
+            path: Path to the physics JSON file.
         """
-        sdk.ConfigLoader.load_physics(filepath, self.solver, self.world)
+        sdk.ConfigLoader.load_physics(path, self.solver, self.world)
 
-    def save_material(self, filepath: str, cloth_name: str) -> None:
+    def save_material(self, path: str, cloth_name: str) -> None:
         """
         Saves the material properties of a fabric to a JSON file.
 
         Args:
-            filepath:   Destination path for the material JSON file.
+            path:   Destination path for the material JSON file.
             cloth_name: Name of the fabric whose material will be saved.
         """
         if cloth_name not in self.cloth_objects:
             raise KeyError(f"Fabric '{cloth_name}' not found in simulation.")
 
         mat = self.cloth_objects[cloth_name].instance.get_material()
-        sdk.ConfigLoader.save_material(filepath, mat, cloth_name)
+        sdk.ConfigLoader.save_material(path, mat, cloth_name)
 
-    def save_physics(self, filepath: str, name: str = "physics") -> None:
+    def save_physics(self, path: str, name: str = "physics") -> None:
         """
         Saves the current physics parameters to a JSON file.
 
         Args:
-            filepath: Destination path for the physics JSON file.
+            path: Destination path for the physics JSON file.
             name:     Identifier written into the file.
         """
-        sdk.ConfigLoader.save_physics(filepath, self.solver, self.world, name)
+        sdk.ConfigLoader.save_physics(path, self.solver, self.world, name)
 
-    def save_state(self, filepath: str = "default.tissu"):
-        sdk.StateSerializer.save(filepath, self.solver, self.world)
+    def save_state(self, path: str = "default.tissu"):
+        sdk.StateSerializer.save(path, self.solver, self.world)
 
-    def load_state(self, filepath: str):
-        sdk.StateSerializer.load(filepath, self.solver, self.world)
-
-    @staticmethod
-    def get_state_status(filepath: str):
-        return sdk.StateSerializer.get_state_info(filepath)
+    def load_state(self, path: str):
+        sdk.StateSerializer.load(path, self.solver, self.world)
 
     @staticmethod
-    def get_scene_status(filepath: str):
-        return sdk.SceneLoader.get_scene_header(filepath)
+    def get_state_status(path: str):
+        return sdk.StateSerializer.get_state_info(path)
+
+    @staticmethod
+    def get_scene_status(path: str):
+        return sdk.SceneLoader.get_scene_header(path)
 
     def move_collider(self, name: str, new_position: np.array, new_rotation: np.array = None) -> None:
         if new_rotation is None:
@@ -1131,15 +1131,15 @@ class Material:
             ValueError: If the preset name is not found in built-in presets.
         """
         if presets_path:
-            filepath = os.path.join(presets_path, f"{name}.json")
-            if os.path.exists(filepath):
+            path = os.path.join(presets_path, f"{name}.json")
+            if os.path.exists(path):
                 try:
                     mat = cls()
-                    sdk.ConfigLoader.load_material(filepath, mat._native)
+                    sdk.ConfigLoader.load_material(path, mat._native)
                     return mat
                 except Exception as e:
                     sdk.Logger.warn(
-                        f"Could not load preset from {filepath}: {e}. Falling back to built-in."  # noqa: E501
+                        f"Could not load preset from {path}: {e}. Falling back to built-in."  # noqa: E501
                     )
 
         if name not in cls._BUILTIN_PRESETS:
