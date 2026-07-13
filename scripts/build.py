@@ -16,6 +16,7 @@ def run_command(cmd, cwd=None):
 
 def main():
     parser = argparse.ArgumentParser(description="Cross-platform build helper for Tissu")
+    parser.add_argument("--dependencies", action="store_true", help="Download build dependencies")
     parser.add_argument("--no-compile", action="store_true", help="Skip CMake configuration")
     parser.add_argument("--no-build", action="store_true", help="Skip build step")
     parser.add_argument(
@@ -30,6 +31,12 @@ def main():
     script_dir = Path(__file__).parent.resolve()
     root_dir = script_dir.parent
     build_dir = root_dir / "build"
+
+    # 0. Download dependencies
+    if args.dependencies:
+        print("--- Downloading Dependencies ---")
+        run_command([sys.executable, "-m", "pip", "install", "jinja2"], cwd=root_dir)
+        print()
 
     # 1. Compile
     if not args.no_compile:
