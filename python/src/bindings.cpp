@@ -71,9 +71,9 @@ PYBIND11_MODULE(_cloth_sdk_core, m) {
         .def("get_pin_mode", &Pin::getPinMode)
         .def("get_compliance", &Pin::getCompliance)
         .def("get_threshold", &Pin::getThreshold)
-        .def("set_mode", &Pin::setPinMode)
-        .def("set_compliance", &Pin::setCompliance)
-        .def("set_threshold", &Pin::setThreshold);
+        .def("set_mode", &Pin::setPinMode, py::arg("pin_mode"))
+        .def("set_compliance", &Pin::setCompliance, py::arg("compliance"))
+        .def("set_threshold", &Pin::setThreshold, py::arg("threshold"));
 
     py::class_<Tissu::ClothMaterial, std::shared_ptr<Tissu::ClothMaterial>>(
         m, "ClothMaterial")
@@ -131,26 +131,30 @@ PYBIND11_MODULE(_cloth_sdk_core, m) {
 
     py::class_<Tissu::GravityForce, Tissu::Force,
                std::shared_ptr<Tissu::GravityForce>>(m, "GravityForce")
-        .def(py::init<const Eigen::Vector3d&>())
-        .def("set_gravity", &GravityForce::setGravity)
+        .def(py::init<const Eigen::Vector3d&>(), py::arg("gravity"))
+        .def("set_gravity", &GravityForce::setGravity, py::arg("gravity"))
         .def("get_gravity", &GravityForce::getGravity);
 
     py::class_<Tissu::AerodynamicForce, Tissu::Force,
                std::shared_ptr<Tissu::AerodynamicForce>>(m, "AerodynamicForce")
         .def(py::init<const std::vector<AeroFace>&, const Eigen::Vector3d&,
-                      double>());
+                      double>(),
+             py::arg("faces"), py::arg("wind_velocity"),
+             py::arg("air_density"));
 
     py::class_<Particle>(m, "Particle")
         .def(py::init<const Eigen::Vector3d&>(), py::arg("initial_pos"))
         .def("get_position", &Particle::getPosition)
-        .def("set_position", &Particle::setPosition)
+        .def("set_position", &Particle::setPosition, py::arg("position"))
         .def("get_old_position", &Particle::getOldPosition)
-        .def("set_old_position", &Particle::setOldPosition)
+        .def("set_old_position", &Particle::setOldPosition,
+             py::arg("old_position"))
         .def("get_inverse_mass", &Particle::getInverseMass)
-        .def("set_inverse_mass", &Particle::setInverseMass)
+        .def("set_inverse_mass", &Particle::setInverseMass,
+             py::arg("inverse_mass"))
         .def("get_velocity", &Particle::getVelocity)
-        .def("add_force", &Particle::addForce)
-        .def("integrate", &Particle::integrate);
+        .def("add_force", &Particle::addForce, py::arg("force"))
+        .def("integrate", &Particle::integrate, py::arg("dt"));
 
     py::class_<Constraint, std::unique_ptr<Constraint>>(m, "Constraint")
         .def("reset_lambda", &Constraint::resetLambda);
@@ -188,9 +192,9 @@ PYBIND11_MODULE(_cloth_sdk_core, m) {
 
     py::class_<Collider, std::shared_ptr<Collider>>(m, "Collider")
         .def("get_friction", &Collider::getFriction)
-        .def("set_friction", &Collider::setFriction)
+        .def("set_friction", &Collider::setFriction, py::arg("friction"))
         .def("get_name", &Collider::getName)
-        .def("set_name", &Collider::setName)
+        .def("set_name", &Collider::setName, py::arg("name"))
         .def("get_position", &Collider::getPosition)
         .def("get_rotation", &Collider::getRotation);
 
@@ -230,18 +234,25 @@ PYBIND11_MODULE(_cloth_sdk_core, m) {
 
     py::class_<World, std::shared_ptr<World>>(m, "World")
         .def(py::init<>())
-        .def("add_cloth", &World::addCloth)
-        .def("add_collider", &World::addCollider)
-        .def("add_force", &World::addForce)
+        .def("add_cloth", &World::addCloth, py::arg("cloth"))
+        .def("add_collider", &World::addCollider, py::arg("collider"))
+        .def("add_force", &World::addForce, py::arg("force"))
         .def("clear", &World::clear)
-        .def("add_plane_collider", &World::addPlaneCollider)
-        .def("add_sphere_collider", &World::addSphereCollider)
-        .def("add_capsule_collider", &World::addCapsuleCollider)
-        .def("add_mesh_collider", &World::addMeshCollider)
-        .def("set_gravity", &World::setGravity)
-        .def("set_wind", &World::setWind)
-        .def("set_air_density", &World::setAirDensity)
-        .def("set_thickness", &World::setThickness)
+        .def("add_plane_collider", &World::addPlaneCollider,
+             py::arg("position"), py::arg("normal"), py::arg("friction"),
+             py::arg("name"))
+        .def("add_sphere_collider", &World::addSphereCollider,
+             py::arg("center"), py::arg("radius"), py::arg("friction"),
+             py::arg("name"))
+        .def("add_capsule_collider", &World::addCapsuleCollider,
+             py::arg("start"), py::arg("end"), py::arg("radius"),
+             py::arg("friction"), py::arg("name"))
+        .def("add_mesh_collider", &World::addMeshCollider, py::arg("path"),
+             py::arg("friction"), py::arg("name"))
+        .def("set_gravity", &World::setGravity, py::arg("gravity"))
+        .def("set_wind", &World::setWind, py::arg("wind"))
+        .def("set_air_density", &World::setAirDensity, py::arg("density"))
+        .def("set_thickness", &World::setThickness, py::arg("thickness"))
         .def("get_cloths", &World::getCloths)
         .def("get_colliders", &World::getColliders,
              py::return_value_policy::reference_internal)
@@ -264,25 +275,33 @@ PYBIND11_MODULE(_cloth_sdk_core, m) {
         .def(py::init<>())
         .def("update", &Solver::update, py::arg("world"), py::arg("delta_time"))
         .def("clear", &Solver::clear)
-        .def("add_particle", &Solver::addParticle)
+        .def("add_particle", &Solver::addParticle, py::arg("particle"))
         .def("get_particles",
              static_cast<const std::vector<Particle>& (Solver::*)() const>(
                  &Solver::getParticles),
              py::return_value_policy::reference_internal)
-        .def("set_substeps", &Solver::setSubsteps)
-        .def("set_iterations", &Solver::setIterations)
+        .def("set_substeps", &Solver::setSubsteps, py::arg("substeps"))
+        .def("set_iterations", &Solver::setIterations, py::arg("iterations"))
         .def("get_iterations", &Solver::getIterations)
         .def("get_substeps", &Solver::getSubsteps)
         .def("get_time", &Solver::getCurrentTime)
         .def("get_frame", &Solver::getCurrentFrame)
-        .def("add_distance_constraint", &Solver::addDistanceConstraint)
-        .def("add_bending_constraint", &Solver::addBendingConstraint)
-        .def("add_volume_constraint", &Solver::addVolumeConstraint)
-        .def("add_pin", &Solver::addPin)
-        .def("unpin", &Solver::removePin)
-        .def("add_stitch", &Solver::addStitch)
-        .def("add_attach", &Solver::addAttach)
-        .def("remove_attach", &Solver::removeAttach)
+        .def("add_distance_constraint", &Solver::addDistanceConstraint,
+             py::arg("p1"), py::arg("p2"), py::arg("compliance"))
+        .def("add_bending_constraint", &Solver::addBendingConstraint,
+             py::arg("p1"), py::arg("p2"), py::arg("p3"), py::arg("p4"),
+             py::arg("rest_angle"), py::arg("compliance"))
+        .def("add_volume_constraint", &Solver::addVolumeConstraint,
+             py::arg("triangles"), py::arg("particles"), py::arg("compliance"))
+        .def("add_pin", &Solver::addPin, py::arg("particle_id"),
+             py::arg("target_position"), py::arg("compliance") = 0.0)
+        .def("unpin", &Solver::removePin, py::arg("particle_id"))
+        .def("add_stitch", &Solver::addStitch, py::arg("p1"), py::arg("p2"),
+             py::arg("compliance"))
+        .def("add_attach", &Solver::addAttach, py::arg("particle_id"),
+             py::arg("collider"), py::arg("local_anchor"),
+             py::arg("compliance"), py::arg("rest_length"))
+        .def("remove_attach", &Solver::removeAttach, py::arg("particle_id"))
         .def("add_attachment", &Solver::addAttachment, py::arg("particle_id"),
              py::arg("collider"), py::arg("target_vertex_id"),
              py::arg("compliance") = 0.0, py::arg("rest_length") = 0.0)
@@ -293,7 +312,8 @@ PYBIND11_MODULE(_cloth_sdk_core, m) {
         .def("remove_attachment", &Solver::removeAttachment,
              py::arg("particle_id"))
         .def("soft_reset", &Solver::softReset)
-        .def("set_collision_compliance", &Solver::setCollisionCompliance);
+        .def("set_collision_compliance", &Solver::setCollisionCompliance,
+             py::arg("compliance"));
 
     py::class_<ClothMesh, std::shared_ptr<Tissu::ClothMesh>>(m, "ClothMesh")
         .def(py::init<>())
@@ -337,9 +357,9 @@ PYBIND11_MODULE(_cloth_sdk_core, m) {
         .def("is_closed", &Cloth::isClosed)
         .def("get_rest_volume", &Cloth::getRestVolume)
         .def("get_pin", &Cloth::getPin)
-        .def("set_pin", &Cloth::setPin)
-        .def("set_rest_volume", &Cloth::setRestVolume)
-        .def("set_material", &Cloth::setMaterial)
+        .def("set_pin", &Cloth::setPin, py::arg("pin"))
+        .def("set_rest_volume", &Cloth::setRestVolume, py::arg("rest_volume"))
+        .def("set_material", &Cloth::setMaterial, py::arg("material"))
         .def("get_particle_indices", &Cloth::getParticleIndices)
         .def("get_aerofaces", &Cloth::getAeroFaces)
         .def("get_triangles",
@@ -356,31 +376,46 @@ PYBIND11_MODULE(_cloth_sdk_core, m) {
              [](const Cloth& cloth) { return cloth.getTriangles(); });
 
     py::class_<OBJLoader>(m, "OBJLoader")
-        .def_static("load", [](const std::string& path) {
-            std::vector<Eigen::Vector3d> pos;
-            std::vector<int> indices;
-            bool success = Tissu::OBJLoader::load(path, pos, indices);
+        .def_static(
+            "load",
+            [](const std::string& path) {
+                std::vector<Eigen::Vector3d> pos;
+                std::vector<int> indices;
+                bool success = Tissu::OBJLoader::load(path, pos, indices);
 
-            return std::make_tuple(success, pos, indices);
-        });
+                return std::make_tuple(success, pos, indices);
+            },
+            py::arg("path"));
 
     py::class_<ConfigLoader>(m, "ConfigLoader")
-        .def_static("load_material", &ConfigLoader::loadMaterial)
-        .def_static("load_physics", &ConfigLoader::loadPhysics)
-        .def_static("save_material", &ConfigLoader::saveMaterial)
-        .def_static("save_physics", &ConfigLoader::savePhysics);
+        .def_static("load_material", &ConfigLoader::loadMaterial,
+                    py::arg("filepath"), py::arg("material"))
+        .def_static("load_physics", &ConfigLoader::loadPhysics,
+                    py::arg("filepath"), py::arg("solver"), py::arg("world"))
+        .def_static("save_material", &ConfigLoader::saveMaterial,
+                    py::arg("filepath"), py::arg("material"), py::arg("name"))
+        .def_static("save_physics", &ConfigLoader::savePhysics,
+                    py::arg("filepath"), py::arg("solver"), py::arg("world"),
+                    py::arg("name"));
 
     py::class_<SceneLoader>(m, "SceneLoader")
-        .def_static("load_scene", &SceneLoader::loadScene)
-        .def_static("get_scene_header", &SceneLoader::getSceneHeader);
+        .def_static("load_scene", &SceneLoader::loadScene, py::arg("filepath"),
+                    py::arg("solver"), py::arg("world"))
+        .def_static("get_scene_header", &SceneLoader::getSceneHeader,
+                    py::arg("filepath"));
 
     py::class_<SceneExporter>(m, "SceneExporter")
-        .def_static("save_scene", &SceneExporter::saveScene);
+        .def_static("save_scene", &SceneExporter::saveScene,
+                    py::arg("filepath"), py::arg("name"), py::arg("solver"),
+                    py::arg("world"));
 
     py::class_<StateSerializer>(m, "StateSerializer")
-        .def_static("load", &StateSerializer::load)
-        .def_static("save", &StateSerializer::save)
-        .def_static("get_state_info", &StateSerializer::getStateInfo);
+        .def_static("load", &StateSerializer::load, py::arg("path"),
+                    py::arg("solver"), py::arg("world"))
+        .def_static("save", &StateSerializer::save, py::arg("path"),
+                    py::arg("solver"), py::arg("world"))
+        .def_static("get_state_info", &StateSerializer::getStateInfo,
+                    py::arg("path"));
 
     py::class_<Logger>(m, "Logger")
         .def_static("info", &Logger::info, py::arg("message"))
@@ -403,10 +438,13 @@ PYBIND11_MODULE(_cloth_sdk_core, m) {
              &Tissu::Viewer::Application::syncVisualTopology)
         .def("set_solver", &Tissu::Viewer::Application::setSolver,
              py::arg("solver"))
-        .def("set_cloth", &Tissu::Viewer::Application::setCloth)
+        .def("set_cloth", &Tissu::Viewer::Application::setCloth,
+             py::arg("cloth"))
         .def("set_mesh", &Tissu::Viewer::Application::setMesh, py::arg("mesh"))
-        .def("set_aero_force", &Tissu::Viewer::Application::setAeroForce)
-        .def("set_world", &Tissu::Viewer::Application::setWorld)
+        .def("set_aero_force", &Tissu::Viewer::Application::setAeroForce,
+             py::arg("force"))
+        .def("set_world", &Tissu::Viewer::Application::setWorld,
+             py::arg("world"))
         .def("get_renderer", &Tissu::Viewer::Application::getRenderer,
              py::return_value_policy::reference_internal);
 

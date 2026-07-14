@@ -85,15 +85,15 @@ def test_pin():
     curtain = sim.create_grid(name="curtain", rows=rows, cols=cols, spacing=0.05, material="silk")
 
     curtain.pin_top_corners()
-    pins = curtain.get_pins()
+    pins = curtain.pins
     assert len(pins) == 2
 
     curtain.pin_by_height()
-    pins = curtain.get_pins()  # The upper edge
+    pins = curtain.pins  # The upper edge
     assert len(pins) == cols
 
     curtain.unpin()
-    pins = curtain.get_pins()
+    pins = curtain.pins
     assert len(pins) == 0
 
 
@@ -103,7 +103,7 @@ def test_on_frame():
     curtain = sim.create_grid(name="curtain", rows=20, cols=20, spacing=0.05, material="silk")
 
     curtain.pin_top_corners()
-    pins = curtain.get_pins()
+    pins = curtain.pins
     assert len(pins) == 2
     event_frame = 40
 
@@ -112,7 +112,7 @@ def test_on_frame():
         curtain.unpin()
 
     sim.simulate(41)
-    pins = curtain.get_pins()
+    pins = curtain.pins
     assert len(pins) == 0
 
 
