@@ -346,6 +346,8 @@ To enable the ability to save and load the simulation at any point in time, Tiss
 and loading states with extension `.tissu`. This binary format is designed to be fast, efficient and easy to use.
 Let's explore the structure of this format.
 
+![Tissu Structure](../assets/images/diagram_core_tissu_format.png)
+
 ### Metadata Header
 
 The metadata header is the first part of the `.tissu` file. By following the Unix philosphy the file format header
