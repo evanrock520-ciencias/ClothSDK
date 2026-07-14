@@ -19,4 +19,5 @@ nav:
   - Architecture: core/architecture.md
   - Build And Development: core/build_and_development.md
   - Python API: python/index.md
-  - Blender: blender/addon.md 
+  - CLI: cli/cli.md
+  - Blender: blender/addon.md
