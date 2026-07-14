@@ -15,7 +15,7 @@ developers.
 By combining a high-performance **C++ core** with a flexible **Python API**, Tissu lets you script complex simulations
 with the simplicity of Python and the velocity of C++.
 
-![Hero](docs/videos/blender/Hero.webp)
+![Hero](docs/assets/videos/blender/demo_blender_hero.webp)
 
 ## Table of Contents
 
@@ -134,7 +134,7 @@ The viewer includes an integrated ImGui control panel to manage the simulation o
 - Tune Solver parameters in real-time
 - Monitor performance statistics
 
-![Viewer](docs/videos/viewer/Viewer.gif)
+![Viewer](docs/assets/videos/viewer/demo_viewer_preview.gif)
 
 ### Keybindings
 
@@ -269,5 +269,5 @@ This project is licensed under the Apache 2.0 License - see the [LICENSE](LICENS
 
 ## Gallery
 
-![On Sphere](docs/videos/blender/OnSphere.gif)
+![On Sphere](docs/assets/videos/blender/demo_blender_on_sphere.gif)
 

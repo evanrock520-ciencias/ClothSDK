@@ -8,7 +8,7 @@ A particle in Tissu is the simplest possible representation of matter: a point o
 It represents just a position and a mass. Every piece of cloth is a collection of these points, connected by constraints
 that define how can move relative to each other.
 
-![Particle](../videos/manim/Particle.gif)
+![Particle](../assets/videos/manim/math_core_particle.gif)
 
 ## Motion
 
@@ -56,7 +56,7 @@ In cloth simulation this is critical. A solver runs hundreds of substeps
 per second, and an unstable integrator would cause particles to explode
 almost immediately. This is why we need a more stable approach.
 
-![Euler Example](../videos/manim/Euler.gif)
+![Euler Example](../assets/videos/manim/math_core_euler.gif)
 
 ### Verlet
 
@@ -88,7 +88,7 @@ the local truncation error on position is $O(Δt⁴)$, which is significantly be
 $O(Δt²)$. The global error over a full simulation remains $O(Δt²)$, but the method's symmetry
 suppresses the energy drift that accumulates with non-symplectic integrators.
 
-![Verlet Example](../videos/manim/Verlet.gif)
+![Verlet Example](../assets/videos/manim/math_core_verlet.gif)
 
 Tissu uses Verlet integration as it's core integration.
 
@@ -114,7 +114,7 @@ Usually, the cloth simulation approaches are force based. This means, internal a
 are applied directly to the particles, and then the integrator is used to update their positions and velocities.
 While this approach is simple and intuitive, tends to be unstable.
 
-![Force Based Example](../videos/manim/Forces.gif)
+![Force Based Example](../assets/videos/manim/math_core_forces.gif)
 
 PBD is an alternative approach to force-based simulation. Instead of applying forces, PBD works directly with
 constraints that define the relationships between particles. For instance, a distance constraint forces two particles
@@ -122,7 +122,7 @@ to maintain a certain distance from each other. The simulation iteratively adjus
 satisfy these constraints.
 This allows for more stable simulations, while still being able to produce fast and realistic results.
 
-![PBD Example](../videos/manim/PBD.gif)
+![PBD Example](../assets/videos/manim/math_core_pbd.gif)
 
 ### Dynamic Object
 
@@ -220,7 +220,7 @@ $$\Delta p_1 = - \frac{w_1}{w_1 + w_2} (\|p_1 - p_2\| - d) \cdot n$$
 
 $$\Delta p_2 = + \frac{w_2}{w_1 + w_2} (\|p_1 - p_2\| - d) \cdot n$$
 
-![Distance Constraint Example](../videos/manim/Distance.gif)
+![Distance Constraint Example](../assets/videos/manim/math_core_distance.gif)
 
 ## XPBD
 
@@ -330,7 +330,7 @@ The restriction is based on the dihedral angle between the two triangles formed 
 Theoretically, the **dihedral angle** is the angle between two planes, but here the angle is measured between the
 normals of the two triangles.
 
-![Dihedral Angle](../images/Dihedral_angle.svg)
+![Dihedral Angle](../assets/images/math_core_dihedral_angle.svg)
 
 The constraint is defined as follows:
 
