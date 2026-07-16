@@ -378,37 +378,3 @@ Simulate and plot energy over time.
 tissu-cli plot-energy <dir> <frame>
 ```
 
----
-
-## Examples
-
-### Curtain scene (using sample data)
-
-Sample scenes and assets are included under `data/`:
-
-```bash
-tissu-cli info data/scenes/curtain
-tissu-cli bake data/scenes/curtain -o curtain.abc
-tissu-cli snapshots data/scenes/curtain ./frames curtain
-```
-
-### Custom scene with grid fabric and pinned curtain
-
-```bash
-tissu-cli init my_scene
-tissu-cli add-fabric my_scene curtain --rows 80 --cols 80 --pin-mode top_corners
-tissu-cli add-collider my_scene --plane
-tissu-cli add-collider my_scene --sphere --center 0,-0.5,0 --radius 0.3
-tissu-cli bake my_scene -o my_scene.abc --end 120
-tissu-cli view my_scene
-```
-
-### Fabric from mesh + material override
-
-```bash
-tissu-cli init garment
-tissu-cli add-fabric garment dress --path dress.obj --density 0.05
-tissu-cli add-collider garment --mesh --mesh-path mannequin.obj
-tissu-cli apply-material garment dress --density 0.08 --structural 1e-10
-tissu-cli bake garment -o garment.abc
-```

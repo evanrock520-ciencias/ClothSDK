@@ -17,6 +17,17 @@ a simpler syntax and removing the need to compile the code for every little modi
 
 ### Core Components
 
+The core contains the most important components of Tissu. All the hard work happens here.
+
+```txt
+├───data-structures   // Acceleration structures such as spatial hash or BVH
+├───engine            // Data representation 
+├───io                // Importers and exporters
+├───math              // Math Utilities
+├───physics           // XPBD related stuff
+└───utils             // Miscelaneous Utilities
+```
+
 ![Core](../assets/images/diagram_core_classes.png)
 
 ## Data Flow
@@ -39,4 +50,3 @@ simple way. This acts as a bridge between all the artist tools built around the 
 ## Architectural Patterns
 
 <!-- Mention the main programming paradigms used, such as Data-Oriented Design (DOD) or OOP. Performance details go to optimization.md -->
-
