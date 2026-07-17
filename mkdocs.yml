@@ -16,6 +16,7 @@ extra_javascript:
 nav:
   - Home: index.md
   - Physics & Math: core/physics_and_math.md
+  - Optimization: core/optimization.md
   - Architecture: core/architecture.md
   - Build And Development: core/build_and_development.md
   - Python API: python/index.md

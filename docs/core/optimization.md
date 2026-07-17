@@ -3,6 +3,8 @@
 Tissu has several optimization techniques to improve performance and enable real-time applications.
 There are many optimization techniques for XPBD; in this section we will focus on the most important ones.
 
+---
+
 ## Spatial Hash
 
 ### Overview
@@ -147,11 +149,70 @@ This query function is widely used in the principal simulation loop of the Solve
 detection phase. For other collision scenarios, such as particle-to-cloth-mesh interactions, a Bounding Volume
 Hierarchy (BVH) is preferable, which is the spatial data structure we will explore in the next section.
 
+---
+
 ## BVH
 
+---
+
 ## Graph Coloring
+
+### Vertex Coloring
+
+Vertex coloring is, in essence, exactly what its name suggests: an assignment of a color to each vertex of a graph. We
+can simply think of it as a function that takes a vertex and assigns it a color. But what use is this? Things get
+interesting once we start requiring constraints on this function.
+
+`Definition`: Given a graph $G$ and a function $\phi: V(G) \to \{1, 2, ..., k\}$, we say $\phi$ is a proper vertex
+coloring if for every edge $uv \in E(G)$ it holds that $\phi(u) \neq \phi(v)$; that is, no pair of adjacent vertices
+shares a color.
+
+Every graph has at least one proper vertex coloring (for example, by coloring every vertex a different color). We say a
+graph is **k-colorable** if there exists some proper coloring that uses at most $k$ colors. Ideally, we always look for
+the coloring that uses the fewest possible colors; this minimum is known as the **chromatic number**, denoted $\chi(G)$.
+
+![Vertex coloring](../assets/videos/manim/math_core_vertex_coloring.gif)
+
+### Edge Coloring
+
+Edge coloring is essentially the same idea as vertex coloring. We take a function that takes an edge and assigns it a
+color. And of course, it can also be defined with constraints.
+
+`Definition`: Given a graph $G$ and a function $\phi: E(G) \to \{1, 2, ..., k\}$, we say $\phi$ is a proper edge
+coloring if two edges incident to the same vertex never share a color.
+
+Again, every graph has at least one proper edge coloring. A graph is **k-edge-colorable** if there exists a proper
+coloring that uses at most $k$ colors, and the minimum number of colors needed is known as the **chromatic index**,
+denoted $\chi'(G)$.
+
+![Edge coloring](../assets/videos/manim/math_core_edge_coloring.gif)
+
+### Concept
+
+For each color defined in a proper coloring, we can find an equivalence class called a **chromatic class**. A chromatic
+class contains all the vertices or edges colored with a given color. This way, each class is an independent set; that
+is, there are no edges between vertices that share a class (by definition of proper coloring). This property is
+extremely useful for parallelizing systems, since because each set is independent, all vertices in a chromatic class can
+be processed in parallel without running into race conditions.
+
+![Chromatic classes](../assets/videos/manim/math_core_chromatic_classes.gif)
+
+Specifically, in the case of **Tissu**, we aren't looking to parallelize vertices but rather edges that
+represent **constraints** of the ***XPBD*** simulation method. Therefore, it's especially important to understand that
+we can transform edge-coloring problems into vertex-coloring problems by means of the **line graph**. That is, an edge
+coloring of a graph $G$ is equivalent to a vertex coloring of the line graph $L(G)$.
+
+![Line graph](../assets/videos/manim/math_core_line_graph.gif)
+
+With this in hand, we can reduce the parallelization problem to a vertex-coloring problem on the mesh. However,
+computationally, solving any graph-coloring problem carries the label of being **NP-hard**. In simple terms, we cannot
+find the perfect solution in a reasonable amount of time, let alone in real time. Still, there's no need to be
+discouraged, since computational heuristics exist: algorithms that produce suboptimal solutions to solve the problem in
+a reasonable amount of time.
+
+Specifically, **Tissu** adopts the [Jones-Plassmann](#jones-plassmann-algorithm) algorithm, which we'll examine in more depth in the next section
+of the documentation.
 
 ### Jones-Plassmann Algorithm
 
 ## Bibliography
-

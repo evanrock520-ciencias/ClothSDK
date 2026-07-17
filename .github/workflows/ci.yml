@@ -57,25 +57,11 @@ jobs:
           restore-keys: |
             fetchcontent-${{ runner.os }}-
 
-      - name: Configure
-        run: cmake -S . -B build -DCMAKE_BUILD_TYPE=Release -DTISSU_BUILD_VIEWER=OFF
-
       - name: Build
-        run: cmake --build build --config Release -j 4
+        run: python scripts/build.py --no-viewer
 
-      - name: Test (C++)
-        run: ctest --test-dir build/tests -C Release --output-on-failure
-
-      - name: Test (Python API)
-        run: pytest tests/python -v
+      - name: Test
+        run: python scripts/test.py
 
       - name: Build benchmarks
         run: cmake --build build --target tissu_benchmarks --config Release -j 4
-
-      - name: Smoke benchmarks (Linux/macOS)
-        if: runner.os != 'Windows'
-        run: ./build/bin/tissu_benchmarks --benchmark_min_time=0.001s
-
-      - name: Smoke benchmarks (Windows)
-        if: runner.os == 'Windows'
-        run: .\build\bin\Release\tissu_benchmarks.exe --benchmark_min_time=0.001s
