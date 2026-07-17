@@ -8,7 +8,7 @@ version = "1.0.2"
 description = "A cloth simulation SDK for Python"
 readme = "README.md"
 requires-python = ">=3.12"
-license = "Apache-2.0"
+license = { file = "LICENSE" }
 authors = [{ name = "Evan Miranda" }]
 keywords = ["cloth", "simulation", "physics", "3d"]
 
