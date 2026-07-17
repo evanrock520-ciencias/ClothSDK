@@ -4,10 +4,10 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "pytissu"
-version = "1.0.2"
+version = "1.1.0"
 description = "A cloth simulation SDK for Python"
 readme = "README.md"
-requires-python = ">=3.12"
+requires-python = ">=3.10"
 license = { file = "LICENSE" }
 authors = [{ name = "Evan Miranda" }]
 keywords = ["cloth", "simulation", "physics", "3d"]
@@ -25,7 +25,8 @@ classifiers = [
     "Intended Audience :: Science/Research",
     "Natural Language :: English",
     "Operating System :: OS Independent",
-    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
     "Programming Language :: Python :: 3.12",
     "Programming Language :: Python :: 3.13",
     "Programming Language :: Python :: 3.14",
@@ -53,7 +54,7 @@ tissu = ["*.so", "*.pyd", "*.pyi", "shaders/*.vert", "shaders/*.frag"]
 
 [tool.ruff]
 line-length = 120
-target-version = "py312"
+target-version = "py310"
 
 [tool.ruff.lint]
 select = [
