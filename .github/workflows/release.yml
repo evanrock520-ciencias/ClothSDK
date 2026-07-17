@@ -50,7 +50,11 @@ jobs:
 
       - name: Build wheel
         shell: bash
-        run: python -m build --wheel --no-isolation --outdir wheelhouse_temp/
+        run: |
+          if [ "$RUNNER_OS" = "macOS" ]; then
+            export _PYTHON_HOST_PLATFORM="macosx-11.0-arm64"
+          fi
+          python -m build --wheel --no-isolation --outdir wheelhouse_temp/
 
       - name: Repair wheel (Linux)
         if: runner.os == 'Linux'
