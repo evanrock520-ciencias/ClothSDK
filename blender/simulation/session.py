@@ -2,11 +2,7 @@ import _cloth_sdk_core as sdk
 import bmesh
 import bpy
 import numpy as np
-from _cloth_sdk_core import (
-    AerodynamicForce,
-    ClothMesh,
-    GravityForce,
-)
+from _cloth_sdk_core import AerodynamicForce, ClothMesh, GravityForce
 
 from .bridge import Fabric, Material, get_simulation
 
@@ -39,11 +35,9 @@ def _write_local_vertex_positions(obj, local_positions):
 
 
 def capture_fabric_rest_positions(context, force=False):
-    """Stores local-space rest positions for all fabric meshes."""
     fabric_objs = [obj for obj in context.scene.objects if obj.type == "MESH" and obj.tissu_is_fabric]
     fabric_names = {obj.name for obj in fabric_objs}
 
-    # Drop stale entries for objects no longer marked/available as fabrics.
     for obj_name in list(_fabric_rest_positions.keys()):
         if obj_name not in fabric_names:
             del _fabric_rest_positions[obj_name]
@@ -54,7 +48,6 @@ def capture_fabric_rest_positions(context, force=False):
 
 
 def restore_fabric_rest_positions(context):
-    """Restores captured local-space rest positions to fabric meshes."""
     restored_count = 0
     for obj_name, local_positions in _fabric_rest_positions.items():
         obj = context.scene.objects.get(obj_name)
@@ -70,7 +63,6 @@ def restore_fabric_rest_positions(context):
 
 
 def reset_session():
-    """Clears all cloths, colliders, forces, and resets solver state."""
     sim = get_simulation()
 
     # Clear native objects
@@ -98,8 +90,6 @@ def reset_session():
 
 
 def get_triangulated_mesh_data(obj, local=False):
-    """Evaluates the object modifiers, triangulates the mesh, and returns vertices in local/world space, triangle indices, and pinned vertex indices."""  # noqa: E501
-    # Get evaluated object (with modifiers applied)
     depsgraph = bpy.context.evaluated_depsgraph_get()
     eval_obj = obj.evaluated_get(depsgraph)
     temp_mesh = eval_obj.to_mesh()
@@ -161,7 +151,6 @@ def get_triangulated_mesh_data(obj, local=False):
 
 
 def update_blender_mesh(obj, world_positions):
-    """Converts world space coordinates back to the object's local space and updates the viewport mesh."""  # noqa: E501
     # Convert from Tissu Y-up to Blender Z-up space:
     # Blender X = Tissu X
     # Blender Y = -Tissu Z
@@ -190,34 +179,29 @@ def update_blender_mesh(obj, world_positions):
 
 
 def sync_simulation(context):
-    """Scans the Blender scene, clears existing simulation, and loads meshes as cloths into the solver."""  # noqa: E501
     sim = get_simulation()
 
-    # Keep a stable rest pose so "Reset Simulation" can return meshes to their original state.  # noqa: E501
     capture_fabric_rest_positions(context)
-
-    # 1. Reset existing solver/world session
     reset_session()
 
-    # Sync properties from scene to solver
     solver_props = context.scene.solver_props
     sim.substeps = solver_props.substeps
     sim.iterations = solver_props.iterations
     sim.thickness = solver_props.thickness
+    sim.collision_compliance = solver_props.collision_compliance
+    sim.static_friction = solver_props.static_friction
+    sim.dynamic_friction = solver_props.dynamic_friction
 
     world_props = context.scene.world_props
     sim.gravity = world_props.gravity
     sim.wind = world_props.wind
     sim.air_thickness = world_props.air_thickness
 
-    # 2. Find and add all objects marked as Fabric
     fabric_objs = [obj for obj in context.scene.objects if obj.type == "MESH" and obj.tissu_is_fabric]
-
     for obj in fabric_objs:
         print(f"[Tissu] Syncing fabric mesh: {obj.name}")
         positions, indices, pinned_indices = get_triangulated_mesh_data(obj, local=False)
 
-        # Resolve material
         mat_props = context.scene.material_props
         material = Material(
             density=mat_props.density,
@@ -226,9 +210,7 @@ def sync_simulation(context):
             bending=mat_props.bending,
         )
 
-        # Add fabric to simulation
         fabric = Fabric(obj.name, material)
-
         factory = ClothMesh()
         factory.build_from_mesh(positions, indices, fabric.instance, sim.solver, "")
 
@@ -236,13 +218,11 @@ def sync_simulation(context):
         sim.cloth_objects[obj.name] = fabric
         fabric.solver = sim.solver
 
-        # Create Aerodynamic Force for the fabric
         faces = fabric.instance.get_aerofaces()
         aero = AerodynamicForce(faces, sim.wind, sim.air_thickness)
         sim.world.add_force(aero)
         sim._aero_forces[obj.name] = aero
 
-        # Pinning in solver
         my_ids = fabric.instance.get_particle_indices()
         for v_idx in pinned_indices:
             global_id = my_ids[v_idx]
@@ -251,7 +231,6 @@ def sync_simulation(context):
 
         fabric._pins = np.array(pinned_indices, dtype=np.int32)
 
-    # 3. Find all objects marked as colliders
     collider_objs = [obj for obj in context.scene.objects if obj.tissu_is_collider]
 
     for obj in collider_objs:
@@ -259,11 +238,8 @@ def sync_simulation(context):
         friction = obj.tissu_collider_friction
 
         if obj.tissu_collider_type == "PLANE":
-            # Local origin and local normal in Tissu space
             local_origin = np.array([0.0, 0.0, 0.0], dtype=np.float64)
-            local_normal = np.array(
-                [0.0, 1.0, 0.0], dtype=np.float64
-            )  # pointing along local Z in Blender -> Y in Tissu
+            local_normal = np.array([0.0, 1.0, 0.0], dtype=np.float64)
             sim.world.add_plane_collider(local_origin, local_normal, friction, obj.name)
 
         elif obj.tissu_collider_type == "SPHERE":
@@ -326,7 +302,7 @@ def sync_simulation(context):
             if v_idx_A < len(mapA) and v_idx_B < len(mapB):
                 gA = mapA[v_idx_A]
                 gB = mapB[v_idx_B]
-                sim.solver.add_stitch(int(gA), int(gB), 0.0)  # rigid stitch
+                sim.solver.add_stitch(int(gA), int(gB), 0.0)
                 print(
                     f"[Tissu] Stitched {obj_name_A}:{v_idx_A} to {obj_name_B}:{v_idx_B}"  # noqa: E501
                 )
@@ -337,15 +313,12 @@ def sync_simulation(context):
 
 
 def step_simulation(context, dt=1.0 / 60.0):
-    """Steps the physical simulation solver and updates viewport meshes with new vertex coordinates."""  # noqa: E501
     sim = get_simulation()
     if not sim.cloth_objects:
-        # If simulation has not been initialized or is empty, sync first
         sync_simulation(context)
         if not sim.cloth_objects:
-            return  # No fabrics to simulate
+            return
 
-    # Update dynamic colliders
     for obj_name, collider_idx in list(sim._colliders.items()):
         obj = context.scene.objects.get(obj_name)
         if obj:
@@ -366,10 +339,7 @@ def step_simulation(context, dt=1.0 / 60.0):
 
             sim.world.move_collider(collider_idx, tissu_pos, tissu_rot)
 
-    # Step the solver
     sim.solver.update(sim.world, dt)
-
-    # Update Blender meshes
     for name, fabric in sim.cloth_objects.items():
         obj = context.scene.objects.get(name)
         if obj and obj.type == "MESH":
@@ -379,10 +349,7 @@ def step_simulation(context, dt=1.0 / 60.0):
 
 
 def frame_change_pre_handler(scene):
-    """Handles simulation updates synchronized with the Blender timeline frame changes."""  # noqa: E501
     global _last_frame, is_simulating_live
-
-    # Skip timeline stepping if live modal simulation is running
     if is_simulating_live:
         return
 
@@ -391,17 +358,14 @@ def frame_change_pre_handler(scene):
     start_frame = scene.frame_start
 
     if current_frame == start_frame:
-        # Reset and sync back to start frame
         sync_simulation(context)
         _last_frame = current_frame
     elif current_frame == _last_frame + 1:
-        # Advance physics one frame forward
         fps = scene.render.fps
         dt = 1.0 / fps if fps > 0 else 1.0 / 24.0
         step_simulation(context, dt)
         _last_frame = current_frame
     else:
-        # User jumped frames or is playing backward
         _last_frame = current_frame
 
 

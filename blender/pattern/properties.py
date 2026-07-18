@@ -75,6 +75,27 @@ def update_air_thickness(self, context):
     sim.air_thickness = self.air_thickness
 
 
+def update_collision_compliance(self, context):
+    from ..simulation.bridge import get_simulation
+
+    sim = get_simulation()
+    sim.collision_compliance = self.collision_compliance
+
+
+def update_static_friction(self, context):
+    from ..simulation.bridge import get_simulation
+
+    sim = get_simulation()
+    sim.static_friction = self.static_friction
+
+
+def update_dynamic_friction(self, context):
+    from ..simulation.bridge import get_simulation
+
+    sim = get_simulation()
+    sim.dynamic_friction = self.dynamic_friction
+
+
 class SolverProperties(bpy.types.PropertyGroup):
     substeps: bpy.props.IntProperty(name="Substeps", default=10, min=1, max=80, update=update_substeps)
     iterations: bpy.props.IntProperty(name="Iterations", default=3, min=1, max=40, update=update_iterations)
@@ -84,6 +105,27 @@ class SolverProperties(bpy.types.PropertyGroup):
         min=0.00001,
         max=1,
         update=update_thickness,
+    )
+    collision_compliance: bpy.props.FloatProperty(
+        name="Collision Compliance",
+        default=0.0,
+        min=0.0,
+        max=1.0,
+        update=update_collision_compliance,
+    )
+    static_friction: bpy.props.FloatProperty(
+        name="Static Friction",
+        default=0.3,
+        min=0.0,
+        max=1.0,
+        update=update_static_friction,
+    )
+    dynamic_friction: bpy.props.FloatProperty(
+        name="Dynamic Friction",
+        default=0.2,
+        min=0.0,
+        max=1.0,
+        update=update_dynamic_friction,
     )
 
 
@@ -96,7 +138,9 @@ class WorldProperties(bpy.types.PropertyGroup):
         update=update_gravity,
     )
     wind: bpy.props.FloatVectorProperty(name="Wind", default=[0.0, 0.0, 0.0], update=update_wind)
-    air_thickness: bpy.props.FloatProperty(name="Air Thickness", default=0.1, min=0.0, max=1.0)
+    air_thickness: bpy.props.FloatProperty(
+        name="Air Thickness", default=0.1, min=0.0, max=1.0, update=update_air_thickness
+    )
 
 
 def _update_preset(self, context):
@@ -108,6 +152,22 @@ def _update_preset(self, context):
         self.structural = values["structural"]
         self.shear = values["shear"]
         self.bending = values["bending"]
+
+
+def _update_material_prop(self, context):
+    from _cloth_sdk_core import ClothMaterial
+
+    from ..simulation.bridge import get_simulation
+
+    sim = get_simulation()
+    native_mat = ClothMaterial(self.density, self.structural, self.shear, self.bending)
+
+    for fabric in sim.cloth_objects.values():
+        fabric.material.density = self.density
+        fabric.material.structural = self.structural
+        fabric.material.shear = self.shear
+        fabric.material.bending = self.bending
+        fabric.instance.set_material(native_mat)
 
 
 class MaterialProperties(bpy.types.PropertyGroup):
@@ -124,10 +184,16 @@ class MaterialProperties(bpy.types.PropertyGroup):
         default="CUSTOM",
         update=_update_preset,
     )
-    density: bpy.props.FloatProperty(name="Density", default=0.1, min=0.0, max=100.0)
-    bending: bpy.props.FloatProperty(name="Bending Compliance", default=0.1, min=0.0, max=1.0)
-    shear: bpy.props.FloatProperty(name="Shear Compliance", default=1e-8, min=0.0, max=1.0)
-    structural: bpy.props.FloatProperty(name="Structural Compliance", default=1e-9, min=0.0, max=1.0)
+    density: bpy.props.FloatProperty(name="Density", default=0.1, min=0.0, max=100.0, update=_update_material_prop)
+    bending: bpy.props.FloatProperty(
+        name="Bending Compliance", default=0.1, min=0.0, max=1.0, update=_update_material_prop
+    )
+    shear: bpy.props.FloatProperty(
+        name="Shear Compliance", default=1e-8, min=0.0, max=1.0, update=_update_material_prop
+    )
+    structural: bpy.props.FloatProperty(
+        name="Structural Compliance", default=1e-9, min=0.0, max=1.0, update=_update_material_prop
+    )
 
 
 classes = [SolverProperties, WorldProperties, MaterialProperties]

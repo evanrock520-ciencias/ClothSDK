@@ -1,3 +1,3 @@
-from .bridge import Simulation
+from .bridge import Fabric, Material, Simulation
 
 __all__ = ["Simulation", "Fabric", "Material"]

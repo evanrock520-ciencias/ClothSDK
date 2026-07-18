@@ -3,17 +3,6 @@ import contextlib
 import bpy
 
 
-class VIEW3D_PT_Tissu(bpy.types.Panel):
-    bl_idname = "VIEW3D_PT_Tissu"
-    bl_label = "Tissus"
-    bl_space_type = "VIEW_3D"
-    bl_region_type = "UI"
-    bl_category = "Tissu"
-
-    def draw(self, context):
-        pass
-
-
 class VIEW3D_PT_Simulation(bpy.types.Panel):
     bl_idname = "VIEW3D_PT_Simulation"
     bl_label = "Simulation"
@@ -41,6 +30,9 @@ class VIEW3D_PT_Solver(bpy.types.Panel):
         layout.prop(solverProps, "substeps")
         layout.prop(solverProps, "iterations")
         layout.prop(solverProps, "thickness")
+        layout.prop(solverProps, "collision_compliance")
+        layout.prop(solverProps, "static_friction")
+        layout.prop(solverProps, "dynamic_friction")
 
 
 class VIEW3D_PT_Environment(bpy.types.Panel):
@@ -79,7 +71,9 @@ class VIEW3D_PT_State(bpy.types.Panel):
             row.operator("tissu.simulate", text="Simulate Live", icon="PLAY")
         row.operator("tissu.reset_simulation", text="Reset", icon="FILE_REFRESH")
 
-        layout.operator("tissu.bake", text="Bake Alembic Cache...")
+        layout.operator("tissu.bake", text="Bake Alembic Cache", icon="EXPORT")
+        layout.operator("tissu.save_state", text="Save State", icon="FILE_IMAGE")
+        layout.operator("tissu.load_state", text="Load State", icon="FILE_FOLDER")
 
 
 class VIEW3D_PT_Material(bpy.types.Panel):
@@ -141,7 +135,6 @@ class VIEW3D_PT_Stitches(bpy.types.Panel):
 
     def draw(self, context):
         layout = self.layout
-        layout.label(text="A panel for stitches")
         layout.operator("tissu.add_seam", text="Add Seam", icon="UV_EDGESEL")
         layout.operator("tissu.remove_seam", text="Remove Seam", icon="X")
 

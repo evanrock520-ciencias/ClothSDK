@@ -500,9 +500,65 @@ class TISSU_OT_ResetSimulation(bpy.types.Operator):
         return {"FINISHED"}
 
 
+class TISSU_OT_SaveState(bpy.types.Operator):
+    bl_idname = "tissu.save_state"
+    bl_label = "Save State"
+    bl_options = {"REGISTER"}
+
+    filepath: bpy.props.StringProperty(subtype="FILE_PATH")
+    filter_glob: bpy.props.StringProperty(default="*.json", options={"HIDDEN"})
+
+    def invoke(self, context, event):
+        context.window_manager.fileselect_add(self)
+        return {"RUNNING_MODAL"}
+
+    def execute(self, context):
+        from ..simulation.bridge import get_simulation
+
+        sim = get_simulation()
+        if not sim.cloth_objects:
+            self.report({"WARNING"}, "No cloth objects found in simulation to save state.")
+            return {"CANCELLED"}
+
+        try:
+            sim.save_state(self.filepath)
+            self.report({"INFO"}, f"Simulation state saved to {self.filepath}")
+            return {"FINISHED"}
+        except Exception as e:
+            self.report({"ERROR"}, f"Failed to save simulation state: {e}")
+            return {"CANCELLED"}
+
+
+class TISSU_OT_LoadState(bpy.types.Operator):
+    bl_idname = "tissu.load_state"
+    bl_label = "Load State"
+    bl_options = {"REGISTER"}
+
+    filepath: bpy.props.StringProperty(subtype="FILE_PATH")
+    filter_glob: bpy.props.StringProperty(default="*.json", options={"HIDDEN"})
+
+    def invoke(self, context, event):
+        context.window_manager.fileselect_add(self)
+        return {"RUNNING_MODAL"}
+
+    def execute(self, context):
+        from ..simulation.bridge import get_simulation
+
+        sim = get_simulation()
+        try:
+            sim.load_state(self.filepath)
+            self.report({"INFO"}, f"Simulation state loaded from {self.filepath}")
+            return {"FINISHED"}
+        except Exception as e:
+            self.report({"ERROR"}, f"Failed to load simulation state: {e}")
+            return {"CANCELLED"}
+
+
 classes = [
     TISSU_OT_SaveMaterial,
     TISSU_OT_LoadMaterial,
+    TISSU_OT_SaveState,
+    TISSU_OT_LoadState,
     TISSU_OT_MarkAsCollider,
     TISSU_OT_RemoveCollider,
     TISSU_OT_MarkAsFabric,

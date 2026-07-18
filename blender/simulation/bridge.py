@@ -16,6 +16,7 @@ from _cloth_sdk_core import (  # noqa: E402
     GravityForce,
     Logger,
     Solver,
+    StateSerializer,
     World,
 )
 
@@ -36,6 +37,9 @@ class Simulation:
         self._gravity = gravity
         self._wind = [0.0, 0.0, 0.0]
         self._air_thickness = 0.01
+        self._collision_compliance = self.solver.get_collision_compliance()
+        self._static_friction = self.solver.get_static_friction()
+        self._dynamic_friction = self.solver.get_dynamic_friction()
 
         # Setup gravity force in World
         self._gravity_vector = np.array([0.0, float(gravity), 0.0], dtype=np.float64)
@@ -120,12 +124,48 @@ class Simulation:
         for force in self._aero_forces.values():
             force.set_air_density(value)
 
+    @property
+    def collision_compliance(self):
+        return self._collision_compliance
+
+    @collision_compliance.setter
+    def collision_compliance(self, value):
+        print(f"--> [Bridge] Change collision compliance to: {value}")
+        self._collision_compliance = value
+        self.solver.set_collision_compliance(value)
+
+    @property
+    def static_friction(self):
+        return self._static_friction
+
+    @static_friction.setter
+    def static_friction(self, value):
+        print(f"--> [Bridge] Change static friction to: {value}")
+        self._static_friction = value
+        self.solver.set_static_friction(value)
+
+    @property
+    def dynamic_friction(self):
+        return self._dynamic_friction
+
+    @dynamic_friction.setter
+    def dynamic_friction(self, value):
+        print(f"--> [Bridge] Change dynamic friction to: {value}")
+        self._dynamic_friction = value
+        self.solver.set_dynamic_friction(value)
+
     def get_positions(self) -> np.ndarray:
         particles = self.solver.get_particles()
         return np.array([p.get_position() for p in particles], dtype=np.float64)
 
     def step(self, dt: float = 1.0 / 60.0):
         self.solver.update(self.world, dt)
+
+    def save_state(self, path: str):
+        StateSerializer.save(path, self.solver, self.world)
+
+    def load_state(self, path: str):
+        StateSerializer.load(path, self.solver, self.world)
 
     def bake_alembic(
         self,
@@ -265,8 +305,7 @@ classes = [Material, Fabric, Simulation]
 
 def register():
     global tissu_sim_instance
-    tissue_sim_instance = Simulation()
-    tissu_sim_instance = tissue_sim_instance
+    tissu_sim_instance = Simulation()
     Logger.info("Tissu simulation bridge registered.")
 
 
