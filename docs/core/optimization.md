@@ -187,6 +187,19 @@ denoted $\chi'(G)$.
 
 ![Edge coloring](../assets/videos/manim/math_core_edge_coloring.gif)
 
+### Line Graph
+
+The **line graph** $L(G)$ of a graph $G$ is the graph that represents the adjacency relationships between the edges
+of $G$.
+
+``Definition``: Given a graph $G$, the line graph $L(G)$ satisfies:
+
+1. $V(L(G)) = E(G)$.
+2. For $e_1, e_2 \in E(G)$, we
+   have $e_1 \sim e_2 \text{ in } L(G) \iff e_1 \text{ and } e_2 \text{ are incident in } G$.
+
+In other words, if an edge shares a vertex with another edge, then they are adjacent in the line graph.
+
 ### Concept
 
 For each color defined in a proper coloring, we can find an equivalence class called a **chromatic class**. A chromatic
