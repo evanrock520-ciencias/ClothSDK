@@ -325,6 +325,12 @@ class TISSU_OT_MarkAsFabric(bpy.types.Operator):
         for obj in context.selected_objects:
             if obj.type == "MESH":
                 obj.tissu_is_fabric = True
+
+                has_triangulate = any(m.type == "TRIANGULATE" for m in obj.modifiers)
+                if not has_triangulate:
+                    mod = obj.modifiers.new(name="Triangulate", type="TRIANGULATE")
+                    mod.quad_method = "BEAUTY"
+
                 print(f"{obj.name} marked as fabric.")
         return {"FINISHED"}
 
@@ -535,7 +541,7 @@ class TISSU_OT_LoadState(bpy.types.Operator):
     bl_options = {"REGISTER"}
 
     filepath: bpy.props.StringProperty(subtype="FILE_PATH")
-    filter_glob: bpy.props.StringProperty(default="*.json", options={"HIDDEN"})
+    filter_glob: bpy.props.StringProperty(default="*.tissu", options={"HIDDEN"})
 
     def invoke(self, context, event):
         context.window_manager.fileselect_add(self)
@@ -552,6 +558,16 @@ class TISSU_OT_LoadState(bpy.types.Operator):
         except Exception as e:
             self.report({"ERROR"}, f"Failed to load simulation state: {e}")
             return {"CANCELLED"}
+
+
+class TISSU_OT_AttachToCollider(bpy.types.Operator):
+    bl_idname = "tissu.attach_to_collider"
+    bl_label = "Attach to Collider"
+    bl_options = {"REGISTER", "UNDO"}
+
+    def execute(self, context):
+        print("Attaching to collider...")
+        return {"FINISHED"}
 
 
 classes = [
@@ -573,6 +589,7 @@ classes = [
     TISSU_OT_Bake,
     TISSU_OT_Simulate,
     TISSU_OT_ResetSimulation,
+    TISSU_OT_AttachToCollider,
 ]
 
 

@@ -1,5 +1,4 @@
 import _cloth_sdk_core as sdk
-import bmesh
 import bpy
 import numpy as np
 from _cloth_sdk_core import AerodynamicForce, ClothMesh, GravityForce
@@ -89,7 +88,7 @@ def reset_session():
     print("[Tissu] Simulation session reset.")
 
 
-def get_triangulated_mesh_data(obj, local=False):
+def get_mesh_data(obj, local=False):
     depsgraph = bpy.context.evaluated_depsgraph_get()
     eval_obj = obj.evaluated_get(depsgraph)
     temp_mesh = eval_obj.to_mesh()
@@ -97,13 +96,6 @@ def get_triangulated_mesh_data(obj, local=False):
     # Find if "Tissu_Pins" group exists
     vg = obj.vertex_groups.get("Tissu_Pins")
     vg_idx = vg.index if vg else -1
-
-    # Triangulate using bmesh
-    bm = bmesh.new()
-    bm.from_mesh(temp_mesh)
-    bmesh.ops.triangulate(bm, faces=bm.faces[:])
-    bm.to_mesh(temp_mesh)
-    bm.free()
 
     # Extract vertex coordinates
     vertex_count = len(temp_mesh.vertices)
@@ -114,14 +106,14 @@ def get_triangulated_mesh_data(obj, local=False):
     if local:
         positions_space = positions_raw
     else:
-        # Convert to world coordinates using matrix multiplication
+        # Convert to world coordinates
         world_matrix = np.array(obj.matrix_world, dtype=np.float64)
         ones = np.ones((vertex_count, 1))
         positions_h = np.hstack((positions_raw, ones))
         positions_world = (positions_h @ world_matrix.T)[:, :3]
         positions_space = positions_world
 
-    # Find pinned vertices in the triangulated mesh
+    # Find pinned vertices in the evaluated mesh
     pinned_indices = []
     if vg_idx != -1:
         for v in temp_mesh.vertices:
@@ -133,7 +125,11 @@ def get_triangulated_mesh_data(obj, local=False):
     # Extract triangle face indices
     face_count = len(temp_mesh.polygons)
     indices = np.empty(face_count * 3, dtype=np.int32)
-    temp_mesh.polygons.foreach_get("vertices", indices)
+    try:
+        temp_mesh.polygons.foreach_get("vertices", indices)
+    except RuntimeError:
+        print(f"[Tissu] Error: {obj.name} is not fully triangulated. Please ensure the Triangulate modifier is active.")
+        raise
 
     # Clean up evaluation mesh
     eval_obj.to_mesh_clear()
@@ -200,7 +196,7 @@ def sync_simulation(context):
     fabric_objs = [obj for obj in context.scene.objects if obj.type == "MESH" and obj.tissu_is_fabric]
     for obj in fabric_objs:
         print(f"[Tissu] Syncing fabric mesh: {obj.name}")
-        positions, indices, pinned_indices = get_triangulated_mesh_data(obj, local=False)
+        positions, indices, pinned_indices = get_mesh_data(obj, local=False)
 
         mat_props = context.scene.material_props
         material = Material(
@@ -217,6 +213,9 @@ def sync_simulation(context):
         sim.world.add_cloth(fabric.instance)
         sim.cloth_objects[obj.name] = fabric
         fabric.solver = sim.solver
+
+        if getattr(obj, "tissu_volume_preservation", False):
+            fabric.enable_volume_preservation()
 
         faces = fabric.instance.get_aerofaces()
         aero = AerodynamicForce(faces, sim.wind, sim.air_thickness)
@@ -262,7 +261,7 @@ def sync_simulation(context):
 
         elif obj.tissu_collider_type == "MESH":
             # Local vertices
-            positions, indices, _ = get_triangulated_mesh_data(obj, local=True)
+            positions, indices, _ = get_mesh_data(obj, local=True)
             triangles = [indices[i : i + 3] for i in range(0, len(indices), 3)]
 
             collider = sdk.MeshCollider(positions, triangles, friction)
