@@ -240,6 +240,19 @@ class Fabric:
     def get_triangles(self):
         return self.instance.get_triangles()
 
+    def enable_volume_preservation(self, compliance: float = 1e-4) -> float:
+        if self.solver is None:
+            raise RuntimeError("Fabric must be added to a Simulation before enabling volume preservation.")
+        if not self.instance.is_closed():
+            raise RuntimeError(
+                f"Fabric '{self.name}' is not a closed mesh. Volume preservation requires a closed mesh."
+            )
+        rest_volume = self.solver.add_volume_constraint(
+            self.instance.get_triangles_native(), self.solver.get_particles(), compliance
+        )
+        self.instance.set_rest_volume(rest_volume)
+        return rest_volume
+
 
 class Material:
     def __init__(self, density: float, structural: float, shear: float, bending: float) -> None:

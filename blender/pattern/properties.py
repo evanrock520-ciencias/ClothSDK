@@ -221,6 +221,11 @@ def register():
     bpy.types.Object.tissu_collider_friction = bpy.props.FloatProperty(name="Friction", default=0.5, min=0.0, max=1.0)
     bpy.types.Object.tissu_is_fabric = bpy.props.BoolProperty(name="Is Fabric", default=False)
     bpy.types.Scene.tissu_seams = bpy.props.StringProperty(name="Tissu Seams", default="[]")
+    bpy.types.Object.tissu_volume_preservation = bpy.props.BoolProperty(
+        name="Volume Preservation",
+        default=False,
+        description="Preserve the enclosed volume of this fabric (must be a closed mesh)",
+    )
 
 
 def unregister():
@@ -243,3 +248,5 @@ def unregister():
         del bpy.types.Object.tissu_collider_friction
     if hasattr(bpy.types.Scene, "tissu_seams"):
         del bpy.types.Scene.tissu_seams
+    if hasattr(bpy.types.Object, "tissu_volume_preservation"):
+        del bpy.types.Object.tissu_volume_preservation
