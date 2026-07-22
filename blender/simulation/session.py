@@ -9,6 +9,7 @@ is_simulating_live = False
 _last_frame = 1
 _is_handler_registered = False
 _fabric_rest_positions = {}
+_point_cache = {}
 
 
 def _read_local_vertex_positions(obj):
@@ -62,6 +63,7 @@ def restore_fabric_rest_positions(context):
 
 
 def reset_session():
+    anul_cache(0)
     sim = get_simulation()
 
     # Clear native objects
@@ -172,6 +174,12 @@ def update_blender_mesh(obj, world_positions):
         print(
             f"[Tissu] Warning: mesh {obj.name} vertex count mismatch ({len(mesh.vertices)} vs {vertex_count}). Make sure the mesh is triangulated."  # noqa: E501
         )
+
+
+def anul_cache(frame):
+    for f in list(_point_cache.keys()):
+        if f >= frame:
+            del _point_cache[f]
 
 
 def sync_simulation(context):
@@ -339,12 +347,18 @@ def step_simulation(context, dt=1.0 / 60.0):
             sim.world.move_collider(collider_idx, tissu_pos, tissu_rot)
 
     sim.solver.update(sim.world, dt)
+    frame = context.scene.frame_current
+    frame_data = {}
     for name, fabric in sim.cloth_objects.items():
         obj = context.scene.objects.get(name)
         if obj and obj.type == "MESH":
             positions = fabric.get_positions()
             if positions.size > 0:
                 update_blender_mesh(obj, positions)
+                frame_data[name] = {"pos": positions.copy()}
+
+    if frame_data:
+        _point_cache[frame] = frame_data
 
 
 def frame_change_pre_handler(scene):
@@ -356,16 +370,38 @@ def frame_change_pre_handler(scene):
     current_frame = scene.frame_current
     start_frame = scene.frame_start
 
-    if current_frame == start_frame:
+    if current_frame == start_frame and current_frame not in _point_cache:
         sync_simulation(context)
         _last_frame = current_frame
+
+        frame_data = {}
+        sim = get_simulation()
+        for name, fabric in sim.cloth_objects.items():
+            obj = context.scene.objects.get(name)
+            if obj and obj.type == "MESH":
+                positions = fabric.get_positions()
+                if positions.size > 0:
+                    frame_data[name] = {"pos": positions.copy()}
+        if frame_data:
+            _point_cache[current_frame] = frame_data
+
+    elif current_frame in _point_cache:
+        # Playback from cache
+        for name, data in _point_cache[current_frame].items():
+            obj = context.scene.objects.get(name)
+            if obj and obj.type == "MESH":
+                update_blender_mesh(obj, data["pos"])
+        _last_frame = current_frame
+
     elif current_frame == _last_frame + 1:
         fps = scene.render.fps
         dt = 1.0 / fps if fps > 0 else 1.0 / 24.0
         step_simulation(context, dt)
         _last_frame = current_frame
+
     else:
         _last_frame = current_frame
+        print(f"[Tissu] Cannot simulate frame {current_frame} without previous frames. Go to start frame.")
 
 
 def register():
