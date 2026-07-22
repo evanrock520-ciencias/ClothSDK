@@ -64,16 +64,18 @@ class VIEW3D_PT_State(bpy.types.Panel):
         layout = self.layout
         from ..simulation import session
 
-        row = layout.row(align=True)
+        row_a = layout.row(align=True)
         if session.is_simulating_live:
-            row.operator("tissu.simulate", text="Stop Live", icon="CANCEL")
+            row_a.operator("tissu.simulate", text="Stop Live", icon="CANCEL")
         else:
-            row.operator("tissu.simulate", text="Simulate Live", icon="PLAY")
-        row.operator("tissu.reset_simulation", text="Reset", icon="FILE_REFRESH")
+            row_a.operator("tissu.simulate", text="Simulate Live", icon="PLAY")
+        row_a.operator("tissu.reset_simulation", text="Reset", icon="FILE_REFRESH")
 
         layout.operator("tissu.bake", text="Bake Alembic Cache", icon="EXPORT")
-        layout.operator("tissu.save_state", text="Save State", icon="FILE_IMAGE")
-        layout.operator("tissu.load_state", text="Load State", icon="FILE_FOLDER")
+
+        row_b = layout.row(align=True)
+        row_b.operator("tissu.save_state", text="Save State", icon="FILE_IMAGE")
+        row_b.operator("tissu.load_state", text="Load State", icon="FILE_FOLDER")
 
 
 class VIEW3D_PT_Material(bpy.types.Panel):
@@ -149,7 +151,6 @@ class VIEW3D_PT_Pins(bpy.types.Panel):
 
     def draw(self, context):
         layout = self.layout
-        layout.label(text="A panel for pins")
         layout.operator("tissu.add_pin", text="Pin Selected", icon="PINNED")
         layout.operator("tissu.unpin", text="Unpin Selected", icon="UNPINNED")
 
@@ -177,8 +178,14 @@ class VIEW3D_PT_Fabrics(bpy.types.Panel):
 
     def draw(self, context):
         layout = self.layout
+        obj = context.active_object
+
         layout.operator("tissu.mark_as_fabric", text="Mark as Fabric", icon="ADD")
         layout.operator("tissu.unmark_as_fabric", text="Unmark as Fabric", icon="REMOVE")
+
+        if obj and obj.tissu_is_fabric:
+            box = layout.box()
+            box.prop(obj, "tissu_volume_preservation")
 
 
 class VIEW3D_PT_NewPattern(bpy.types.Panel):
@@ -214,6 +221,19 @@ class VIEW3D_PT_Remesh(bpy.types.Panel):
         layout.operator("tissu.remesh", text="Remesh", icon="MOD_REMESH")
 
 
+class VIEW3D_PT_Attachments(bpy.types.Panel):
+    bl_idname = "VIEW3D_PT_Attachments"
+    bl_label = "Attachments"
+    bl_space_type = "VIEW_3D"
+    bl_region_type = "UI"
+    bl_category = "Tissu"
+    bl_parent_id = "VIEW3D_PT_Pins"
+
+    def draw(self, context):
+        layout = self.layout
+        layout.operator("tissu.attach_to_collider", text="Attach to Collider", icon="CONSTRAINT")
+
+
 classes = [
     VIEW3D_PT_Simulation,
     VIEW3D_PT_Solver,
@@ -227,6 +247,7 @@ classes = [
     VIEW3D_PT_Remesh,
     VIEW3D_PT_Pins,
     VIEW3D_PT_Stitches,
+    VIEW3D_PT_Attachments,
 ]
 
 
