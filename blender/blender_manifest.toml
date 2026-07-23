@@ -1,0 +1,12 @@
+schema_version = "1.0.0"
+
+id = "tissu"
+version = "1.0.0"
+name = "tissu"
+tagline = "Another cloth simulation addon for Blender"
+maintainer = "Evan Miranda"
+type = "add-on"
+
+blender_version_min = "4.2.0"
+license = ["SPDX:Apache-2.0"]
+platforms = ["windows-x64", "linux-x64", "macos-arm64"]
