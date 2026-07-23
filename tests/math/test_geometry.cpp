@@ -37,3 +37,36 @@ TEST(GeometryTest, ClosestPointOnTriangle) {
     EXPECT_NEAR(closest4.y(), 1.0 / 3.0, 1e-9);
     EXPECT_NEAR(closest4.z(), 0.0, 1e-9);
 }
+
+TEST(GeometryTest, TriangleSegmentIntersection) {
+    const Eigen::Vector3d a(0, 0, 0);
+    const Eigen::Vector3d b(1, 0, 0);
+    const Eigen::Vector3d c(0, 1, 0);
+
+    // Segment intersecting the triangle
+    const Eigen::Vector3d p1(0.25, 0.25, -1);
+    const Eigen::Vector3d p2(0.25, 0.25, 1);
+    SegmentTriangleHit hit1 = intersectSegmentTriangle(p1, p2, a, b, c);
+    EXPECT_TRUE(hit1.hit);
+    EXPECT_NEAR(hit1.point.x(), 0.25, 1e-9);
+    EXPECT_NEAR(hit1.point.y(), 0.25, 1e-9);
+    EXPECT_NEAR(hit1.point.z(), 0.0, 1e-9);
+
+    // Vertex
+    const Eigen::Vector3d p3(1.0, 0.0, -1.0);
+    const Eigen::Vector3d p4(1.0, 0.0, 1.0);
+    SegmentTriangleHit hit2 = intersectSegmentTriangle(p3, p4, a, b, c);
+    EXPECT_TRUE(hit2.hit);
+
+    // Edge
+    const Eigen::Vector3d p5(0.0, 0.5, -1.0);
+    const Eigen::Vector3d p6(1.0, 0.0, 1.0);
+    SegmentTriangleHit hit3 = intersectSegmentTriangle(p5, p6, a, b, c);
+    EXPECT_TRUE(hit3.hit);
+
+    // Segment not intersecting the triangle
+    const Eigen::Vector3d p7(2.0, 2.0, -1);
+    const Eigen::Vector3d p8(2.0, 2.0, 1);
+    const SegmentTriangleHit hit4 = intersectSegmentTriangle(p7, p8, a, b, c);
+    EXPECT_FALSE(hit4.hit);
+}
