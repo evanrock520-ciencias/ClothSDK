@@ -73,3 +73,12 @@ ignore = ["N801", "N803", "N806"]
 [tool.ruff.format]
 quote-style = "double"
 indent-style = "space"
+
+[tool.pyright]
+venvPath = "."
+venv = ".venv"
+
+[dependency-groups]
+dev = [
+    "fake-bpy-module-latest>=20260722",
+]
