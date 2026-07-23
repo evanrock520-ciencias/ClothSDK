@@ -329,7 +329,7 @@ class TISSU_OT_MarkAsFabric(bpy.types.Operator):
                 has_triangulate = any(m.type == "TRIANGULATE" for m in obj.modifiers)
                 if not has_triangulate:
                     mod = obj.modifiers.new(name="Triangulate", type="TRIANGULATE")
-                    mod.quad_method = "BEAUTY"
+                    mod.quad_method = "FIXED"
 
                 print(f"{obj.name} marked as fabric.")
         return {"FINISHED"}
