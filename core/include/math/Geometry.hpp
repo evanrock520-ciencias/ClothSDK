@@ -1,6 +1,7 @@
 #pragma once
 
 #include "Eigen/Dense"
+#include "Functions.hpp"
 #include "Types.hpp"
 
 namespace Tissu {
@@ -11,6 +12,16 @@ struct SegmentTriangleHit {
     Eigen::Vector3d point;
     Eigen::Vector3d normal;
     double u = 0.0, v = 0.0, w = 0.0;
+};
+
+struct EdgeEdgeHit {
+    bool hit = false;
+    double distance = 0.0;
+    Eigen::Vector3d closestP; // Closest point in edge 1
+    Eigen::Vector3d closestQ; // Closest point in edge 2
+    Eigen::Vector3d normal;
+    double s = 0.0; // Parameter in edge 1
+    double t = 0.0; // Parameter in edge 2
 };
 
 inline Eigen::Vector3d closestPointOnTriangle(const Eigen::Vector3d& point,
@@ -106,6 +117,76 @@ intersectSegmentTriangle(const Eigen::Vector3d& oldPos,
     if (normal.dot(dir) > 0.0)
         normal = -normal;
     hit.normal = normal;
+    return hit;
+}
+
+inline EdgeEdgeHit closestPointsEdgeEdge(const Eigen::Vector3d& p1,
+                                         const Eigen::Vector3d& p2,
+                                         const Eigen::Vector3d& q1,
+                                         const Eigen::Vector3d& q2,
+                                         double thickness = 0.0) {
+    const Eigen::Vector3d dirEdge1 = p2 - p1;
+    const Eigen::Vector3d dirEdge2 = q2 - q1;
+    const Eigen::Vector3d r = p1 - q1;
+
+    const double a = dirEdge1.dot(dirEdge1);
+    const double e = dirEdge2.dot(dirEdge2);
+    const double f = dirEdge2.dot(r);
+    double s = 0.0;
+    double t = 0.0;
+
+    const double kEps = 1e-9;
+
+    if (a <= kEps && e <= kEps) {
+        s = 0.0;
+        t = 0.0;
+    } else if (a <= kEps) {
+        s = 0.0;
+        t = std::clamp(f / e, 0.0, 1.0);
+    } else {
+        const double c = dirEdge1.dot(r);
+        if (e <= kEps) {
+            t = 0.0;
+            s = std::clamp(-c / a, 0.0, 1.0);
+        } else {
+            const double b = dirEdge1.dot(dirEdge2);
+
+            if (const double det = a * e - b * b; det > kEps) {
+                s = std::clamp((b * f - c * e) / det, 0.0, 1.0);
+            } else {
+                s = 0.0;
+            }
+
+            t = (b * s + f) / e;
+
+            if (t < 0.0) {
+                t = 0.0;
+                s = std::clamp(-c / a, 0.0, 1.0);
+            } else if (t > 1.0) {
+                t = 1.0;
+                s = std::clamp((b - c) / a, 0.0, 1.0);
+            }
+        }
+    }
+
+    const Eigen::Vector3d closestP = lerp(p1, p2, s);
+    const Eigen::Vector3d closestQ = lerp(q1, q2, t);
+    const Eigen::Vector3d diff = closestP - closestQ;
+    const double dist = diff.norm();
+
+    EdgeEdgeHit hit;
+    hit.s = s;
+    hit.t = t;
+    hit.closestP = closestP;
+    hit.closestQ = closestQ;
+    hit.distance = dist;
+
+    if (dist > kEps)
+        hit.normal = diff / dist;
+    else
+        hit.normal = dirEdge1.cross(dirEdge2).normalized();
+
+    hit.hit = (dist <= thickness);
     return hit;
 }
 

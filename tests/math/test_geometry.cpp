@@ -70,3 +70,84 @@ TEST(GeometryTest, TriangleSegmentIntersection) {
     const SegmentTriangleHit hit4 = intersectSegmentTriangle(p7, p8, a, b, c);
     EXPECT_FALSE(hit4.hit);
 }
+
+TEST(GeometryTest, EdgeEdgeXShapeCross) {
+    // X shape
+    const Eigen::Vector3d p1(0, 1, 0);
+    const Eigen::Vector3d p2(1, 0, 0);
+    const Eigen::Vector3d p3(1, 1, 0);
+    const Eigen::Vector3d p4(0, 0, 0);
+
+    EdgeEdgeHit hit = closestPointsEdgeEdge(p1, p2, p3, p4, 0.0);
+    EXPECT_TRUE(hit.hit);
+    EXPECT_NEAR(hit.s, 0.5, 1e-9);
+    EXPECT_NEAR(hit.t, 0.5, 1e-9);
+    EXPECT_NEAR(hit.distance, 0.0, 1e-9);
+}
+
+TEST(GeometryTest, EdgeEdgeSegmentIsPoint) {
+    // Segment 2 is a point
+    const Eigen::Vector3d p5(0, 0, 0);
+    const Eigen::Vector3d p6(0, 1, 0);
+    const Eigen::Vector3d p7(1, 0, 0);
+
+    const EdgeEdgeHit hit2 = closestPointsEdgeEdge(p5, p6, p7, p7, 0.0);
+    EXPECT_FALSE(hit2.hit);
+    EXPECT_NEAR(hit2.distance, 1.0, 1e-9);
+
+    // Inside the first segment
+    const Eigen::Vector3d p8(0, 0.5, 0);
+    const EdgeEdgeHit hit3 = closestPointsEdgeEdge(p5, p6, p8, p8, 0.0);
+    EXPECT_TRUE(hit3.hit);
+    EXPECT_NEAR(hit3.distance, 0.0, 1e-9);
+}
+
+TEST(GeometryTest, EdgeEdgeParallelSegments) {
+    // Parallel Segments
+    const Eigen::Vector3d p8(0, 0, 0);
+    const Eigen::Vector3d p9(1, 0, 0);
+    const Eigen::Vector3d p10(0, 1, 0);
+    const Eigen::Vector3d p11(1, 1, 0);
+
+    const EdgeEdgeHit hit3 = closestPointsEdgeEdge(p8, p9, p10, p11, 0.0);
+    EXPECT_FALSE(hit3.hit);
+    EXPECT_NEAR(hit3.distance, 1.0, 1e-9);
+}
+
+TEST(GeometryTest, EdgeEdgeSkewLines3D) {
+    // Skew Lines
+    const Eigen::Vector3d p12(0, 0, 0);
+    const Eigen::Vector3d p13(1, 0, 0);
+    const Eigen::Vector3d p14(0, 0, 2);
+    const Eigen::Vector3d p15(1, 0, 2);
+
+    const EdgeEdgeHit hit4 = closestPointsEdgeEdge(p12, p13, p14, p15, 0.0);
+    EXPECT_FALSE(hit4.hit);
+    EXPECT_NEAR(hit4.distance, 2.0, 1e-9);
+}
+
+TEST(GeometryTest, EdgeEdgeThicknessMargin) {
+    const Eigen::Vector3d p1(0, 0, 0);
+    const Eigen::Vector3d p2(2, 0, 0);
+    const Eigen::Vector3d q1(1, 0.03, 0);
+    const Eigen::Vector3d q2(1, 2.0, 0);
+
+    const EdgeEdgeHit hitSmall = closestPointsEdgeEdge(p1, p2, q1, q2, 0.01);
+    EXPECT_FALSE(hitSmall.hit);
+
+    const EdgeEdgeHit hitLarge = closestPointsEdgeEdge(p1, p2, q1, q2, 0.05);
+    EXPECT_TRUE(hitLarge.hit);
+}
+
+TEST(GeometryTest, EdgeEdgeSharedVertex) {
+    // Both edges start at the same origin vertex (0, 0, 0)
+    const Eigen::Vector3d origin(0, 0, 0);
+    const Eigen::Vector3d p2(1, 0, 0);
+    const Eigen::Vector3d q2(0, 1, 0);
+
+    const EdgeEdgeHit hit = closestPointsEdgeEdge(origin, p2, origin, q2, 0.0);
+    EXPECT_NEAR(hit.s, 0.0, 1e-9);
+    EXPECT_NEAR(hit.t, 0.0, 1e-9);
+    EXPECT_NEAR(hit.distance, 0.0, 1e-9);
+    EXPECT_TRUE(hit.hit);
+}
