@@ -175,7 +175,7 @@ set_target_properties(_cloth_sdk_core PROPERTIES
 # Python stubs
 find_program(STUBGEN_EXECUTABLE stubgen)
 
-if (STUBGEN_EXECUTABLE)
+if (STUBGEN_EXECUTABLE AND NOT TISSU_BUILD_VIEWER)
     set(STUB_OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/_cloth_sdk_core.pyi)
 
     add_custom_command(
@@ -212,7 +212,7 @@ add_custom_command(
 )
 
 # Moving stubs 
-if (STUBGEN_EXECUTABLE)
+if (STUBGEN_EXECUTABLE AND NOT TISSU_BUILD_VIEWER)
     add_custom_command(
             TARGET _cloth_sdk_core_stubs POST_BUILD
             COMMAND ${CMAKE_COMMAND} -E copy
@@ -226,3 +226,4 @@ enable_testing()
 add_subdirectory(tests)
 
 add_subdirectory(benchmarks)
+add_subdirectory(examples/cpp)

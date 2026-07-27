@@ -70,6 +70,8 @@ public:
     getConstraints() const {
         return m_constraints;
     }
+    double getStaticFriction() const { return m_staticFriction; }
+    double getDynamicFriction() const { return m_dynamicFriction; }
 
     void addDistanceConstraint(int idA, int idB, double compliance);
     void addBendingConstraint(int idA, int idB, int idC, int idD,

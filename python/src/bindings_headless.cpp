@@ -296,7 +296,14 @@ PYBIND11_MODULE(_cloth_sdk_core, m) {
              py::arg("particle_id"))
         .def("soft_reset", &Solver::softReset)
         .def("set_collision_compliance", &Solver::setCollisionCompliance,
-             py::arg("compliance"));
+             py::arg("compliance"))
+        .def("get_collision_compliance", &Solver::getCollisionCompliance)
+        .def("set_static_friction", &Solver::setStaticFriction,
+             py::arg("friction"))
+        .def("get_static_friction", &Solver::getStaticFriction)
+        .def("set_dynamic_friction", &Solver::setDynamicFriction,
+             py::arg("friction"))
+        .def("get_dynamic_friction", &Solver::getDynamicFriction);
 
     py::class_<ClothMesh, std::shared_ptr<Tissu::ClothMesh>>(m, "ClothMesh")
         .def(py::init<>())
