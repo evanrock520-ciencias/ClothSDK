@@ -150,8 +150,21 @@ void Solver::addAttach(int id, std::shared_ptr<Collider> collider,
 }
 
 void Solver::addPin(int id, const Eigen::Vector3d& pos, double compliance) {
+    if (updatePin(id, pos)) {
+        return;
+    }
     m_transientPins.push_back(
         std::make_unique<PinConstraint>(id, pos, compliance));
+}
+
+bool Solver::updatePin(int id, const Eigen::Vector3d& pos) {
+    for (auto& pin : m_transientPins) {
+        if (pin->getParticleId() == id) {
+            pin->setPinPosition(pos);
+            return true;
+        }
+    }
+    return false;
 }
 
 void Solver::removePin(int id) {

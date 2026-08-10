@@ -80,6 +80,7 @@ public:
                                const std::vector<Particle>& particles,
                                double compliance);
     void addPin(int id, const Eigen::Vector3d& pos, double compliance = 0.0);
+    bool updatePin(int id, const Eigen::Vector3d& pos);
     void addStitch(int idA, int idB, double compliance);
     void addAttach(int id, std::shared_ptr<Collider> collider,
                    const Eigen::Vector3d& localAnchor, double compliance,

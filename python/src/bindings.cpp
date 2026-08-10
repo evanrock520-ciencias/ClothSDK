@@ -295,6 +295,8 @@ PYBIND11_MODULE(_cloth_sdk_core, m) {
              py::arg("triangles"), py::arg("particles"), py::arg("compliance"))
         .def("add_pin", &Solver::addPin, py::arg("particle_id"),
              py::arg("target_position"), py::arg("compliance") = 0.0)
+        .def("update_pin", &Solver::updatePin, py::arg("particle_id"),
+             py::arg("target_position"))
         .def("unpin", &Solver::removePin, py::arg("particle_id"))
         .def("add_stitch", &Solver::addStitch, py::arg("p1"), py::arg("p2"),
              py::arg("compliance"))

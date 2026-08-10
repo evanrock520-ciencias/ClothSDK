@@ -401,9 +401,7 @@ class Simulation:
         elif isinstance(material, Material):
             return material
         else:
-            raise TypeError(
-                f"Invalid material type: {type(material).__name__}. " f"Expected str, dict, Material or None."
-            )
+            raise TypeError(f"Invalid material type: {type(material).__name__}. Expected str, dict, Material or None.")
 
     def add_floor(self, name: str, height: float = 0.0, friction: float = 0.5):
         self.world.add_plane_collider([0.0, float(height), 0.0], [0.0, 1.0, 0.0], float(friction), name)
@@ -942,6 +940,17 @@ class Fabric:
         mask = pos[:, 1] <= (min_y + threshold)
         return np.where(mask)[0]
 
+    def move_pin(self, local_particle_id: int, new_position: list[float] | np.ndarray, compliance: float = 0.0):
+        if self._solver is None:
+            raise RuntimeError("Fabric must be added to a Simulation before moving pins.")
+
+        my_ids = self.instance.get_particle_indices()
+        global_id = my_ids[local_particle_id]
+        target_pos = np.array(new_position, dtype=np.float64)
+
+        if not self._solver.update_pin(int(global_id), target_pos):
+            self._solver.add_pin(int(global_id), target_pos, float(compliance))
+
     def pin_by_height(self, threshold: float = 0.01, compliance: float = 0.0):
         if self._solver is None:
             raise RuntimeError("Fabric must be added to a Simulation before pinning.")
@@ -1047,7 +1056,7 @@ class Material:
                     )
 
         if name not in cls._BUILTIN_PRESETS:
-            raise ValueError(f"Unknown preset: '{name}'. " f"Available: {list(cls._BUILTIN_PRESETS.keys())}")
+            raise ValueError(f"Unknown preset: '{name}'. Available: {list(cls._BUILTIN_PRESETS.keys())}")
 
         return cls(*cls._BUILTIN_PRESETS[name])
 
