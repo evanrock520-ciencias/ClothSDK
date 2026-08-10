@@ -28,13 +28,14 @@ add_library(ViewerCore STATIC
 
 target_link_libraries(ViewerCore 
     PUBLIC 
-        ClothCore 
+        TissuCore 
         imgui_lib 
         glad_gl
         glfw 
         OpenGL::GL 
         Threads::Threads
 )
+
 target_include_directories(ViewerCore PUBLIC 
     include
     ${CMAKE_BINARY_DIR}/gladsources/glad_gl/include
