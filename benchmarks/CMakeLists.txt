@@ -3,5 +3,5 @@ add_executable(tissu_benchmarks
 )
 
 target_link_libraries(tissu_benchmarks
-    PRIVATE ClothCore benchmark::benchmark
-)
+    PRIVATE TissuCore benchmark::benchmark
+)
