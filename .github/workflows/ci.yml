@@ -58,10 +58,12 @@ jobs:
             fetchcontent-${{ runner.os }}-
 
       - name: Build
-        run: python scripts/build.py --no-viewer
+        env:
+          CMAKE_BUILD_PARALLEL_LEVEL: 2
+        run: python scripts/build.py --no-viewer -j 2
 
       - name: Test
         run: python scripts/test.py
 
       - name: Build benchmarks
-        run: cmake --build build --target tissu_benchmarks --config Release -j 4
+        run: cmake --build build --target tissu_benchmarks --config Release -j 2

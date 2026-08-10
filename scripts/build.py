@@ -24,6 +24,13 @@ def main():
         action="store_true",
         help="Compile the project without viewer",
     )
+    parser.add_argument(
+        "-j",
+        "--jobs",
+        type=int,
+        default=None,
+        help="Number of parallel jobs for building (default: auto)",
+    )
 
     args = parser.parse_args()
 
@@ -70,8 +77,12 @@ def main():
             str(build_dir),
             "--config",
             "Release",
-            "--parallel",
         ]
+        if args.jobs is not None:
+            build_cmd.extend(["--parallel", str(args.jobs)])
+        else:
+            build_cmd.append("--parallel")
+
         run_command(build_cmd, cwd=root_dir)
         print()
 
