@@ -39,6 +39,13 @@ FetchContent_Declare(
 )
 
 FetchContent_Declare(
+        tracy
+        GIT_REPOSITORY https://github.com/wolfpld/tracy.git
+        GIT_TAG v0.14.0
+        GIT_SHALLOW TRUE
+)
+
+FetchContent_Declare(
         eigen
         GIT_REPOSITORY https://gitlab.com/libeigen/eigen.git
         GIT_TAG 3.4.0
@@ -95,7 +102,16 @@ set(USE_PYALEMBIC OFF CACHE BOOL "" FORCE)
 set(USE_BINARIES OFF CACHE BOOL "" FORCE)
 set(USE_EXAMPLES OFF CACHE BOOL "" FORCE)
 
-FetchContent_MakeAvailable(googletest eigen tinyobjloader json pybind11 googlebenchmark imath alembic)
+# Tracy configuration
+option(TISSU_ENABLE_TRACY "Enable Tracy Profiler" ON)
+if (TISSU_ENABLE_TRACY)
+    set(TRACY_ENABLE ON CACHE BOOL "" FORCE)
+else ()
+    set(TRACY_ENABLE OFF CACHE BOOL "" FORCE)
+endif ()
+
+
+FetchContent_MakeAvailable(googletest eigen tinyobjloader json pybind11 googlebenchmark imath alembic tracy)
 
 if (TARGET Imath)
     target_include_directories(Imath INTERFACE
@@ -161,11 +177,12 @@ endif ()
 # Python bindings library 
 if (TISSU_BUILD_VIEWER)
     pybind11_add_module(_cloth_sdk_core python/src/bindings.cpp)
-    target_link_libraries(_cloth_sdk_core PRIVATE ClothCore ViewerCore)
+    target_link_libraries(_cloth_sdk_core PRIVATE TissuCore ViewerCore)
 else ()
     pybind11_add_module(_cloth_sdk_core python/src/bindings_headless.cpp)
-    target_link_libraries(_cloth_sdk_core PRIVATE ClothCore)
+    target_link_libraries(_cloth_sdk_core PRIVATE TissuCore)
 endif ()
+
 
 set_target_properties(_cloth_sdk_core PROPERTIES
         LIBRARY_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/bin"
@@ -226,3 +243,6 @@ enable_testing()
 add_subdirectory(tests)
 
 add_subdirectory(benchmarks)
+
+add_subdirectory(examples)
+

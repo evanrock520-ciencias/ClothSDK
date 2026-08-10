@@ -17,6 +17,7 @@
 #pragma once
 
 #include <Eigen/Dense>
+#include <array>
 #include <memory>
 #include <unordered_set>
 #include <vector>
@@ -109,6 +110,7 @@ private:
     void predictPositions(double dt);
     void solveConstraints(double dt);
     void addAdjacency(int idA, int idB);
+    void buildCollisionColorBatches();
 
     std::vector<Particle> m_particles;
     std::vector<std::unique_ptr<Constraint>> m_constraints;
@@ -127,6 +129,7 @@ private:
     ConstraintGraph m_graph;
     std::vector<std::vector<int>> m_batches;
     bool m_graphBuilt;
+    std::array<std::vector<int>, 8> m_collisionColorBatches;
 
     int m_currentFrame = 0;
     double m_currentTime = 0.0;

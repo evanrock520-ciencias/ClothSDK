@@ -16,6 +16,7 @@
 
 #pragma once
 #include <Eigen/Dense>
+#include <array>
 #include <vector>
 
 namespace Tissu {
@@ -84,6 +85,30 @@ public:
                const Eigen::Vector3d& pos, double radius,
                std::vector<int>& outNeighbors) const;
 
+    /** @brief Per-cell metadata recorded during @ref build. */
+    struct CellInfo {
+        int hashSlot;
+        int gx, gy, gz;
+    };
+
+    /** @return All occupied cells discovered during the last @ref build. */
+    const std::vector<CellInfo>& getOccupiedCells() const {
+        return m_occupiedCells;
+    }
+
+    /** @brief Returns the particle index range for a given hash slot. */
+    inline void getCellParticles(int hashSlot, int& outStart,
+                                 int& outEnd) const {
+        outStart = m_cellStart[hashSlot];
+        outEnd = m_cellStart[hashSlot + 1];
+    }
+
+    /** @return Particle indices sorted by hash slot (built during @ref build).
+     */
+    const std::vector<int>& getParticleIndices() const {
+        return m_particleIndices;
+    }
+
     /**
      * @brief Updates the grid cell size.
      *
@@ -92,7 +117,10 @@ public:
      *
      * @param h New cell side length in world units.
      */
-    void setCellSize(double h) { m_cellSize = h; }
+    void setCellSize(double h) {
+        m_cellSize = h;
+        m_invCellSize = (h > 1e-12) ? (1.0 / h) : 1.0;
+    }
 
     /** @return Current grid cell side length in world units. */
     double getCellSize() const { return m_cellSize; }
@@ -114,7 +142,7 @@ private:
         unsigned int h = (static_cast<unsigned int>(x) * 73856093) ^
                          (static_cast<unsigned int>(y) * 19349663) ^
                          (static_cast<unsigned int>(z) * 83492791);
-        return static_cast<int>(h % m_tableSize);
+        return static_cast<int>(h & m_tableMask);
     }
 
     /**
@@ -127,13 +155,16 @@ private:
      */
     inline void posToGrid(const Eigen::Vector3d& pos, int& gx, int& gy,
                           int& gz) const {
-        gx = static_cast<int>(std::floor(pos.x() / m_cellSize));
-        gy = static_cast<int>(std::floor(pos.y() / m_cellSize));
-        gz = static_cast<int>(std::floor(pos.z() / m_cellSize));
+        gx = static_cast<int>(std::floor(pos.x() * m_invCellSize));
+        gy = static_cast<int>(std::floor(pos.y() * m_invCellSize));
+        gz = static_cast<int>(std::floor(pos.z() * m_invCellSize));
     }
 
-    int m_tableSize;   ///< Number of slots in the hash table.
-    double m_cellSize; ///< Side length of each grid cell in world units.
+    int m_tableSize; ///< Number of slots in the hash table (power of 2).
+    unsigned int
+        m_tableMask;      ///< Bitwise mask for fast modulo (m_tableSize - 1).
+    double m_cellSize;    ///< Side length of each grid cell in world units.
+    double m_invCellSize; ///< Inverse cell size (1.0 / m_cellSize).
     std::vector<int>
         m_cellStart; ///< Prefix-sum array mapping each hash slot to
                      ///< its first entry in @ref m_particleIndices.
@@ -143,6 +174,8 @@ private:
                                        ///< indexed by particle ID.
     std::vector<int>
         m_cellOffset; ///< Reused offset vector to avoid allocations.
+    std::vector<CellInfo>
+        m_occupiedCells; ///< Occupied cells from the last @ref build.
 };
 
 } // namespace Tissu

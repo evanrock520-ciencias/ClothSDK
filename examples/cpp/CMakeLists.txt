@@ -1,0 +1,2 @@
+add_executable(01_quickstart 01_quickstart.cpp)
+target_link_libraries(01_quickstart PRIVATE TissuCore)

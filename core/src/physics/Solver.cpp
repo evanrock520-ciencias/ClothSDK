@@ -19,6 +19,7 @@
 #include "physics/PinConstraint.hpp"
 #include "physics/StitchConstraint.hpp"
 #include "physics/VolumeConstraint.hpp"
+#include <tracy/Tracy.hpp>
 
 namespace Tissu {
 Solver::Solver()
@@ -31,6 +32,7 @@ Solver::Solver()
       m_graphBuilt(false) {}
 
 void Solver::update(World& world, double deltaTime) {
+    ZoneScopedN("Solver Update");
     if (m_particles.empty())
         return;
 
@@ -52,6 +54,7 @@ void Solver::update(World& world, double deltaTime) {
 }
 
 void Solver::step(World& world, double dt) {
+    ZoneScopedN("Solver Step");
     applyForces(world, dt);
 
     predictPositions(dt);
@@ -72,6 +75,7 @@ void Solver::step(World& world, double dt) {
 }
 
 void Solver::predictPositions(double dt) {
+    ZoneScopedN("Predict Positions");
     const int size = static_cast<int>(m_particles.size());
 #pragma omp parallel for
     for (int i = 0; i < size; ++i) {
@@ -229,6 +233,7 @@ void Solver::addMassToParticle(int id, double mass) {
 }
 
 void Solver::solveConstraints(double dt) {
+    ZoneScopedN("Solve Constraints");
     if (m_batches.empty()) {
         for (const auto& constraint : m_constraints)
             constraint->solve(m_particles, dt);
@@ -251,27 +256,68 @@ void Solver::solveConstraints(double dt) {
     }
 }
 
+void Solver::buildCollisionColorBatches() {
+    for (auto& batch : m_collisionColorBatches)
+        batch.clear();
+
+    for (const auto& cell : m_spatialHash.getOccupiedCells()) {
+        // 2x2x2 parity coloring — handle negative coordinates
+        int cx = ((cell.gx % 2) + 2) % 2;
+        int cy = ((cell.gy % 2) + 2) % 2;
+        int cz = ((cell.gz % 2) + 2) % 2;
+        int color = cx + cy * 2 + cz * 4;
+        m_collisionColorBatches[color].push_back(cell.hashSlot);
+    }
+}
+
 void Solver::solveSelfCollisions(double dt, double thickness) {
-    for (int i = 0; i < static_cast<int>(m_particles.size()); ++i) {
-        Particle& pA = m_particles[i];
-        double wA = pA.getInverseMass();
-        if (wA == 0.0)
+    ZoneScopedN("Solve Self Collisions");
+
+    buildCollisionColorBatches();
+
+    const auto& particleIndices = m_spatialHash.getParticleIndices();
+
+    // Process each color sequentially — cells within the same color in parallel
+    for (int color = 0; color < 8; ++color) {
+        const auto& batch = m_collisionColorBatches[color];
+        const int batchSize = static_cast<int>(batch.size());
+        if (batchSize == 0)
             continue;
 
-        m_spatialHash.query(m_particles, pA.getPosition(), thickness,
-                            m_neighborsBuffer);
+#pragma omp parallel for schedule(dynamic, 4)
+        for (int c = 0; c < batchSize; ++c) {
+            const int hashSlot = batch[c];
+            int cellStart, cellEnd;
+            m_spatialHash.getCellParticles(hashSlot, cellStart, cellEnd);
 
-        for (int j : m_neighborsBuffer) {
-            if (i >= j)
-                continue;
+            // Thread-local neighbor buffer
+            std::vector<int> localNeighbors;
 
-            if (const auto& neighbors = m_adjList[i];
-                std::binary_search(neighbors.begin(), neighbors.end(), j))
-                continue;
+            for (int pi = cellStart; pi < cellEnd; ++pi) {
+                const int i = particleIndices[pi];
+                Particle& pA = m_particles[i];
 
-            ContactConstraint contact(i, j, thickness, m_collisionCompliance,
-                                      m_staticFriction, m_dynamicFriction);
-            contact.solve(m_particles, dt);
+                if (pA.getInverseMass() == 0.0)
+                    continue;
+
+                m_spatialHash.query(m_particles, pA.getPosition(), thickness,
+                                    localNeighbors);
+
+                for (int j : localNeighbors) {
+                    if (i >= j)
+                        continue;
+
+                    if (const auto& neighbors = m_adjList[i];
+                        std::binary_search(neighbors.begin(), neighbors.end(),
+                                           j))
+                        continue;
+
+                    ContactConstraint contact(
+                        i, j, thickness, m_collisionCompliance,
+                        m_staticFriction, m_dynamicFriction);
+                    contact.solve(m_particles, dt);
+                }
+            }
         }
     }
 }

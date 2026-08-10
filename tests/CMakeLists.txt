@@ -5,6 +5,7 @@ add_executable(unit_tests
     physics/test_volume_constraint.cpp
     physics/test_stitch_constraint.cpp
     physics/test_constraint_graph.cpp
+    physics/test_cloth.cpp
     data-structures/test_spatial_hash.cpp
     data-structures/test_bvh.cpp
     physics/test_plane_collider.cpp
@@ -21,17 +22,18 @@ add_executable(integration
 
 target_link_libraries(unit_tests 
     PRIVATE 
-        ClothCore
+        TissuCore
         GTest::gtest_main 
         Eigen3::Eigen
 )
 
 target_link_libraries(integration
     PRIVATE 
-        ClothCore
+        TissuCore
         GTest::gtest_main 
         Eigen3::Eigen
 )
+
 
 include(GoogleTest)
 gtest_discover_tests(unit_tests)

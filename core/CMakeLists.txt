@@ -40,23 +40,30 @@ if(NOT TARGET Imath::Imath)
     find_package(Imath REQUIRED)
 endif()
 
-add_library(ClothCore STATIC ${CORE_SOURCES})
+add_library(TissuCore STATIC ${CORE_SOURCES})
 
 if(MSVC)
-    target_compile_options(ClothCore PRIVATE /openmp)
+    target_compile_options(TissuCore PRIVATE /openmp)
 endif()
 
-target_link_libraries(ClothCore PUBLIC Eigen3::Eigen)
-target_link_libraries(ClothCore PUBLIC tinyobjloader)
-target_link_libraries(ClothCore PUBLIC nlohmann_json::nlohmann_json)
-target_link_libraries(ClothCore PUBLIC OpenMP::OpenMP_CXX)
-target_link_libraries(ClothCore PUBLIC 
+target_link_libraries(TissuCore PUBLIC Eigen3::Eigen)
+target_link_libraries(TissuCore PUBLIC tinyobjloader)
+target_link_libraries(TissuCore PUBLIC nlohmann_json::nlohmann_json)
+target_link_libraries(TissuCore PUBLIC OpenMP::OpenMP_CXX)
+target_link_libraries(TissuCore PUBLIC 
     Alembic::Alembic 
     Imath::Imath
 )
 
+if (TARGET TracyClient)
+    target_link_libraries(TissuCore PUBLIC TracyClient)
+elseif (TARGET Tracy::TracyClient)
+    target_link_libraries(TissuCore PUBLIC Tracy::TracyClient)
+endif ()
 
-target_include_directories(ClothCore PUBLIC 
+
+
+target_include_directories(TissuCore PUBLIC 
     $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
     $<INSTALL_INTERFACE:include>
-)
+)

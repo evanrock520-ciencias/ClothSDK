@@ -8,6 +8,7 @@
 #include <Alembic/AbcGeom/All.h>
 
 #include "utils/Logger.hpp"
+#include <tracy/Tracy.hpp>
 
 namespace Tissu {
 
@@ -115,6 +116,7 @@ bool AlembicExporter::open(
 
 void AlembicExporter::writeFrame(
     const std::vector<Eigen::Vector3d>& global_positions, double time) {
+    ZoneScopedN("Alembic Write Frame");
     for (size_t i = 0; i < m_impl->meshes.size(); ++i) {
         auto& em = m_impl->meshes[i];
 
