@@ -25,6 +25,11 @@ def main():
         help="Compile the project without viewer",
     )
     parser.add_argument(
+        "--no-tracy",
+        action="store_true",
+        help="Compile the project without Tracy profiler",
+    )
+    parser.add_argument(
         "-j",
         "--jobs",
         type=int,
@@ -64,6 +69,8 @@ def main():
         # Viewer not available
         if args.no_viewer:
             cmake_cmd.append("-DTISSU_BUILD_VIEWER=OFF")
+        if args.no_tracy:
+            cmake_cmd.append("-DTISSU_ENABLE_TRACY=OFF")
 
         run_command(cmake_cmd, cwd=root_dir)
         print()

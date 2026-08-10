@@ -60,7 +60,7 @@ jobs:
       - name: Build
         env:
           CMAKE_BUILD_PARALLEL_LEVEL: 2
-        run: python scripts/build.py --no-viewer -j 2
+        run: python scripts/build.py --no-viewer --no-tracy -j 2
 
       - name: Test
         run: python scripts/test.py
