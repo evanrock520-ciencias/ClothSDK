@@ -25,6 +25,7 @@ venv/
 .venv/
 
 *.ini 
+*.duckdb
 
 data/cache/*
 !data/cache/.gitkeep
@@ -42,3 +43,5 @@ pyrightconfig.json
 data/states/*.tissu
 dist/
 docs/notes/
+benchmarks/storage/json/
+

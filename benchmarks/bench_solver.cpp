@@ -45,8 +45,7 @@ static void BM_Solver(benchmark::State& state) {
 BENCHMARK(BM_Solver)
     ->Unit(benchmark::kMillisecond)
     ->Iterations(10)
-    ->Arg(25)
-    ->Arg(50)
-    ->Arg(100)
-    ->Arg(200);
+    ->Arg(10)
+    ->Arg(25);
+
 BENCHMARK_MAIN();
