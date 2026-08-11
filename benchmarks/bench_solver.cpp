@@ -46,6 +46,10 @@ BENCHMARK(BM_Solver)
     ->Unit(benchmark::kMillisecond)
     ->Iterations(10)
     ->Arg(10)
-    ->Arg(25);
+    ->Arg(25)
+    ->Arg(50)
+    ->Arg(75)
+    ->Arg(85)
+    ->Arg(100);
 
 BENCHMARK_MAIN();
