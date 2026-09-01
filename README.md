@@ -1,12 +1,13 @@
-# Tissu
+<div align="center">
 
-![Language](https://img.shields.io/badge/C++-00599C?style=flat-square&logo=C%2B%2B&logoColor=white)
-![Language](https://img.shields.io/badge/-Python-3776AB?style=flat-square&logo=python&logoColor=white)
 ![License](https://img.shields.io/badge/License-Apache%202.0-orange.svg)
 ![Physics](https://img.shields.io/badge/Physics-XPBD-green.svg)
-![Platform](https://img.shields.io/badge/Platform-Linux-lightgrey)
 [![CI](https://github.com/evanrock520-ciencias/Tissu/actions/workflows/ci.yml/badge.svg)](https://github.com/evanrock520-ciencias/Tissu/actions/workflows/ci.yml)
 [![Release](https://github.com/evanrock520-ciencias/Tissu/actions/workflows/release.yml/badge.svg?event=release)](https://github.com/evanrock520-ciencias/Tissu/actions/workflows/release.yml)
+
+</div>
+
+# Tissu
 
 **Tissu** is a C++ cloth simulation SDK designed to integrate seamlessly into Digital Content Creation (DCC) tools such
 as Blender. It was developed to make high-fidelity cloth simulation as accessible as possible for technical artists and
@@ -36,29 +37,29 @@ with the simplicity of Python and the velocity of C++.
 Tissu includes the following features:
 
 - **IO**
-    - Alembic exportation (`.abc`)
-    - Wavefront `.obj` importation and exportation
-    - State serialization (`.tissu`)
-    - Scene loader and exporter (`.json`)
-    - Material presets loader (`.json`)
+  - Alembic exportation (`.abc`)
+  - Wavefront `.obj` importation and exportation
+  - State serialization (`.tissu`)
+  - Scene loader and exporter (`.json`)
+  - Material presets loader (`.json`)
 
 - **Physics (XPBD Solver)**
-    - Distance constraint
-    - Bending constraint
-    - Volume constraint
-    - Pin constraint
-    - Stitch Constraint
-    - Broad-phase collision detection via Spatial Hash
-    - Sphere, capsule and plane colliders
-    - Mesh colliders
-    - Kinematic Colliders
-    - Self-collision detection
-    - Gravity force
-    - Aerodynamic force
+  - Distance constraint
+  - Bending constraint
+  - Volume constraint
+  - Pin constraint
+  - Stitch Constraint
+  - Broad-phase collision detection via Spatial Hash
+  - Sphere, capsule and plane colliders
+  - Mesh colliders
+  - Kinematic Colliders
+  - Self-collision detection
+  - Gravity force
+  - Aerodynamic force
 
 - **Python API**
-    - Full simulation scripting via `tissu` Python package
-    - Event scheduling
+  - Full simulation scripting via `tissu` Python package
+  - Event scheduling
 
 ### Coming Soon
 
@@ -270,4 +271,3 @@ This project is licensed under the Apache 2.0 License - see the [LICENSE](LICENS
 ## Gallery
 
 ![On Sphere](docs/assets/videos/blender/demo_blender_on_sphere.gif)
-
