@@ -1,9 +1,9 @@
 <div align="center">
 
-![License](https://img.shields.io/badge/License-Apache%202.0-orange.svg)
-![Physics](https://img.shields.io/badge/Physics-XPBD-green.svg)
 [![CI](https://github.com/evanrock520-ciencias/Tissu/actions/workflows/ci.yml/badge.svg)](https://github.com/evanrock520-ciencias/Tissu/actions/workflows/ci.yml)
 [![Release](https://github.com/evanrock520-ciencias/Tissu/actions/workflows/release.yml/badge.svg?event=release)](https://github.com/evanrock520-ciencias/Tissu/actions/workflows/release.yml)
+[![PyPI version](https://img.shields.io/pypi/v/pytissu.svg)](https://pypi.org/project/pytissu/)
+![Blender](https://img.shields.io/badge/-Blender-333333?style=flat&logo=blender)
 
 </div>
 
