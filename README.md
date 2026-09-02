@@ -205,6 +205,15 @@ If the build includes the **standalone viewer** (`TISSU_BUILD_VIEWER=ON`), the f
 
 ## Build and Installation
 
+### PyPI Version
+
+A precompiled library (without viewer) is available on **PyPI**.
+
+```bash
+pip install pytissu
+```
+
+
 ### 1. Clone Repository
 
 Cloning the repository is as simple as
